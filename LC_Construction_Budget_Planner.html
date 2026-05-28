@@ -101,6 +101,11 @@
     margin-top: 2px;
   }
 
+  .header-right {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+
   .header-badge {
     background: rgba(217,119,6,0.15);
     border: 1px solid rgba(217,119,6,0.35);
@@ -118,6 +123,39 @@
     border-radius: 50%;
     box-shadow: 0 0 8px var(--amber-light);
   }
+
+  .download-btn {
+    background: var(--amber);
+    color: var(--white);
+    border: 1px solid var(--amber);
+    border-radius: 12px;
+    padding: 11px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(217,119,6,0.30);
+  }
+  .download-btn:hover {
+    background: var(--amber-light);
+    border-color: var(--amber-light);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+  }
+  .download-btn:active { transform: translateY(0); }
+  .download-btn svg {
+    width: 16px; height: 16px;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .print-only { display: none; }
 
   /* ── HERO ── */
   .hero {
@@ -775,11 +813,323 @@
     .money-input { font-size: 20px; }
   }
 
-  /* Print */
+  /* ── PRINT — designed to actually look good on paper / saved PDF ── */
   @media print {
-    body { background: white; color: black; }
-    .control-panel { box-shadow: none; }
-    .reset-btn { display: none; }
+    @page { size: letter; margin: 0.45in; }
+
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      animation: none !important;
+      transition: none !important;
+    }
+
+    html, body {
+      background: white !important;
+      color: var(--navy) !important;
+      font-family: 'DM Sans', sans-serif !important;
+      font-size: 9.5pt !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Reveal all faded-in content unconditionally */
+    .reveal { opacity: 1 !important; transform: none !important; }
+
+    /* Print-only / screen-only swap */
+    .print-only { display: block !important; }
+    .screen-only { display: none !important; }
+
+    /* Hide interactive chrome that has no meaning on paper */
+    .download-btn,
+    .reset-btn,
+    .reset-row,
+    input[type="range"],
+    .slider-wrap,
+    .slider-ticks,
+    .hint { display: none !important; }
+
+    /* HEADER */
+    header {
+      background: white !important;
+      border-bottom: 1.5pt solid var(--amber) !important;
+      padding: 0 0 10pt !important;
+      page-break-after: avoid;
+    }
+    header::before { display: none !important; }
+    .header-inner {
+      max-width: 100% !important;
+      padding-bottom: 8pt !important;
+    }
+    .logo-box {
+      width: 36pt !important; height: 36pt !important;
+      font-size: 17pt !important;
+      box-shadow: none !important;
+    }
+    .logo-name { color: var(--navy) !important; font-size: 14pt !important; }
+    .logo-sub { color: var(--amber) !important; font-size: 8pt !important; letter-spacing: 1.5pt !important; }
+    .header-badge {
+      background: transparent !important;
+      border: 1pt solid var(--amber) !important;
+      color: var(--amber) !important;
+      padding: 3pt 10pt !important;
+      font-size: 7.5pt !important;
+    }
+    .header-badge::before { display: none !important; }
+    .print-meta {
+      font-size: 8pt;
+      color: #555 !important;
+      margin-top: 6pt;
+      letter-spacing: 0.4pt;
+    }
+
+    /* HERO */
+    .hero {
+      padding: 14pt 0 6pt !important;
+      max-width: 100% !important;
+      page-break-after: avoid;
+    }
+    .hero h1 {
+      font-size: 19pt !important;
+      color: var(--navy) !important;
+      line-height: 1.1 !important;
+      max-width: 100% !important;
+    }
+    .hero h1 em { color: var(--amber) !important; }
+    .hero p.lead {
+      color: #555 !important;
+      font-size: 10pt !important;
+      margin-top: 6pt !important;
+      max-width: 100% !important;
+    }
+    .eyebrow { display: none !important; }
+
+    main {
+      max-width: 100% !important;
+      padding: 0 !important;
+    }
+
+    /* PROGRESS CARD */
+    .progress-card {
+      background: white !important;
+      border: 1pt solid #ccc !important;
+      color: var(--navy) !important;
+      padding: 10pt !important;
+      margin-bottom: 10pt !important;
+      page-break-inside: avoid;
+      gap: 14pt !important;
+    }
+    .progress-eyebrow { color: var(--amber) !important; font-size: 7.5pt !important; }
+    .progress-headline {
+      color: var(--navy) !important;
+      font-size: 13pt !important;
+      margin-bottom: 6pt !important;
+    }
+    .progress-headline em { color: var(--amber) !important; }
+    .progress-bar-wrap {
+      height: 7pt !important;
+      background: #eee !important;
+      margin-bottom: 5pt !important;
+    }
+    .progress-meta { color: #555 !important; font-size: 8.5pt !important; }
+    .progress-meta .lhs { color: var(--navy) !important; }
+    .progress-meta .lhs strong { color: var(--green) !important; }
+    .progress-meta .lhs strong.over { color: var(--red) !important; }
+    .progress-pct {
+      font-size: 22pt !important;
+      color: var(--green) !important;
+    }
+    .progress-pct.warning { color: var(--amber) !important; }
+    .progress-pct.over { color: var(--red) !important; }
+    .progress-stats .sub { color: #777 !important; font-size: 8pt !important; }
+
+    /* CONTROL PANEL */
+    .control-panel {
+      background: white !important;
+      border: 1pt solid #ccc !important;
+      box-shadow: none !important;
+      padding: 10pt !important;
+      margin-bottom: 10pt !important;
+      page-break-inside: avoid;
+    }
+    .controls-row {
+      grid-template-columns: 1fr 1fr 1fr !important;
+      gap: 14pt !important;
+    }
+    .control-cell + .control-cell {
+      border-color: #e0e0e0 !important;
+      padding-left: 14pt !important;
+    }
+    .control-label { color: var(--amber) !important; font-size: 7.5pt !important; }
+    .control-title { color: var(--navy) !important; font-size: 10pt !important; }
+    .money-input-wrap { padding: 0 !important; }
+    .money-prefix {
+      position: static !important;
+      transform: none !important;
+      color: var(--amber) !important;
+      font-size: 14pt !important;
+      margin-right: 3pt;
+      display: inline;
+    }
+    .money-input {
+      background: transparent !important;
+      border: none !important;
+      color: var(--navy) !important;
+      padding: 0 !important;
+      font-size: 16pt !important;
+      font-weight: 600 !important;
+      display: inline !important;
+      width: auto !important;
+    }
+    .money-input.total { color: var(--green) !important; }
+    .money-input-wrap.total .money-prefix,
+    .money-input.total + .money-prefix { color: var(--green) !important; }
+    .oop-display .num {
+      font-size: 22pt !important;
+      color: var(--amber) !important;
+    }
+    .oop-display .pct { color: var(--amber) !important; }
+
+    /* SUMMARY STRIP */
+    .summary-strip {
+      grid-template-columns: repeat(5, 1fr) !important;
+      gap: 8pt !important;
+      padding-top: 10pt !important;
+      margin-top: 10pt !important;
+      border-color: #e0e0e0 !important;
+    }
+    .summary-cell {
+      padding: 6pt 7pt !important;
+      border: 1pt solid transparent !important;
+    }
+    .summary-cell.tint-under {
+      background: #ecfdf5 !important;
+      border-color: #6ee7b7 !important;
+    }
+    .summary-cell.tint-warn {
+      background: #fffbeb !important;
+      border-color: #fcd34d !important;
+    }
+    .summary-cell.tint-over {
+      background: #fef2f2 !important;
+      border-color: #fca5a5 !important;
+    }
+    .summary-cell .lab {
+      color: #666 !important;
+      font-size: 7pt !important;
+      letter-spacing: 0.8pt !important;
+    }
+    .summary-cell .val {
+      color: var(--navy) !important;
+      font-size: 11pt !important;
+    }
+    .summary-cell .val.under { color: var(--green) !important; }
+    .summary-cell .val.warn { color: var(--amber) !important; }
+    .summary-cell .val.over-critical { color: var(--red) !important; font-weight: 700 !important; }
+    .summary-cell .val.paid { color: var(--green) !important; }
+    .summary-cell .val.remaining { color: var(--amber) !important; }
+    .summary-cell .delta-pct { color: #888 !important; font-size: 7.5pt !important; }
+
+    /* LINE ITEMS TABLE */
+    .table-card {
+      background: white !important;
+      border: 1pt solid #ccc !important;
+    }
+    .table-head-row {
+      display: grid !important;
+      grid-template-columns: 26pt 1fr 50pt 70pt 56pt 70pt 56pt !important;
+      gap: 6pt !important;
+      background: #f5f3ef !important;
+      color: var(--amber) !important;
+      border-bottom: 1pt solid #ddd !important;
+      padding: 5pt 8pt !important;
+      font-size: 7pt !important;
+      letter-spacing: 1.2pt !important;
+    }
+    .table-head-row .col-actualpct,
+    .table-head-row .col-paid { color: var(--green) !important; }
+
+    .category-row {
+      padding: 6pt 8pt 2pt !important;
+      border-color: #e5e5e5 !important;
+      page-break-inside: avoid;
+      page-break-after: avoid;
+    }
+    .category-row .cat-bar { background: var(--amber) !important; }
+    .category-row .cat-name { color: var(--amber) !important; font-size: 8pt !important; }
+    .category-row .cat-totals { color: #555 !important; font-size: 8pt !important; }
+    .category-row .cat-totals strong { color: var(--navy) !important; }
+    .category-row .cat-totals .paid-cat strong { color: var(--green) !important; }
+
+    .line-row {
+      display: grid !important;
+      grid-template-columns: 26pt 1fr 50pt 70pt 56pt 70pt 56pt !important;
+      gap: 6pt !important;
+      padding: 3pt 8pt !important;
+      border-top: 0.5pt solid #f0f0f0 !important;
+      font-size: 9pt !important;
+      page-break-inside: avoid;
+    }
+    .line-row:hover { background: transparent !important; }
+    .line-row .col-id { color: #999 !important; font-size: 8pt !important; }
+    .line-row .col-name { color: var(--navy) !important; font-size: 9pt !important; }
+
+    /* Inputs in rows → render as static-looking text */
+    .input-cell { justify-content: flex-end !important; }
+    .cell-input {
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      color: var(--navy) !important;
+      padding: 1pt 4pt !important;
+      font-size: 9pt !important;
+      font-weight: 500 !important;
+    }
+    .cell-prefix {
+      position: static !important;
+      transform: none !important;
+      color: var(--navy) !important;
+      font-size: 8.5pt !important;
+      margin-right: 1pt;
+    }
+    .cell-suffix {
+      position: static !important;
+      transform: none !important;
+      color: var(--navy) !important;
+      font-size: 8.5pt !important;
+      margin-left: 1pt;
+    }
+    .col-paid .cell-prefix,
+    .cell-input.paid-input { color: var(--green) !important; }
+    .cell-input.paid-input.empty { color: #ccc !important; }
+
+    .col-paid .input-cell,
+    .col-budget .input-cell { padding-left: 4pt !important; }
+    .cell-input.dollar-input,
+    .cell-input.paid-input { padding-left: 0 !important; }
+    .cell-input.pct-input { padding-right: 0 !important; }
+
+    .line-actualpct {
+      color: var(--green) !important;
+      font-size: 9pt !important;
+      padding-right: 4pt !important;
+    }
+    .line-actualpct.empty { color: #bbb !important; }
+
+    .line-overage { font-size: 8.5pt !important; }
+    .line-overage.over { color: var(--amber) !important; font-weight: 600 !important; }
+    .line-overage.under { color: var(--green) !important; }
+    .line-overage.at { color: var(--navy) !important; }
+
+    /* FOOTER */
+    footer {
+      margin-top: 12pt !important;
+      padding-top: 8pt !important;
+      border-top: 1pt solid #ddd !important;
+      color: #666 !important;
+      font-size: 7.5pt !important;
+      line-height: 1.4 !important;
+      page-break-inside: avoid;
+    }
+    footer strong { color: var(--amber) !important; }
   }
 </style>
 </head>
@@ -794,7 +1144,18 @@
         <div class="logo-sub">Construction Budget Planner</div>
       </div>
     </div>
-    <div class="header-badge">Draw Schedule · Track Actuals</div>
+    <div class="header-right">
+      <div class="header-badge">Draw Schedule · Track Actuals</div>
+      <button class="download-btn" type="button" id="download-pdf-btn" aria-label="Download as PDF">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/>
+        </svg>
+        Download PDF
+      </button>
+    </div>
+  </div>
+  <div class="print-only print-meta">
+    Generated <span id="print-date-val"></span> · LC General Contracting &amp; Remodeling · Construction Budget &amp; Draw Schedule
   </div>
 </header>
 
@@ -1467,6 +1828,26 @@ function recalcDerived(opts) {
     progressFillEl.classList.add('warning');
     progressPctEl.classList.add('warning');
   }
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  PRINT / PDF
+// ──────────────────────────────────────────────────────────────────
+const downloadBtn = document.getElementById('download-pdf-btn');
+const printDateEl = document.getElementById('print-date-val');
+function setPrintDate() {
+  if (!printDateEl) return;
+  const now = new Date();
+  printDateEl.textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) +
+    ' at ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+setPrintDate();
+window.addEventListener('beforeprint', setPrintDate);
+if (downloadBtn) {
+  downloadBtn.addEventListener('click', () => {
+    setPrintDate();
+    window.print();
+  });
 }
 
 // ──────────────────────────────────────────────────────────────────
