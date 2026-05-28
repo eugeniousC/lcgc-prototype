@@ -1252,7 +1252,7 @@ budgetInput.addEventListener('focus', e => e.target.select());
 
 totalInput.addEventListener('input', onTotalInput);
 totalInput.addEventListener('blur', () => {
-  const adjusted = sumLineDollars();
+  const adjusted = sumLineEffective();
   const total = adjusted * (1 + state.oop / 100);
   totalInput.value = formatMoneyPlain(total);
 });
@@ -1282,6 +1282,13 @@ function sumLineDollars() {
 }
 function sumLinePaid() {
   return Object.values(state.linePaid).reduce((a, b) => a + b, 0);
+}
+// Effective per-line: paid (reality) where it exists, planned where it doesn't.
+// Drives Adjusted Build Budget + Total Project Budget so totals track real spend.
+function sumLineEffective() {
+  return PHASES.reduce((sum, p) => {
+    return sum + (state.linePaid[p.id] > 0 ? state.linePaid[p.id] : state.lineDollars[p.id]);
+  }, 0);
 }
 
 function onBudgetInput(e) {
@@ -1358,7 +1365,7 @@ function onTotalInput(e) {
 // ──────────────────────────────────────────────────────────────────
 function recalcDerived(opts) {
   opts = opts || {};
-  const adjusted = sumLineDollars();
+  const adjusted = sumLineEffective();
   const overage = adjusted - state.baseBudget;
   const overagePctVal = state.baseBudget > 0 ? (overage / state.baseBudget) * 100 : 0;
   const oopDollars = adjusted * state.oop / 100;
@@ -1480,7 +1487,7 @@ document.querySelectorAll('.reveal').forEach(el => io.observe(el));
   console.log('[LCGC] default %% sum =', defaultsSum.toFixed(1), defaultsSum === 100 ? 'OK' : 'WARNING');
   console.log('[LCGC] phases loaded =', PHASES.length);
   console.log('[LCGC] base=' + state.baseBudget + ', oop=' + state.oop +
-              ', adjusted=' + sumLineDollars() + ', total=' + (sumLineDollars() * (1 + state.oop/100)));
+              ', adjusted=' + sumLineEffective() + ', total=' + (sumLineEffective() * (1 + state.oop/100)));
 })();
 </script>
 
