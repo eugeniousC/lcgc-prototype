@@ -813,6 +813,272 @@
     .money-input { font-size: 20px; }
   }
 
+  /* ── QUICKSTART PANEL (sqft × $/sqft → drives everything) ── */
+  .quickstart-panel {
+    background: linear-gradient(135deg, rgba(217,119,6,0.10) 0%, rgba(217,119,6,0.03) 100%);
+    border: 1px solid rgba(217,119,6,0.32);
+    border-radius: 20px;
+    padding: 24px 28px;
+    margin-bottom: 22px;
+  }
+  .quickstart-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2.5px;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+  .quickstart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--white);
+    margin-bottom: 18px;
+    line-height: 1.3;
+  }
+  .quickstart-title em {
+    color: var(--amber-light);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .quickstart-grid {
+    display: grid;
+    grid-template-columns: 1fr 32px 1fr 32px 1.1fr;
+    gap: 14px;
+    align-items: end;
+  }
+  .quickstart-op {
+    font-family: 'DM Mono', monospace;
+    font-size: 26px;
+    color: var(--amber);
+    text-align: center;
+    font-weight: 500;
+    line-height: 1;
+    padding-bottom: 14px;
+  }
+  .quickstart-cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .quickstart-cell .lab {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--amber);
+  }
+  .quickstart-input-wrap { position: relative; }
+  .quickstart-input-wrap .prefix,
+  .quickstart-input-wrap .suffix {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--amber);
+    pointer-events: none;
+    font-weight: 500;
+  }
+  .quickstart-input-wrap .prefix { left: 14px; }
+  .quickstart-input-wrap .suffix { right: 14px; }
+  .quickstart-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.14);
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 22px; font-weight: 500;
+    color: var(--white);
+    outline: none;
+    transition: all 0.2s;
+    letter-spacing: -0.3px;
+  }
+  .quickstart-input:focus {
+    border-color: var(--amber);
+    background: rgba(217,119,6,0.08);
+  }
+  .quickstart-input.sqft { padding-right: 50px; }
+  .quickstart-input.cost-per { padding-left: 28px; padding-right: 50px; }
+  .quickstart-input.derived {
+    background: rgba(5,150,105,0.08);
+    border-color: rgba(5,150,105,0.32);
+    color: var(--green-light);
+    padding-left: 28px;
+    cursor: default;
+  }
+  .quickstart-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--gray-400);
+    line-height: 1.5;
+  }
+  .quickstart-hint strong { color: var(--amber-light); font-weight: 600; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    max-width: 1400px;
+    margin: 0 auto 24px;
+    padding: 0 40px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    align-items: flex-end;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px 24px 12px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.18s;
+    letter-spacing: 0.3px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .tab-btn:hover { color: var(--white); }
+  .tab-btn.active { color: var(--amber-light); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 12px; right: 12px;
+    height: 2px;
+    background: var(--amber);
+    border-radius: 2px;
+  }
+  .tab-btn .tab-icon {
+    font-size: 15px;
+    opacity: 0.85;
+  }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── PHASE CARDS (Customer View) ── */
+  .phases-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+
+  .phase-card {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 18px;
+    padding: 22px 24px;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .phase-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--phase-color, var(--amber));
+    opacity: 0.85;
+  }
+  .phase-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(217,119,6,0.45);
+    transform: translateY(-2px);
+  }
+
+  .phase-card-header {
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .phase-icon {
+    font-size: 30px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .phase-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+  }
+
+  .phase-name .num {
+    color: var(--amber);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+  }
+
+  .phase-amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .phase-amount { display: flex; flex-direction: column; gap: 3px; }
+  .phase-amount .lab {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gray-400);
+    font-weight: 600;
+  }
+  .phase-amount .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 19px; font-weight: 500;
+    color: var(--white);
+    letter-spacing: -0.3px;
+  }
+  .phase-amount.paid .val { color: var(--green-light); }
+  .phase-amount.paid.empty .val { color: var(--gray-600); font-weight: 400; }
+
+  .phase-progress-wrap {
+    height: 9px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+  .phase-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green) 0%, var(--green-light) 100%);
+    border-radius: 100px;
+    transition: width 0.4s ease, background 0.3s;
+    width: 0%;
+  }
+  .phase-progress-fill.warn { background: linear-gradient(90deg, var(--green) 0%, var(--amber-light) 100%); }
+  .phase-progress-fill.over { background: linear-gradient(90deg, var(--amber) 0%, var(--red) 100%); }
+  .phase-progress-fill.empty { background: rgba(255,255,255,0.08); }
+
+  .phase-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    color: var(--gray-400);
+  }
+  .phase-progress-pct { color: var(--white); font-weight: 500; }
+  .phase-variance.under { color: var(--green-light); }
+  .phase-variance.warn { color: var(--amber-light); }
+  .phase-variance.over-critical { color: var(--red-light); font-weight: 600; }
+  .phase-variance.at { color: var(--white); }
+  .phase-variance.empty { color: var(--gray-600); font-style: italic; }
+
+  .phase-lines-count {
+    font-size: 10px;
+    color: var(--gray-600);
+    letter-spacing: 0.5px;
+  }
+
+  /* phase-flash — pulse animation when arriving at Bank Draw via card click */
+  .line-row.phase-flash {
+    background: rgba(217,119,6,0.18) !important;
+    animation: phaseFlash 1.6s ease-out;
+  }
+  @keyframes phaseFlash {
+    0%   { background: rgba(217,119,6,0.32); }
+    100% { background: rgba(217,119,6,0); }
+  }
+
   /* ── PRINT — designed to actually look good on paper / saved PDF ── */
   @media print {
     @page { size: letter; margin: 0.45in; }
@@ -1130,6 +1396,96 @@
       page-break-inside: avoid;
     }
     footer strong { color: var(--amber) !important; }
+
+    /* QUICKSTART panel in print */
+    .quickstart-panel {
+      background: white !important;
+      border: 1pt solid var(--amber) !important;
+      padding: 10pt !important;
+      margin-bottom: 10pt !important;
+      page-break-inside: avoid;
+    }
+    .quickstart-label { color: var(--amber) !important; font-size: 7.5pt !important; }
+    .quickstart-title { color: var(--navy) !important; font-size: 12pt !important; margin-bottom: 8pt !important; }
+    .quickstart-title em { color: var(--amber) !important; }
+    .quickstart-grid { gap: 8pt !important; }
+    .quickstart-op { color: var(--amber) !important; font-size: 14pt !important; }
+    .quickstart-cell .lab { color: var(--amber) !important; font-size: 7pt !important; }
+    .quickstart-input {
+      background: transparent !important;
+      border: 1pt solid #ddd !important;
+      color: var(--navy) !important;
+      font-size: 13pt !important;
+      padding: 4pt 6pt !important;
+    }
+    .quickstart-input.derived { background: rgba(5,150,105,0.06) !important; color: var(--green) !important; border-color: rgba(5,150,105,0.3) !important; }
+    .quickstart-input-wrap .prefix,
+    .quickstart-input-wrap .suffix { color: var(--amber) !important; font-size: 10pt !important; }
+    .quickstart-hint { color: #666 !important; font-size: 8pt !important; }
+
+    /* TABS — hide tab nav, show only active pane */
+    .tab-bar { display: none !important; }
+    .tab-pane { display: none !important; }
+    .tab-pane.active { display: block !important; }
+
+    /* PHASE CARDS — print versions */
+    .phases-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 10pt !important;
+    }
+    .phase-card {
+      background: white !important;
+      border: 1pt solid #ccc !important;
+      color: var(--navy) !important;
+      padding: 10pt !important;
+      gap: 10pt !important;
+      page-break-inside: avoid;
+    }
+    .phase-card::before {
+      width: 2pt !important;
+      opacity: 1 !important;
+    }
+    .phase-card:hover { background: white !important; transform: none !important; }
+    .phase-icon { font-size: 18pt !important; }
+    .phase-name { color: var(--navy) !important; font-size: 12pt !important; }
+    .phase-name .num { color: var(--amber) !important; font-size: 9pt !important; }
+    .phase-amount .lab { color: #666 !important; font-size: 7pt !important; }
+    .phase-amount .val { color: var(--navy) !important; font-size: 12pt !important; }
+    .phase-amount.paid .val { color: var(--green) !important; }
+    .phase-amount.paid.empty .val { color: #aaa !important; }
+    .phase-progress-wrap {
+      background: #eee !important;
+      height: 6pt !important;
+    }
+    .phase-foot { color: #555 !important; font-size: 8.5pt !important; }
+    .phase-progress-pct { color: var(--navy) !important; }
+    .phase-variance.under { color: var(--green) !important; }
+    .phase-variance.warn { color: var(--amber) !important; }
+    .phase-variance.over-critical { color: var(--red) !important; }
+    .phase-variance.empty { color: #999 !important; }
+    .phase-lines-count { color: #999 !important; }
+  }
+
+  /* Mobile responsiveness for tabs + phase cards + quickstart */
+  @media (max-width: 1100px) {
+    .phases-grid { grid-template-columns: repeat(2, 1fr); }
+    .tab-bar { padding: 0 24px; }
+    .quickstart-grid { grid-template-columns: 1fr 24px 1fr 24px 1fr; gap: 10px; }
+    .quickstart-input { font-size: 18px; padding: 11px 14px; }
+  }
+  @media (max-width: 720px) {
+    .phases-grid { grid-template-columns: 1fr; gap: 14px; }
+    .tab-bar { padding: 0 18px; margin-bottom: 18px; overflow-x: auto; flex-wrap: nowrap; }
+    .tab-btn { font-size: 13px; padding: 12px 16px 10px; flex-shrink: 0; }
+    .phase-card { padding: 18px; }
+    .phase-amount .val { font-size: 17px; }
+    .quickstart-panel { padding: 18px; }
+    .quickstart-title { font-size: 15px; }
+    .quickstart-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .quickstart-op { display: none; }
   }
 </style>
 </head>
@@ -1166,6 +1522,39 @@
 </section>
 
 <main>
+
+  <!-- ── QUICKSTART — sqft × $/sqft drives the build budget ── -->
+  <div class="quickstart-panel reveal">
+    <div class="quickstart-label">Start Here · Tell Us About Your Build</div>
+    <div class="quickstart-title">Your home's <em>square footage</em> × cost per square foot drives everything below</div>
+    <div class="quickstart-grid">
+      <div class="quickstart-cell">
+        <div class="lab">Your Home's SQFT</div>
+        <div class="quickstart-input-wrap">
+          <input id="sqft-input" class="quickstart-input sqft" type="text" inputmode="numeric" autocomplete="off" value="1,583" aria-label="Home square footage">
+          <span class="suffix">sqft</span>
+        </div>
+      </div>
+      <div class="quickstart-op">×</div>
+      <div class="quickstart-cell">
+        <div class="lab">Build Cost per SQFT</div>
+        <div class="quickstart-input-wrap">
+          <span class="prefix">$</span>
+          <input id="costpersqft-input" class="quickstart-input cost-per" type="text" inputmode="decimal" autocomplete="off" value="180" aria-label="Build cost per square foot">
+          <span class="suffix">/sqft</span>
+        </div>
+      </div>
+      <div class="quickstart-op">=</div>
+      <div class="quickstart-cell">
+        <div class="lab">Hard Build Cost</div>
+        <div class="quickstart-input-wrap">
+          <span class="prefix">$</span>
+          <input id="quickstart-derived" class="quickstart-input derived" type="text" value="284,940" readonly aria-label="Computed hard build cost">
+        </div>
+      </div>
+    </div>
+    <p class="quickstart-hint">Enter the home's square footage and Len's per-square-foot price. The hard build cost flows into the Build Budget below, and <strong>O&amp;P</strong> on top gives you the Total Project Budget.</p>
+  </div>
 
   <!-- ── PROGRESS HERO ── -->
   <div class="progress-card reveal">
@@ -1261,18 +1650,35 @@
     </div>
   </div>
 
-  <!-- ── LINE-ITEMS TABLE ── -->
-  <div class="table-card reveal">
-    <div class="table-head-row">
-      <div class="col-id">#</div>
-      <div class="col-name">Phase / Line Item</div>
-      <div class="col-pct">% of Build</div>
-      <div class="col-budget">Budget</div>
-      <div class="col-actualpct">Actual % of Build</div>
-      <div class="col-paid">Amount Paid</div>
-      <div class="col-overage">Overage %</div>
+  <!-- ── TABS ── -->
+  <div class="tab-bar reveal">
+    <button class="tab-btn active" type="button" data-tab="customer">
+      <span class="tab-icon">👥</span> Customer View
+    </button>
+    <button class="tab-btn" type="button" data-tab="bank">
+      <span class="tab-icon">🏦</span> Bank Draw Schedule
+    </button>
+  </div>
+
+  <!-- ── CUSTOMER VIEW — phase rollup ── -->
+  <div class="tab-pane active" data-tab="customer">
+    <div class="phases-grid" id="phases-grid"></div>
+  </div>
+
+  <!-- ── BANK DRAW SCHEDULE — 44-line detail ── -->
+  <div class="tab-pane" data-tab="bank">
+    <div class="table-card">
+      <div class="table-head-row">
+        <div class="col-id">#</div>
+        <div class="col-name">Phase / Line Item</div>
+        <div class="col-pct">% of Build</div>
+        <div class="col-budget">Budget</div>
+        <div class="col-actualpct">Actual % of Build</div>
+        <div class="col-paid">Amount Paid</div>
+        <div class="col-overage">Overage %</div>
+      </div>
+      <div id="rows"></div>
     </div>
-    <div id="rows"></div>
   </div>
 
   <footer>
@@ -1340,8 +1746,10 @@ const PHASES = [
 const state = {
   baseBudget: 285000,
   oop: 20,
-  lineDollars: {},  // budget per line — canonical
-  linePaid: {},     // actual paid per line — defaults to 0
+  sqft: 1583,            // quickstart input
+  costPerSqft: 180,      // quickstart input
+  lineDollars: {},       // budget per line — canonical
+  linePaid: {},          // actual paid per line — defaults to 0
 };
 
 function applyDefaults() {
@@ -1677,6 +2085,7 @@ function onBudgetInput(e) {
     row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
   });
 
+  refreshQuickstartFromBase();
   recalcDerived();
   updateAllRowOverages();
   updateAllRowActualPct();
@@ -1715,6 +2124,7 @@ function onTotalInput(e) {
     row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
   });
 
+  refreshQuickstartFromBase();
   recalcDerived({ skipTotalInputUpdate: true });
   updateAllRowOverages();
   updateAllRowActualPct();
@@ -1828,7 +2238,308 @@ function recalcDerived(opts) {
     progressFillEl.classList.add('warning');
     progressPctEl.classList.add('warning');
   }
+
+  // Customer-view phase cards stay in lockstep with bank-draw edits
+  updatePhaseCards();
 }
+
+// ──────────────────────────────────────────────────────────────────
+//  QUICKSTART — sqft × $/sqft drives Build Budget
+// ──────────────────────────────────────────────────────────────────
+const sqftInput = document.getElementById('sqft-input');
+const costPerSqftInput = document.getElementById('costpersqft-input');
+const quickstartDerivedEl = document.getElementById('quickstart-derived');
+
+function rescaleLineDollarsToBase(newBase) {
+  const oldBase = state.baseBudget;
+  if (oldBase > 0) {
+    for (const p of PHASES) {
+      state.lineDollars[p.id] = newBase * (state.lineDollars[p.id] / oldBase);
+    }
+  } else {
+    state.baseBudget = newBase;
+    applyDefaults();
+  }
+  state.baseBudget = newBase;
+}
+
+function syncRowsFromBaseChange() {
+  document.querySelectorAll('.line-row').forEach(row => {
+    const id = +row.dataset.id;
+    const dollars = state.lineDollars[id];
+    const pct = state.baseBudget > 0 ? (dollars / state.baseBudget) * 100 : 0;
+    row.querySelector('input[data-kind="budget"]').value = formatMoneyPlain(dollars);
+    row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
+  });
+}
+
+function refreshQuickstartDisplay() {
+  // Keep the derived $ display in sync with sqft × $/sqft
+  const derived = Math.round(state.sqft * state.costPerSqft);
+  quickstartDerivedEl.value = formatMoneyPlain(derived);
+}
+
+function refreshQuickstartFromBase() {
+  // When Build Budget or Total Project Budget changes elsewhere, recompute $/sqft
+  // so the quickstart inputs stay coherent. SQFT is treated as the more stable anchor.
+  if (state.sqft > 0) {
+    state.costPerSqft = state.baseBudget / state.sqft;
+    if (document.activeElement !== costPerSqftInput) {
+      const display = state.costPerSqft >= 10
+        ? Math.round(state.costPerSqft).toString()
+        : state.costPerSqft.toFixed(2);
+      costPerSqftInput.value = display;
+    }
+  }
+  refreshQuickstartDisplay();
+}
+
+function applyQuickstartChange() {
+  const newBase = clamp(Math.round(state.sqft * state.costPerSqft), 0, 9999999);
+  rescaleLineDollarsToBase(newBase);
+  budgetInput.value = formatMoneyPlain(newBase);
+  refreshQuickstartDisplay();
+  syncRowsFromBaseChange();
+  recalcDerived();
+  updateAllRowOverages();
+  updateCategoryTotals();
+}
+
+sqftInput.addEventListener('input', e => {
+  const v = parseNumber(e.target.value);
+  state.sqft = clamp(Math.round(v), 0, 99999);
+  applyQuickstartChange();
+});
+sqftInput.addEventListener('blur', () => {
+  sqftInput.value = formatMoneyPlain(state.sqft);
+});
+sqftInput.addEventListener('focus', e => e.target.select());
+
+costPerSqftInput.addEventListener('input', e => {
+  const v = parseNumber(e.target.value);
+  state.costPerSqft = clamp(v, 0, 9999);
+  applyQuickstartChange();
+});
+costPerSqftInput.addEventListener('blur', () => {
+  const display = state.costPerSqft >= 10
+    ? Math.round(state.costPerSqft).toString()
+    : state.costPerSqft.toFixed(2);
+  costPerSqftInput.value = display;
+});
+costPerSqftInput.addEventListener('focus', e => e.target.select());
+
+// ──────────────────────────────────────────────────────────────────
+//  CUSTOMER VIEW — 44 bank lines → 7 customer phases
+// ──────────────────────────────────────────────────────────────────
+const PHASES_META = [
+  { id: 1, icon: '🏗️', label: 'Phase 1',  name: 'Site &amp; Foundation',         color: '#3B82F6' },
+  { id: 2, icon: '🪵', label: 'Phase 2',  name: 'Structure &amp; Roof',          color: '#8B5CF6' },
+  { id: 3, icon: '⚙️', label: 'Phase 3',  name: 'Mechanical Systems',            color: '#EC4899' },
+  { id: 4, icon: '🧱', label: 'Phase 4',  name: 'Envelope &amp; Insulation',     color: '#F97316' },
+  { id: 5, icon: '✨', label: 'Phase 5',  name: 'Interior Finishes',             color: '#D97706' },
+  { id: 6, icon: '🌿', label: 'Phase 6',  name: 'Exterior &amp; Site Completion', color: '#10B981' },
+  { id: 7, icon: '🔑', label: 'Phase 7',  name: 'Final &amp; Closeout',          color: '#6366F1' },
+];
+
+// 44 bank lines → 7 customer phases (locked mapping; ID-stable for future edits)
+const LINE_TO_PHASE = {
+  1: 7,   // Closing → Final & Closeout
+  2: 1,   // Clearing/Grading → Site & Foundation
+  3: 1,   // Septic/Sewer Tap → Site & Foundation
+  4: 1,   // Footings → Site & Foundation
+  5: 1,   // Foundation Walls → Site & Foundation
+  6: 2,   // Framing: Floors/Subfloors → Structure & Roof
+  7: 2,   // Framing: Walls/Studs/Sheathing → Structure & Roof
+  8: 2,   // Framing: Roof Rafters/Sheathing → Structure & Roof
+  9: 3,   // Plumbing Rough/Tub → Mechanical
+  10: 3,  // HVAC Rough (Ducts) → Mechanical
+  11: 3,  // Electrical Rough → Mechanical
+  12: 3,  // Furnaces → Mechanical
+  13: 5,  // Fireplace → Interior Finishes
+  14: 2,  // Permanent Roof → Structure & Roof
+  15: 4,  // Garage Doors → Envelope & Insulation
+  16: 4,  // Exterior Doors/Windows → Envelope
+  17: 4,  // Cornice/Fascia → Envelope
+  18: 4,  // Exterior Veneer Started (Siding) → Envelope
+  19: 4,  // Exterior Veneer Finished → Envelope
+  20: 4,  // Exterior Prime → Envelope
+  21: 4,  // Wall Insulation → Envelope
+  22: 4,  // Attic Insulation → Envelope
+  23: 4,  // Sheetrock Started → Envelope
+  24: 4,  // Sheetrock Finished → Envelope
+  25: 5,  // Hardwood Floors → Interior Finishes
+  26: 5,  // Cabinets/Vanities → Interior Finishes
+  27: 5,  // Cabinets/Vanity Tops → Interior Finishes
+  28: 5,  // Interior Doors → Interior Finishes
+  29: 5,  // Interior Trim & Millwork → Interior Finishes
+  30: 6,  // Concrete/Driveway/Patio/Walks → Exterior & Site Completion
+  31: 6,  // Wood Decks → Exterior Final
+  32: 4,  // Exterior Painting → Envelope (paint goes on the skin)
+  33: 6,  // Gutters/Downspouts → Exterior Final
+  34: 5,  // Interior Prime → Interior Finishes
+  35: 5,  // Interior Paint & Wallcovering → Interior Finishes
+  36: 5,  // Hardware → Interior Finishes
+  37: 5,  // Carpet → Interior Finishes
+  38: 5,  // Ceramic Tile/Vinyl → Interior Finishes
+  39: 3,  // Plumbing Fixtures → Mechanical
+  40: 3,  // Electrical Fixtures → Mechanical
+  41: 3,  // AC Compressors/HVAC Trim Out → Mechanical
+  42: 5,  // Appliances → Interior Finishes (customer-facing feature)
+  43: 6,  // Landscaping → Exterior Final
+  44: 7,  // Final Clean Up → Final & Closeout
+};
+
+function phaseLinesFor(phaseId) {
+  return PHASES.filter(p => LINE_TO_PHASE[p.id] === phaseId);
+}
+
+function phaseRollup(phaseId) {
+  const lines = phaseLinesFor(phaseId);
+  let totalBudget = 0, totalPaid = 0;
+  let paidLineBudget = 0, paidLinePaid = 0;
+  let paidLineCount = 0;
+  for (const l of lines) {
+    totalBudget += state.lineDollars[l.id];
+    const pd = state.linePaid[l.id];
+    totalPaid += pd;
+    if (pd > 0) {
+      paidLineCount++;
+      paidLineBudget += state.lineDollars[l.id];
+      paidLinePaid += pd;
+    }
+  }
+  return {
+    lines,
+    lineCount: lines.length,
+    totalBudget,          // full phase budget (used for progress bar width)
+    totalPaid,            // total paid in this phase (used for progress bar width)
+    paidLineBudget,       // planned $ for the subset of lines that have payment
+    paidLinePaid,         // actual paid $ on those same lines
+    paidLineCount,
+  };
+}
+
+// Variance compares actuals against the plan for the lines that have been paid.
+// This is the apples-to-apples signal — mid-project, "under" should mean
+// "you came in cheaper than planned on what you executed," not "you haven't
+// invoiced everything yet."
+function classifyPhaseVariance(paidLineBudget, paidLinePaid, paidLineCount) {
+  if (paidLineCount === 0) return { tier: 'empty', label: 'No actuals yet' };
+  if (paidLineBudget === 0) return { tier: 'over-critical', label: 'No budget set' };
+  const diff = paidLinePaid - paidLineBudget;
+  const diffPct = (diff / paidLineBudget) * 100;
+  if (Math.abs(diff) < 1) return { tier: 'at', label: 'at budget on actuals' };
+  if (diff < 0) return { tier: 'under', label: '−' + formatMoney(Math.abs(diff)) + ' under (−' + Math.abs(diffPct).toFixed(1) + '%)' };
+  if (diffPct <= 10) return { tier: 'warn', label: '+' + formatMoney(diff) + ' over (+' + diffPct.toFixed(1) + '%)' };
+  return { tier: 'over-critical', label: '+' + formatMoney(diff) + ' over (+' + diffPct.toFixed(1) + '%)' };
+}
+
+const phasesGridEl = document.getElementById('phases-grid');
+
+function renderPhaseCards() {
+  phasesGridEl.innerHTML = '';
+  for (const meta of PHASES_META) {
+    const card = document.createElement('div');
+    card.className = 'phase-card';
+    card.dataset.phase = meta.id;
+    card.style.setProperty('--phase-color', meta.color);
+    card.innerHTML = `
+      <div class="phase-card-header">
+        <div class="phase-icon">${meta.icon}</div>
+        <div class="phase-name"><span class="num">${meta.label}</span>${meta.name}</div>
+      </div>
+      <div class="phase-amounts">
+        <div class="phase-amount">
+          <div class="lab">Budget</div>
+          <div class="val" data-role="budget">$0</div>
+        </div>
+        <div class="phase-amount paid empty">
+          <div class="lab">Amount Paid</div>
+          <div class="val" data-role="paid">$0</div>
+        </div>
+      </div>
+      <div class="phase-progress-wrap">
+        <div class="phase-progress-fill empty" data-role="progress-fill"></div>
+      </div>
+      <div class="phase-foot">
+        <span class="phase-progress-pct" data-role="progress-pct">0% paid</span>
+        <span class="phase-variance empty" data-role="variance">No actuals yet</span>
+      </div>
+      <div class="phase-lines-count" data-role="lines-count"></div>
+    `;
+    card.addEventListener('click', onPhaseCardClick);
+    phasesGridEl.appendChild(card);
+  }
+}
+
+function updatePhaseCards() {
+  for (const meta of PHASES_META) {
+    const card = document.querySelector('.phase-card[data-phase="' + meta.id + '"]');
+    if (!card) continue;
+    const r = phaseRollup(meta.id);
+    const cls = classifyPhaseVariance(r.paidLineBudget, r.paidLinePaid, r.paidLineCount);
+    // Progress bar fills against the FULL phase budget — shows journey through the phase.
+    // Color tier reflects the actuals-vs-plan variance — shows whether the executed work is over.
+    const progressPct = r.totalBudget > 0 ? (r.totalPaid / r.totalBudget) * 100 : 0;
+    const fillPct = Math.min(100, Math.max(0, progressPct));
+
+    card.querySelector('[data-role="budget"]').textContent = formatMoney(r.totalBudget);
+    const paidEl = card.querySelector('[data-role="paid"]');
+    paidEl.textContent = formatMoney(r.totalPaid);
+    paidEl.parentElement.classList.toggle('empty', r.totalPaid === 0);
+
+    const fill = card.querySelector('[data-role="progress-fill"]');
+    fill.className = 'phase-progress-fill';
+    fill.style.width = fillPct + '%';
+    if (r.totalPaid === 0) fill.classList.add('empty');
+    else if (cls.tier === 'over-critical') fill.classList.add('over');
+    else if (cls.tier === 'warn') fill.classList.add('warn');
+
+    card.querySelector('[data-role="progress-pct"]').textContent = (r.totalPaid > 0 ? progressPct.toFixed(1) : '0') + '% of phase budget paid';
+
+    const vEl = card.querySelector('[data-role="variance"]');
+    vEl.className = 'phase-variance ' + cls.tier;
+    vEl.textContent = cls.label;
+
+    card.querySelector('[data-role="lines-count"]').textContent =
+      r.paidLineCount + ' of ' + r.lineCount + ' line' + (r.lineCount === 1 ? '' : 's') + ' paid';
+  }
+}
+
+function onPhaseCardClick(e) {
+  const card = e.currentTarget;
+  const phaseId = +card.dataset.phase;
+  setActiveTab('bank');
+  // Scroll to first bank line in this phase, then flash all lines in the phase
+  setTimeout(() => {
+    const lines = phaseLinesFor(phaseId);
+    if (!lines.length) return;
+    const firstRow = document.querySelector('.line-row[data-id="' + lines[0].id + '"]');
+    if (firstRow) {
+      const catRow = firstRow.previousElementSibling;
+      const scrollTarget = (catRow && catRow.classList.contains('category-row')) ? catRow : firstRow;
+      scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    for (const l of lines) {
+      const row = document.querySelector('.line-row[data-id="' + l.id + '"]');
+      if (row) {
+        row.classList.add('phase-flash');
+        setTimeout(() => row.classList.remove('phase-flash'), 1600);
+      }
+    }
+  }, 80);
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  TABS
+// ──────────────────────────────────────────────────────────────────
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabPanes = document.querySelectorAll('.tab-pane');
+function setActiveTab(tab) {
+  tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  tabPanes.forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
+}
+tabButtons.forEach(b => b.addEventListener('click', () => setActiveTab(b.dataset.tab)));
 
 // ──────────────────────────────────────────────────────────────────
 //  PRINT / PDF
@@ -1854,8 +2565,13 @@ if (downloadBtn) {
 //  INIT
 // ──────────────────────────────────────────────────────────────────
 renderRows();
+renderPhaseCards();
 recalcDerived();
 paintSliderFill();
+// Sync the quickstart derived display to the initial sqft × $/sqft.
+// (Do NOT call refreshQuickstartFromBase here — that would back-compute $/sqft
+// from baseBudget/sqft and introduce floating-point drift on init.)
+refreshQuickstartDisplay();
 
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
