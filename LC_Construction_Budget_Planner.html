@@ -106,6 +106,198 @@
     flex-wrap: wrap;
   }
 
+  /* ── CUSTOMER RECORD BAR ── */
+  .customer-bar {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(217,119,6,0.05);
+    border-bottom: 1px solid rgba(217,119,6,0.18);
+    flex-wrap: wrap;
+  }
+  .customer-bar-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .customer-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--amber);
+    flex-shrink: 0;
+  }
+  .customer-picker {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    padding: 9px 14px;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.18s;
+    min-width: 240px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23F59E0B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1,2 6,7 11,2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 10px;
+    padding-right: 36px;
+  }
+  .customer-picker:hover, .customer-picker:focus {
+    border-color: var(--amber);
+    background-color: rgba(217,119,6,0.10);
+  }
+  .customer-desc-input {
+    flex: 1; min-width: 200px; max-width: 380px;
+    background: rgba(255,255,255,0.05);
+    border: 1.5px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 9px 14px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.18s;
+  }
+  .customer-desc-input:focus {
+    border-color: var(--amber);
+    background: rgba(217,119,6,0.08);
+  }
+  .customer-desc-input::placeholder { color: rgba(255,255,255,0.35); }
+  .customer-desc-input:disabled {
+    background: rgba(255,255,255,0.02);
+    color: rgba(255,255,255,0.30);
+    cursor: not-allowed;
+  }
+  .save-btn {
+    background: var(--amber);
+    color: var(--white);
+    border: 1.5px solid var(--amber);
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .save-btn:hover:not(:disabled) {
+    background: var(--amber-light);
+    border-color: var(--amber-light);
+  }
+  .save-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .save-btn.saving { background: rgba(217,119,6,0.3); border-color: var(--amber); color: var(--amber-light); }
+  .save-status {
+    font-size: 12px;
+    color: var(--gray-400);
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+  }
+  .save-status .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gray-600);
+  }
+  .save-status.dirty .dot { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  .save-status.saved .dot { background: var(--green-light); }
+  .save-status.error .dot { background: var(--red); }
+  .save-status.saved { color: var(--green-light); }
+  .save-status.error { color: var(--red-light); }
+  .save-status.dirty { color: var(--amber-light); }
+
+  .archive-btn {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 9px 14px;
+    color: var(--gray-400);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .archive-btn:hover { border-color: var(--red); color: var(--red-light); }
+  .archive-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .setup-banner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 14px 40px;
+    background: rgba(217,119,6,0.10);
+    border-bottom: 1px solid rgba(217,119,6,0.25);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--amber-light);
+  }
+  .setup-banner.hidden { display: none; }
+  .setup-banner-msg { flex: 1; min-width: 240px; }
+  .setup-banner-msg strong { color: var(--white); }
+  .setup-banner-input {
+    background: rgba(0,0,0,0.25);
+    border: 1.5px solid rgba(217,119,6,0.35);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    min-width: 320px;
+    outline: none;
+  }
+  .setup-banner-input:focus { border-color: var(--amber); }
+  .setup-banner-btn {
+    background: var(--amber);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .setup-banner-dismiss {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--gray-400);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 720px) {
+    .customer-bar { padding: 12px 18px; }
+    .customer-picker { min-width: 140px; font-size: 13px; }
+    .customer-desc-input { font-size: 13px; }
+    .save-status { width: 100%; margin-left: 0; }
+    .setup-banner { padding: 12px 18px; flex-direction: column; align-items: stretch; }
+    .setup-banner-input { min-width: 0; width: 100%; }
+  }
+
+  @media print {
+    .customer-bar, .setup-banner { display: none !important; }
+  }
+
   .header-badge {
     background: rgba(217,119,6,0.15);
     border: 1px solid rgba(217,119,6,0.35);
@@ -1515,6 +1707,34 @@
   </div>
 </header>
 
+<!-- ── SETUP BANNER (shown until Apps Script URL is configured) ── -->
+<div class="setup-banner hidden" id="setup-banner">
+  <div class="setup-banner-msg">
+    <strong>Connect your Customer Records spreadsheet</strong> to save jobs across sessions.
+    Paste the Apps Script web app URL from your sheet (Extensions → Apps Script → Deploy → Web app).
+  </div>
+  <input type="url" class="setup-banner-input" id="setup-banner-input" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+  <button class="setup-banner-btn" type="button" id="setup-banner-save">Connect</button>
+  <button class="setup-banner-dismiss" type="button" id="setup-banner-dismiss">Skip for now</button>
+</div>
+
+<!-- ── CUSTOMER RECORD BAR ── -->
+<div class="customer-bar" id="customer-bar">
+  <div class="customer-bar-inner">
+    <span class="customer-label">Customer</span>
+    <select class="customer-picker" id="customer-picker" aria-label="Select customer">
+      <option value="__new__">+ New Customer</option>
+    </select>
+    <input type="text" class="customer-desc-input" id="customer-desc" placeholder="Description (e.g. DONOVAN HOME)" autocomplete="off" disabled>
+    <button class="save-btn" type="button" id="save-btn" disabled>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save
+    </button>
+    <button class="archive-btn" type="button" id="archive-btn" disabled title="Archive this customer">Archive</button>
+    <span class="save-status" id="save-status"><span class="dot"></span><span id="save-status-text">Not saved</span></span>
+  </div>
+</div>
+
 <section class="hero">
   <div class="eyebrow">For Builders &amp; Their Customers</div>
   <h1>Know the <em>real</em> number — and watch every dollar.</h1>
@@ -2562,6 +2782,354 @@ if (downloadBtn) {
 }
 
 // ──────────────────────────────────────────────────────────────────
+//  PERSISTENCE — Google Sheets via Apps Script
+// ──────────────────────────────────────────────────────────────────
+const LS_KEY_ENDPOINT = 'lcgc_appsscript_url';
+const LS_KEY_DIRTY = 'lcgc_unsaved_record';
+const LS_KEY_LAST = 'lcgc_last_customer_id';
+
+const persistence = {
+  endpoint: localStorage.getItem(LS_KEY_ENDPOINT) || '',
+  currentId: null,            // null = "+ New Customer" (unsaved)
+  isDirty: false,
+  isSaving: false,
+  saveTimer: null,
+  list: [],                   // [{ id, description, updated_at, archived }, ...]
+};
+
+const customerPicker = document.getElementById('customer-picker');
+const customerDescInput = document.getElementById('customer-desc');
+const saveBtn = document.getElementById('save-btn');
+const archiveBtn = document.getElementById('archive-btn');
+const saveStatusEl = document.getElementById('save-status');
+const saveStatusTextEl = document.getElementById('save-status-text');
+const setupBanner = document.getElementById('setup-banner');
+const setupBannerInput = document.getElementById('setup-banner-input');
+const setupBannerSave = document.getElementById('setup-banner-save');
+const setupBannerDismiss = document.getElementById('setup-banner-dismiss');
+
+function persistenceConfigured() { return !!persistence.endpoint; }
+
+function showSetupBanner() {
+  setupBanner.classList.remove('hidden');
+  setupBannerInput.focus();
+}
+function hideSetupBanner() { setupBanner.classList.add('hidden'); }
+
+setupBannerSave.addEventListener('click', () => {
+  const url = setupBannerInput.value.trim();
+  if (!url || !url.startsWith('https://script.google.com/')) {
+    alert('Please paste a valid Apps Script web app URL (starts with https://script.google.com/).');
+    return;
+  }
+  persistence.endpoint = url;
+  localStorage.setItem(LS_KEY_ENDPOINT, url);
+  hideSetupBanner();
+  setSaveStatus('idle', 'Connected · loading…');
+  refreshCustomerList();
+});
+setupBannerDismiss.addEventListener('click', () => { hideSetupBanner(); });
+
+// ─── HTTP helpers ───
+async function ssGet(params) {
+  if (!persistence.endpoint) throw new Error('Apps Script URL not configured');
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(persistence.endpoint + '?' + qs, { method: 'GET', mode: 'cors' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
+}
+async function ssPost(body) {
+  if (!persistence.endpoint) throw new Error('Apps Script URL not configured');
+  const res = await fetch(persistence.endpoint, {
+    method: 'POST',
+    // Apps Script web apps reject preflighted requests; use text/plain to keep it simple
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+    mode: 'cors',
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
+}
+
+// ─── UI status ───
+function setSaveStatus(state, text) {
+  saveStatusEl.classList.remove('dirty', 'saved', 'error');
+  if (state === 'dirty') saveStatusEl.classList.add('dirty');
+  else if (state === 'saved') saveStatusEl.classList.add('saved');
+  else if (state === 'error') saveStatusEl.classList.add('error');
+  saveStatusTextEl.textContent = text;
+}
+
+function rebuildPickerOptions() {
+  // Preserve "+ New Customer" first, then list active customers, then archived divider, then archived
+  const current = persistence.currentId || '__new__';
+  customerPicker.innerHTML = '';
+
+  const newOpt = document.createElement('option');
+  newOpt.value = '__new__';
+  newOpt.textContent = '+ New Customer';
+  customerPicker.appendChild(newOpt);
+
+  const active = persistence.list.filter(c => !c.archived);
+  const archived = persistence.list.filter(c => c.archived);
+
+  for (const c of active) {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.id + ' — ' + (c.description || '(no description)');
+    customerPicker.appendChild(opt);
+  }
+  if (archived.length > 0) {
+    const sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '──── archived ────';
+    customerPicker.appendChild(sep);
+    for (const c of archived) {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.id + ' — ' + (c.description || '(no description)') + '  [archived]';
+      customerPicker.appendChild(opt);
+    }
+  }
+
+  // restore selection
+  customerPicker.value = current;
+  if (customerPicker.value !== current) customerPicker.value = '__new__';
+}
+
+async function refreshCustomerList() {
+  if (!persistenceConfigured()) return;
+  try {
+    const data = await ssGet({ op: 'list' });
+    persistence.list = Array.isArray(data.customers) ? data.customers : [];
+    rebuildPickerOptions();
+    setSaveStatus('idle', persistence.currentId ? saveStatusTextEl.textContent : 'Ready · select or create');
+  } catch (err) {
+    setSaveStatus('error', 'Connection failed — check setup');
+    console.error('[LCGC] list failed', err);
+  }
+}
+
+// ─── State serialization ───
+function captureState() {
+  const lineBudgets = new Array(NUM_LINES_PLUS + 1).fill(0);
+  const linePaid = new Array(NUM_LINES_PLUS + 1).fill(0);
+  for (const p of PHASES) {
+    lineBudgets[p.id] = state.lineDollars[p.id] || 0;
+    linePaid[p.id] = state.linePaid[p.id] || 0;
+  }
+  return {
+    id: persistence.currentId || '',
+    description: customerDescInput.value || '',
+    sqft: state.sqft,
+    cost_per_sqft: state.costPerSqft,
+    base_build_budget: state.baseBudget,
+    oop_pct: state.oop,
+    total_project_budget: Math.round(sumLineEffective() * (1 + state.oop / 100)),
+    line_budgets: lineBudgets,
+    line_paid: linePaid,
+  };
+}
+const NUM_LINES_PLUS = 44;
+
+function applyRecord(record) {
+  if (!record) return;
+  state.sqft = Number(record.sqft || 1583);
+  state.costPerSqft = Number(record.cost_per_sqft || 180);
+  state.baseBudget = Number(record.base_build_budget || (state.sqft * state.costPerSqft));
+  state.oop = clamp(Number(record.oop_pct || 20), 10, 25);
+  for (const p of PHASES) {
+    state.lineDollars[p.id] = Number((record.line_budgets || [])[p.id] || 0);
+    state.linePaid[p.id] = Number((record.line_paid || [])[p.id] || 0);
+  }
+  // refresh inputs
+  sqftInput.value = formatMoneyPlain(state.sqft);
+  costPerSqftInput.value = state.costPerSqft >= 10 ? Math.round(state.costPerSqft).toString() : state.costPerSqft.toFixed(2);
+  budgetInput.value = formatMoneyPlain(state.baseBudget);
+  oopSlider.value = state.oop;
+  oopNum.textContent = state.oop.toFixed(1);
+  paintSliderFill();
+  renderRows();
+  refreshQuickstartDisplay();
+  recalcDerived();
+  updateAllRowOverages();
+  updateAllRowActualPct();
+  updateCategoryTotals();
+}
+
+function markDirty() {
+  if (persistence.isSaving) return;
+  if (!persistence.isDirty) {
+    persistence.isDirty = true;
+    setSaveStatus('dirty', persistence.currentId ? 'Unsaved changes' : 'Unsaved · new customer');
+  }
+  saveBtn.disabled = false;
+  // localStorage backup
+  try {
+    localStorage.setItem(LS_KEY_DIRTY, JSON.stringify(captureState()));
+  } catch (e) {/* quota — ignore */}
+  // 2s debounced auto-save when configured AND we have an id (don't auto-create new customers)
+  if (persistenceConfigured() && persistence.currentId) {
+    clearTimeout(persistence.saveTimer);
+    persistence.saveTimer = setTimeout(() => doSave(), 2000);
+  }
+}
+
+async function doSave() {
+  if (persistence.isSaving) return;
+  if (!persistenceConfigured()) {
+    setSaveStatus('error', 'Connect a spreadsheet first');
+    showSetupBanner();
+    return;
+  }
+  // For a new customer, require a description before save
+  const isNew = !persistence.currentId;
+  if (isNew && !customerDescInput.value.trim()) {
+    customerDescInput.focus();
+    setSaveStatus('error', 'Add a description first');
+    return;
+  }
+  persistence.isSaving = true;
+  saveBtn.classList.add('saving');
+  saveBtn.disabled = true;
+  setSaveStatus('idle', 'Saving…');
+  try {
+    const payload = captureState();
+    if (isNew) delete payload.id;  // let server assign
+    payload.op = 'save';
+    const saved = await ssPost(payload);
+    if (saved && saved.id) {
+      persistence.currentId = saved.id;
+      localStorage.setItem(LS_KEY_LAST, saved.id);
+      localStorage.removeItem(LS_KEY_DIRTY);
+      persistence.isDirty = false;
+      saveBtn.disabled = true;
+      archiveBtn.disabled = false;
+      await refreshCustomerList();
+      customerPicker.value = saved.id;
+      const t = new Date();
+      setSaveStatus('saved', 'Saved · ' + t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + ' · ' + saved.id);
+    } else {
+      throw new Error(saved && saved.error || 'unknown save error');
+    }
+  } catch (err) {
+    console.error('[LCGC] save failed', err);
+    setSaveStatus('error', 'Save failed — kept locally');
+    saveBtn.disabled = false;
+  } finally {
+    persistence.isSaving = false;
+    saveBtn.classList.remove('saving');
+  }
+}
+
+async function loadCustomerById(id) {
+  if (!persistenceConfigured()) return;
+  setSaveStatus('idle', 'Loading ' + id + '…');
+  try {
+    const record = await ssGet({ op: 'load', id: id });
+    if (record && record.id) {
+      persistence.currentId = record.id;
+      localStorage.setItem(LS_KEY_LAST, record.id);
+      customerDescInput.value = record.description || '';
+      customerDescInput.disabled = false;
+      archiveBtn.disabled = !!record.archived ? true : false;
+      applyRecord(record);
+      persistence.isDirty = false;
+      saveBtn.disabled = true;
+      localStorage.removeItem(LS_KEY_DIRTY);
+      setSaveStatus('saved', 'Loaded · ' + record.id + (record.archived ? ' (archived)' : ''));
+    } else {
+      throw new Error('Empty record');
+    }
+  } catch (err) {
+    console.error('[LCGC] load failed', err);
+    setSaveStatus('error', 'Load failed for ' + id);
+  }
+}
+
+function startNewCustomer() {
+  persistence.currentId = null;
+  localStorage.removeItem(LS_KEY_LAST);
+  customerDescInput.value = '';
+  customerDescInput.disabled = false;
+  customerDescInput.focus();
+  archiveBtn.disabled = true;
+  saveBtn.disabled = true;
+  // Reset to defaults
+  state.sqft = 1583;
+  state.costPerSqft = 180;
+  state.baseBudget = 285000;
+  state.oop = 20;
+  applyDefaults();
+  clearPaid();
+  sqftInput.value = '1,583';
+  costPerSqftInput.value = '180';
+  budgetInput.value = '285,000';
+  oopSlider.value = 20;
+  oopNum.textContent = '20.0';
+  paintSliderFill();
+  renderRows();
+  refreshQuickstartDisplay();
+  recalcDerived();
+  setSaveStatus('idle', 'New customer · add description and Save');
+}
+
+// ─── Wire UI ───
+customerPicker.addEventListener('change', e => {
+  const v = e.target.value;
+  if (v === '__new__') startNewCustomer();
+  else loadCustomerById(v);
+});
+
+customerDescInput.addEventListener('input', () => {
+  if (persistence.currentId || customerDescInput.value.length > 0) markDirty();
+});
+
+saveBtn.addEventListener('click', () => doSave());
+
+archiveBtn.addEventListener('click', async () => {
+  if (!persistence.currentId) return;
+  const desc = customerDescInput.value || persistence.currentId;
+  if (!confirm('Archive customer ' + persistence.currentId + ' — "' + desc + '"?\n\nArchived records are hidden from the dropdown but never deleted.')) return;
+  try {
+    await ssPost({ op: 'archive', id: persistence.currentId });
+    setSaveStatus('saved', 'Archived ' + persistence.currentId);
+    await refreshCustomerList();
+    startNewCustomer();
+    customerPicker.value = '__new__';
+  } catch (err) {
+    setSaveStatus('error', 'Archive failed');
+    console.error('[LCGC] archive failed', err);
+  }
+});
+
+// ─── Hook into all input mutations so dirty flag stays in sync ───
+const persistenceWatchEvents = ['budget-input', 'oop-slider', 'total-input', 'sqft-input', 'costpersqft-input'];
+for (const id of persistenceWatchEvents) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => markDirty());
+}
+// Mutations inside row inputs flow through onCellInput which doesn't bubble to top — wrap it:
+const origOnCellInput = onCellInput;
+window.onCellInput = function(e) {
+  origOnCellInput(e);
+  markDirty();
+};
+document.querySelectorAll('.cell-input').forEach(input => {
+  input.removeEventListener('input', origOnCellInput);
+  input.addEventListener('input', window.onCellInput);
+});
+// New renders need the wrapped handler too — replace the original
+const origRenderRows = renderRows;
+renderRows = function() {
+  origRenderRows();
+  document.querySelectorAll('.cell-input').forEach(input => {
+    input.removeEventListener('input', origOnCellInput);
+    input.addEventListener('input', window.onCellInput);
+  });
+};
+
+// ──────────────────────────────────────────────────────────────────
 //  INIT
 // ──────────────────────────────────────────────────────────────────
 renderRows();
@@ -2572,6 +3140,26 @@ paintSliderFill();
 // (Do NOT call refreshQuickstartFromBase here — that would back-compute $/sqft
 // from baseBudget/sqft and introduce floating-point drift on init.)
 refreshQuickstartDisplay();
+
+// Persistence init — load the list and optionally restore last customer
+if (persistenceConfigured()) {
+  setSaveStatus('idle', 'Loading customers…');
+  refreshCustomerList().then(() => {
+    const lastId = localStorage.getItem(LS_KEY_LAST);
+    if (lastId && persistence.list.some(c => c.id === lastId)) {
+      customerPicker.value = lastId;
+      loadCustomerById(lastId);
+    } else {
+      startNewCustomer();
+    }
+  });
+} else {
+  showSetupBanner();
+  setSaveStatus('idle', 'Not connected · saves disabled');
+  customerDescInput.disabled = true;
+  saveBtn.disabled = true;
+  archiveBtn.disabled = true;
+}
 
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
