@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LC's General Contracting — Outdoor Living Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --earth:       #050D18;
+    --bark:        #0A2540;
+    --wood:        #0d2f50;
+    --terracotta:  #D97706;
+    --terra-light: #F59E0B;
+    --terra-pale:  #FEF3C7;
+    --sage:        #1a4d7a;
+    --sage-light:  #2d7ab5;
+    --stone:       #334155;
+    --stone-light: #64748B;
+    --cream:       #F8F7F4;
+    --white:       #FFFFFF;
+    --gray-300:    #CBD5E1;
+    --gray-400:    #94A3B8;
+    --gray-600:    #64748B;
+    --ember:       #F59E0B;
+    --ember-light: #FCD34D;
+    --sky:         #1a6fa8;
+    --green:       #15803D;
+    --red:         #DC2626;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--earth);
+    color: var(--white);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(180deg, #020810 0%, var(--bark) 100%);
+    padding: 28px 40px 0;
+    border-bottom: 1px solid rgba(217,119,6,0.2);
+    position: relative; overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 75% 50%, rgba(217,119,6,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse at 10% 80%, rgba(245,158,11,0.06) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--terracotta) 30%, var(--terra-light) 50%, var(--terracotta) 70%, transparent 100%);
+    opacity: 0.7;
+  }
+
+  .header-inner {
+    max-width: 1320px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 24px;
+    position: relative; z-index: 1;
+  }
+
+  .logo-mark { display: flex; align-items: center; gap: 14px; }
+
+  .logo-box {
+    width: 46px; height: 46px;
+    background: var(--terracotta);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 900; color: var(--white);
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(217,119,6,0.4);
+    letter-spacing: -1px;
+  }
+
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700; color: var(--white); line-height: 1.2;
+  }
+
+  .logo-sub {
+    font-size: 11px; font-weight: 500;
+    color: var(--terra-light);
+    text-transform: uppercase; letter-spacing: 2px;
+  }
+
+  .header-badge {
+    background: rgba(217,119,6,0.15);
+    border: 1px solid rgba(217,119,6,0.4);
+    border-radius: 100px;
+    padding: 7px 18px;
+    font-size: 12px; font-weight: 600;
+    color: var(--terra-light);
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1320px; margin: 0 auto;
+    padding: 32px 40px 80px;
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* ── PANELS ── */
+  .controls-panel { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 20px; }
+
+  .panel {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(217,119,6,0.15);
+    border-radius: 18px;
+    padding: 22px;
+    backdrop-filter: blur(6px);
+  }
+
+  .panel-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2.5px;
+    color: var(--terracotta); margin-bottom: 5px;
+  }
+
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--white); margin-bottom: 16px; line-height: 1.2;
+  }
+
+  /* ── ZONE CARDS ── */
+  .zones-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .zone-card {
+    border: 1.5px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .zone-card.active { border-color: rgba(217,119,6,0.45); }
+
+  .zone-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.03);
+    transition: background 0.2s;
+    user-select: none;
+  }
+
+  .zone-header:hover { background: rgba(255,255,255,0.06); }
+  .zone-card.active .zone-header { background: rgba(217,119,6,0.08); }
+
+  .zone-toggle-box {
+    width: 20px; height: 20px; border-radius: 6px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .zone-card.active .zone-toggle-box {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+  }
+
+  .zone-icon { font-size: 20px; flex-shrink: 0; }
+
+  .zone-meta { flex: 1; }
+  .zone-name { font-size: 13px; font-weight: 600; color: var(--white); }
+  .zone-tagline { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
+
+  .zone-est {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; font-weight: 500;
+    color: var(--terra-light);
+    text-align: right; white-space: nowrap;
+  }
+
+  .zone-est-label { font-size: 10px; color: var(--gray-400); display: block; margin-top: 1px; }
+
+  /* Zone expanded controls */
+  .zone-controls {
+    display: none;
+    padding: 14px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.15);
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .zone-card.active .zone-controls { display: flex; }
+
+  .zone-ctrl-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .zone-ctrl-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--gray-400);
+    width: 72px; flex-shrink: 0;
+  }
+
+  .size-input-wrap {
+    position: relative; flex: 1;
+  }
+
+  .size-input {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(217,119,6,0.2);
+    border-radius: 8px;
+    padding: 7px 36px 7px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 16px; font-weight: 500;
+    color: var(--white); outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .size-input:focus { border-color: var(--terracotta); }
+
+  .size-unit {
+    position: absolute; right: 10px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px; color: var(--terracotta);
+    font-weight: 600; pointer-events: none;
+  }
+
+  /* Mini option pills */
+  .option-pills { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+
+  .pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: 11px; font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .pill:hover { border-color: rgba(217,119,6,0.4); color: var(--terra-light); }
+  .pill.active { background: rgba(217,119,6,0.2); border-color: var(--terracotta); color: var(--terra-light); }
+
+  /* ── FINISH QUALITY SLIDER ── */
+  .finish-track {
+    position: relative; height: 8px;
+    border-radius: 4px; margin-bottom: 4px;
+    background: linear-gradient(90deg,
+      #15803D 0%,
+      #1a4d7a 33%,
+      #D97706 66%,
+      #92400E 100%);
+    overflow: visible;
+  }
+
+  .finish-thumb {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--white);
+    border: 3px solid var(--terracotta);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    pointer-events: none;
+    transition: left 0.1s;
+  }
+
+  input#finish-slider {
+    -webkit-appearance: none;
+    position: absolute; inset: -6px 0;
+    width: 100%; background: transparent;
+    cursor: pointer; z-index: 2;
+  }
+
+  input#finish-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--white);
+    border: 3px solid var(--terracotta);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    cursor: pointer; transition: transform 0.15s;
+  }
+
+  input#finish-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  .finish-labels {
+    display: flex; justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .finish-label {
+    text-align: center; flex: 1;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--gray-400); cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .finish-label.active { color: var(--terra-light); }
+
+  .finish-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(217,119,6,0.15);
+    border: 1px solid rgba(217,119,6,0.3);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-top: 14px;
+    width: 100%;
+  }
+
+  .finish-badge-icon { font-size: 20px; }
+  .finish-badge-text { flex: 1; }
+  .finish-badge-name { font-size: 14px; font-weight: 600; color: var(--white); }
+  .finish-badge-desc { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .finish-badge-mult { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 500; color: var(--terra-light); }
+
+  /* ── CONTRACTOR FEE ── */
+  input[type="range"].fee-range {
+    -webkit-appearance: none;
+    width: 100%; height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    outline: none; cursor: pointer;
+  }
+
+  input[type="range"].fee-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--terracotta);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 2px var(--terracotta), 0 4px 12px rgba(217,119,6,0.4);
+    cursor: pointer; transition: transform 0.15s;
+  }
+
+  input[type="range"].fee-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+  .slider-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .slider-val-lg {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px; font-weight: 500;
+    color: var(--terra-light); line-height: 1;
+  }
+
+  .slider-val-lg span { font-size: 16px; color: var(--terracotta); }
+  .slider-ctx { font-size: 11px; color: var(--gray-400); text-align: right; line-height: 1.5; }
+
+  .slider-markers {
+    display: flex; justify-content: space-between;
+    margin-top: 6px; font-size: 10px;
+    color: var(--gray-400); font-family: 'DM Mono', monospace;
+  }
+
+  /* ── SUMMARY ── */
+  .sum-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .sum-row:last-child { border-bottom: none; }
+  .sum-row.divider { border-top: 1px solid rgba(217,119,6,0.25); padding-top: 13px; margin-top: 4px; border-bottom: none; }
+  .sum-lbl { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .sum-lbl.bold { color: var(--white); font-weight: 600; font-size: 13px; }
+  .sum-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--white); }
+  .sum-val.lg { font-size: 19px; color: var(--sage-light); }
+  .sum-val.total { font-size: 22px; color: var(--terra-light); font-weight: 500; }
+
+  /* ── RIGHT: BREAKDOWN ── */
+  .breakdown-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  .breakdown-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+
+  .breakdown-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700; color: var(--white); line-height: 1.15;
+  }
+
+  .breakdown-title em { color: var(--terra-light); font-style: italic; }
+
+  .view-toggle {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 10px; padding: 4px; flex-shrink: 0;
+  }
+
+  .view-btn {
+    padding: 6px 14px; border-radius: 7px;
+    font-size: 12px; font-weight: 600;
+    border: none; cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    background: transparent; transition: all 0.2s;
+  }
+
+  .view-btn.active { background: var(--terracotta); color: var(--white); }
+
+  /* Space cards */
+  .spaces-grid { display: flex; flex-direction: column; gap: 10px; }
+
+  .space-block { border-radius: 14px; overflow: hidden; }
+
+  .space-hdr {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(217,119,6,0.12);
+    border-radius: 12px 12px 0 0;
+    cursor: pointer; transition: background 0.2s;
+    user-select: none;
+  }
+
+  .space-block:not(.open) .space-hdr { border-radius: 12px; }
+  .space-hdr:hover { background: rgba(255,255,255,0.07); }
+
+  .space-icon { font-size: 20px; flex-shrink: 0; }
+  .space-name { font-weight: 600; font-size: 14px; color: var(--white); flex: 1; }
+  .space-sqft { font-size: 12px; color: var(--gray-400); font-family: 'DM Mono', monospace; }
+
+  .space-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px; font-weight: 500;
+    color: var(--terra-light);
+  }
+
+  .space-chevron { color: var(--gray-400); font-size: 11px; transition: transform 0.2s; margin-left: 4px; }
+  .space-block.open .space-chevron { transform: rotate(180deg); }
+
+  .space-items {
+    display: none; flex-direction: column;
+    border: 1px solid rgba(217,119,6,0.12);
+    border-top: none; border-radius: 0 0 12px 12px;
+    overflow: hidden;
+  }
+
+  .space-block.open .space-items { display: flex; }
+
+  .line-item {
+    display: grid; grid-template-columns: 1fr auto auto;
+    gap: 12px; align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: relative; transition: background 0.15s;
+  }
+
+  .line-item:last-child { border-bottom: none; }
+  .line-item:hover { background: rgba(255,255,255,0.025); }
+
+  .line-item::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: var(--bw, 0%);
+    background: rgba(217,119,6,0.06);
+    border-right: 2px solid rgba(217,119,6,0.18);
+    transition: width 0.4s ease; pointer-events: none;
+  }
+
+  .item-name { font-size: 13px; font-weight: 500; color: var(--white); margin-bottom: 2px; }
+  .item-desc { font-size: 11px; color: var(--gray-400); line-height: 1.4; }
+
+  .item-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px; font-weight: 500;
+    color: var(--white); text-align: right; white-space: nowrap;
+  }
+
+  .item-sub { font-size: 10px; color: var(--gray-400); display: block; text-align: right; margin-top: 1px; }
+
+  .mini-bar-wrap { width: 52px; }
+  .mini-track { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+  .mini-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+  .mini-pct { font-size: 10px; color: var(--gray-400); font-family: 'DM Mono', monospace; text-align: right; margin-top: 3px; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed rgba(217,119,6,0.2);
+    border-radius: 16px;
+    color: var(--gray-400);
+  }
+
+  .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
+
+  /* Total band */
+  .total-band {
+    background: linear-gradient(135deg, #0A2540 0%, #1a3d5c 100%);
+    border: 1px solid rgba(217,119,6,0.3);
+    border-radius: 16px; padding: 28px 32px;
+    display: flex; align-items: center; gap: 32px;
+  }
+
+  .total-main { flex: 1; }
+  .total-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--terracotta); margin-bottom: 8px; }
+  .total-value { font-family: 'DM Mono', monospace; font-size: 42px; font-weight: 500; color: var(--terra-light); line-height: 1; letter-spacing: -1px; }
+  .total-sub { font-size: 13px; color: var(--gray-400); margin-top: 8px; }
+  .total-stats { display: flex; flex-direction: column; gap: 12px; }
+  .total-stat { text-align: right; }
+  .total-stat-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--white); }
+  .total-stat-lbl { font-size: 11px; color: var(--gray-400); }
+
+  /* Shopper */
+  .shopper-section {
+    background: rgba(26,77,122,0.08);
+    border: 1px solid rgba(26,77,122,0.25);
+    border-radius: 16px; padding: 22px;
+  }
+
+  .shopper-section h3 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+  .shopper-section p { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 16px; font-weight: 300; line-height: 1.6; }
+
+  .shopper-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+  .shop-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 14px 12px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .shop-card:hover { border-color: rgba(217,119,6,0.3); background: rgba(217,119,6,0.06); }
+  .shop-icon { font-size: 18px; margin-bottom: 6px; }
+  .shop-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 5px; line-height: 1.3; }
+  .shop-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--terra-light); }
+  .shop-note { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+  /* Chart */
+  .chart-view { display: none; }
+  .chart-view.active { display: block; }
+  .list-view.hidden { display: none; }
+
+  .donut-wrap-outer {
+    display: flex; gap: 36px; align-items: center;
+    padding: 28px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(217,119,6,0.12);
+    border-radius: 16px; margin-bottom: 16px;
+  }
+
+  .donut-rel { position: relative; width: 220px; height: 220px; flex-shrink: 0; }
+  #donut-canvas { transform: rotate(-90deg); }
+
+  .donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; pointer-events: none;
+  }
+
+  .donut-center-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--gray-400); margin-bottom: 4px; }
+  .donut-center-val { font-family: 'DM Mono', monospace; font-size: 19px; font-weight: 500; color: var(--terra-light); }
+  .donut-center-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+  .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-name { font-size: 12px; color: rgba(255,255,255,0.7); flex: 1; }
+  .legend-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--white); font-weight: 500; }
+  .legend-pct { font-size: 10px; color: var(--gray-400); font-family: 'DM Mono', monospace; width: 32px; text-align: right; }
+
+  /* Print btn */
+  .print-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 10px 18px;
+    font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .print-btn:hover { background: rgba(255,255,255,0.09); color: var(--white); }
+
+  .app-footer {
+    border-top: 1px solid rgba(217,119,6,0.12);
+    padding: 20px 40px; text-align: center;
+    font-size: 12px; color: var(--gray-400);
+  }
+
+  @media (max-width: 1000px) {
+    main { grid-template-columns: 1fr; padding: 20px; }
+    .controls-panel { position: static; }
+    .shopper-grid { grid-template-columns: repeat(2, 1fr); }
+    .donut-wrap-outer { flex-direction: column; }
+    header { padding: 20px 20px 0; }
+  }
+
+  @media print {
+    body { background: white; color: black; }
+    .controls-panel, .view-toggle, .print-btn { display: none; }
+    .space-items { display: flex !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-mark">
+      <div class="logo-box">LC</div>
+      <div style="display:flex;flex-direction:column">
+        <div class="logo-name">LC's General Contracting</div>
+        <div class="logo-sub">Outdoor Living Planner</div>
+      </div>
+    </div>
+    <div class="header-badge">🏡 Outdoor Living Cost Estimator</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ LEFT CONTROLS ══ -->
+  <div class="controls-panel">
+
+    <!-- ZONE SELECTOR -->
+    <div class="panel">
+      <div class="panel-label">Step 1 — Your Spaces</div>
+      <div class="panel-title">Choose Your Zones</div>
+      <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;line-height:1.6">Toggle each space you want. Set the size and style options that appear. All costs update live.</p>
+      <div class="zones-list" id="zones-list">
+        <!-- injected -->
+      </div>
+    </div>
+
+    <!-- FINISH QUALITY -->
+    <div class="panel">
+      <div class="panel-label">Step 2 — Finish Quality</div>
+      <div class="panel-title">Selection Level</div>
+      <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;line-height:1.6">Moves the cost multiplier across every zone. Drag to see how your finish choices ripple through the whole project.</p>
+
+      <div style="position:relative;padding:4px 0;margin-bottom:8px">
+        <div class="finish-track">
+          <input type="range" id="finish-slider" min="0" max="3" step="1" value="1">
+        </div>
+      </div>
+      <div class="finish-labels" id="finish-labels">
+        <div class="finish-label active" onclick="setFinish(0,this)">Builder<br>Grade</div>
+        <div class="finish-label" onclick="setFinish(1,this)">Mid<br>Range</div>
+        <div class="finish-label" onclick="setFinish(2,this)">Elevated</div>
+        <div class="finish-label" onclick="setFinish(3,this)">Luxury</div>
+      </div>
+      <div class="finish-badge" id="finish-badge">
+        <div class="finish-badge-icon" id="fb-icon">🪵</div>
+        <div class="finish-badge-text">
+          <div class="finish-badge-name" id="fb-name">Mid Range</div>
+          <div class="finish-badge-desc" id="fb-desc">Standard materials, quality construction</div>
+        </div>
+        <div class="finish-badge-mult" id="fb-mult">×1.0</div>
+      </div>
+    </div>
+
+    <!-- CONTRACTOR FEE -->
+    <div class="panel">
+      <div class="panel-label">Step 3 — Contractor Fee</div>
+      <div class="panel-title">Builder Margin</div>
+      <div class="slider-row">
+        <div>
+          <div class="slider-val-lg" id="fee-display">25<span>%</span></div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:4px">of documented project costs</div>
+        </div>
+        <div class="slider-ctx" id="fee-ctx">Industry standard<br>outdoor contractor fee</div>
+      </div>
+      <input type="range" id="fee-slider" class="fee-range" min="5" max="40" step="1" value="25">
+      <div class="slider-markers">
+        <span>5%</span><span>10%</span><span>15%</span><span>20%</span><span>25%</span><span>30%</span><span>35%</span><span>40%</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:14px">
+        <div style="flex:1;text-align:center;padding:5px 3px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:rgba(22,163,74,0.15);color:#4ade80;border:1px solid rgba(22,163,74,0.3)">5–15%<br>Below Mkt</div>
+        <div style="flex:1;text-align:center;padding:5px 3px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:rgba(217,119,6,0.15);color:var(--terra-light);border:1px solid rgba(217,119,6,0.3)">16–25%<br>Standard</div>
+        <div style="flex:1;text-align:center;padding:5px 3px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:rgba(217,119,6,0.15);color:#fcd34d;border:1px solid rgba(217,119,6,0.3)">26–33%<br>Elevated</div>
+        <div style="flex:1;text-align:center;padding:5px 3px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:rgba(220,38,38,0.1);color:#fca5a5;border:1px solid rgba(220,38,38,0.2)">34–40%<br>Premium</div>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="panel">
+      <div class="panel-label">Live Summary</div>
+      <div id="summary-rows">
+        <!-- injected -->
+      </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨 Print Estimate</button>
+
+  </div>
+
+  <!-- ══ RIGHT BREAKDOWN ══ -->
+  <div class="breakdown-panel">
+
+    <div class="breakdown-header">
+      <div>
+        <div class="breakdown-title">Your Outdoor Space,<br><em>Built Out</em></div>
+        <div style="font-size:13px;color:var(--gray-400);margin-top:6px">Toggle zones on the left · Click any section to expand</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="print-btn" onclick="expandAll()">Expand All</button>
+        <div class="view-toggle">
+          <button class="view-btn active" onclick="switchView('list',this)">List</button>
+          <button class="view-btn" onclick="switchView('chart',this)">Chart</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="list-view" class="list-view">
+      <div class="spaces-grid" id="spaces-grid"></div>
+    </div>
+
+    <!-- CHART VIEW -->
+    <div id="chart-view" class="chart-view">
+      <div class="donut-wrap-outer">
+        <div class="donut-rel">
+          <canvas id="donut-canvas" width="220" height="220"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-lbl">Project Cost</div>
+            <div class="donut-center-val" id="donut-val">—</div>
+            <div class="donut-center-sub" id="donut-sub">select zones</div>
+          </div>
+        </div>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+
+    <!-- TOTAL BAND -->
+    <div class="total-band">
+      <div class="total-main">
+        <div class="total-label">Total Project Investment</div>
+        <div class="total-value" id="total-display">—</div>
+        <div class="total-sub" id="total-sub">Select your zones to begin estimating</div>
+      </div>
+      <div class="total-stats">
+        <div class="total-stat">
+          <div class="total-stat-val" id="stat-total-sqft">— sq ft</div>
+          <div class="total-stat-lbl">total project area</div>
+        </div>
+        <div class="total-stat">
+          <div class="total-stat-val" id="stat-per-sqft">—</div>
+          <div class="total-stat-lbl">per square foot</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOPPER -->
+    <div class="shopper-section">
+      <h3>🛒 What Can I Shop For?</h3>
+      <p>Ballpark budgets for the key vendor decisions in your outdoor living project. Walk into any showroom knowing your number.</p>
+      <div class="shopper-grid" id="shopper-grid"></div>
+    </div>
+
+  </div>
+</main>
+
+<div class="app-footer">
+  LC's General Contracting & Remodeling &nbsp;·&nbsp; Len Covington: 770-294-1635 &nbsp;·&nbsp; Jeremy Fields: 404-271-1840 &nbsp;·&nbsp; lcgeneralcontracting.com
+  <br><span style="font-size:10px;margin-top:4px;display:block">Estimates based on West Georgia market averages (2026). Actual costs vary by site conditions, local labor, material pricing, and permit requirements. For educational purposes only.</span>
+</div>
+
+<script>
+// ── FINISH LEVELS ─────────────────────────────────────────────────────────────
+const FINISH_LEVELS = [
+  { name:"Builder Grade", icon:"🪵", desc:"Concrete block, basic pavers, standard fixtures",         mult:0.72, color:"#2d7ab5" },
+  { name:"Mid Range",     icon:"🧱", desc:"Quality pavers, good appliances, solid structures",        mult:1.00, color:"#1a6fa8" },
+  { name:"Elevated",      icon:"⭐", desc:"Natural stone, premium grills, custom woodwork",           mult:1.42, color:"#D97706" },
+  { name:"Luxury",        icon:"💎", desc:"Full travertine, Wolf/Lynx grills, bespoke structures",    mult:1.95, color:"#92400E" },
+];
+
+// ── ZONE DEFINITIONS ─────────────────────────────────────────────────────────
+// baseRate: $ per sq ft at Mid Range finish level
+// lineItems: array of { name, desc, pct (of zone total) }
+// options: sub-configuration choices that apply cost multipliers
+
+const ZONE_DEFS = [
+  {
+    id: "covered",
+    icon: "🏡",
+    name: "Covered Patio / Pergola",
+    tagline: "Overhead structure — porch, pergola, or pavilion",
+    color: "#D97706",
+    defaultSqft: 400,
+    baseRate: 55,   // $/sqft mid-range structure
+    sizeOptions: ["200 sf","300 sf","400 sf","600 sf","800 sf"],
+    sizeValues:  [200,300,400,600,800],
+    structureOptions: ["Wood Pergola","Aluminum Pergola","Attached Porch","Pavilion","Full Enclosure"],
+    structureMults:   [1.0, 0.9, 1.15, 1.35, 2.2],
+    activeStructure: 0,
+    lineItems: [
+      { name:"Foundation / Footings",        pct:0.12, desc:"Concrete piers or continuous footer to code" },
+      { name:"Frame & Structural Posts",     pct:0.28, desc:"Wood or aluminum post frame, beam package" },
+      { name:"Roof / Lattice / Cover",       pct:0.30, desc:"Solid roof, lattice panels, or louvered system" },
+      { name:"Ceiling & Trim Package",       pct:0.16, desc:"Tongue & groove wood, bead board, or metal ceiling" },
+      { name:"Stain / Paint & Finish",       pct:0.08, desc:"Two-coat system, all exposed wood surfaces" },
+      { name:"Permits & Engineering",        pct:0.06, desc:"Structural permit, wind load calculations" },
+    ]
+  },
+  {
+    id: "hardscape",
+    icon: "🪨",
+    name: "Open Patio & Hardscape",
+    tagline: "Ground surface — pavers, concrete, stone, or tile",
+    color: "#1a4d7a",
+    defaultSqft: 500,
+    baseRate: 22,
+    sizeOptions: ["300 sf","500 sf","700 sf","1,000 sf","1,500 sf"],
+    sizeValues:  [300,500,700,1000,1500],
+    surfaceOptions: ["Broom Concrete","Exposed Aggregate","Travertine Pavers","Flagstone","Porcelain Tile"],
+    surfaceMults:   [0.65, 0.90, 1.20, 1.35, 1.55],
+    activeStructure: 2,
+    lineItems: [
+      { name:"Sub-base Prep & Grading",      pct:0.18, desc:"Excavation, compaction, road base material" },
+      { name:"Surface Material & Install",   pct:0.50, desc:"Selected surface material, full installation" },
+      { name:"Edge Restraints & Borders",    pct:0.12, desc:"Soldier course border, aluminum edge restraint" },
+      { name:"Polymeric Sand / Sealant",     pct:0.10, desc:"Joint compound, surface sealer, two-coat system" },
+      { name:"Drainage & Slope",             pct:0.10, desc:"Positive drainage away from structure, channel drain" },
+    ]
+  },
+  {
+    id: "kitchen",
+    icon: "🍳",
+    name: "Outdoor Kitchen & Grill Station",
+    tagline: "Built-in cooking, prep, and serving area",
+    color: "#1e6fa8",
+    defaultSqft: 120,
+    baseRate: 320,  // higher — appliance-heavy
+    sizeOptions: ["60 sf","100 sf","120 sf","180 sf","250 sf"],
+    sizeValues:  [60,100,120,180,250],
+    structureOptions: ["Grill + Counter","Full Kitchen","L-Shape Kitchen","U-Shape Kitchen","Pro Chef Setup"],
+    structureMults:   [0.55, 1.0, 1.20, 1.45, 1.85],
+    activeStructure: 1,
+    lineItems: [
+      { name:"Masonry Frame / Block Build",  pct:0.15, desc:"CMU block structure, concrete board, waterproofing" },
+      { name:"Counter / Stone Surface",      pct:0.14, desc:"Granite, quartzite, or porcelain countertop" },
+      { name:"Built-in Grill",               pct:0.18, desc:"36\"–42\" gas or charcoal insert, hood" },
+      { name:"Side Burner & Accessories",    pct:0.07, desc:"Side burner, rotisserie, smoker drawer" },
+      { name:"Refrigerator & Storage",       pct:0.09, desc:"Undercounter fridge, access doors, drawers" },
+      { name:"Sink & Plumbing Rough-In",     pct:0.10, desc:"SS undermount sink, hot/cold supply, drain" },
+      { name:"Tile Facade & Finish",         pct:0.13, desc:"Stacked stone, tile, or stucco exterior finish" },
+      { name:"Gas Line to Kitchen",          pct:0.09, desc:"Dedicated gas line, shutoff valve, flex connector" },
+      { name:"Electrical Outlets & Lights",  pct:0.05, desc:"GFCI outlets, under-counter lighting" },
+    ]
+  },
+  {
+    id: "bar",
+    icon: "🍹",
+    name: "Bar & Dining Area",
+    tagline: "Outdoor bar, seating wall, and entertaining zone",
+    color: "#4F46E5",
+    defaultSqft: 150,
+    baseRate: 180,
+    sizeOptions: ["80 sf","120 sf","150 sf","200 sf","280 sf"],
+    sizeValues:  [80,120,150,200,280],
+    structureOptions: ["Seating Wall","Built-in Bar","Bar + Seating Wall","Full Bar Island","Premium Bar Setup"],
+    structureMults:   [0.45, 0.80, 1.0, 1.30, 1.70],
+    activeStructure: 2,
+    lineItems: [
+      { name:"Bar Frame & Block Work",       pct:0.20, desc:"CMU or steel frame, waterproof membrane" },
+      { name:"Bar Top Surface",              pct:0.22, desc:"Granite, concrete, or tile bar top" },
+      { name:"Seating Wall / Coping",        pct:0.18, desc:"Stacked stone or stucco seating wall, cap stone" },
+      { name:"Bar Sink & Plumbing",          pct:0.12, desc:"Bar sink, supply lines, drain rough-in" },
+      { name:"Built-in Ice Chest / Cooler",  pct:0.10, desc:"Marine-grade insulated ice bin or keg cooler" },
+      { name:"Exterior Facade Tile",         pct:0.10, desc:"Tile, stone, or stucco finish on all faces" },
+      { name:"Lighting & Electrical",        pct:0.08, desc:"String lights, pendant lighting, GFCI outlets" },
+    ]
+  },
+  {
+    id: "firepit",
+    icon: "🔥",
+    name: "Fire Pit or Outdoor Fireplace",
+    tagline: "Gas or wood fire feature — pit, bowl, or full fireplace",
+    color: "#D97706",
+    defaultSqft: 200,  // includes surrounding patio/seating area
+    baseRate: 60,
+    sizeOptions: ["100 sf","150 sf","200 sf","300 sf","400 sf"],
+    sizeValues:  [100,150,200,300,400],
+    structureOptions: ["Simple Fire Pit","Gas Fire Bowl","Built-in Fire Pit","Outdoor Fireplace","Stone Fireplace"],
+    structureMults:   [0.30, 0.55, 1.0, 1.80, 2.40],
+    activeStructure: 2,
+    lineItems: [
+      { name:"Fire Feature Structure",       pct:0.40, desc:"Fire pit or fireplace masonry structure" },
+      { name:"Surrounding Patio / Apron",    pct:0.25, desc:"Paver or stone pad around fire feature" },
+      { name:"Gas Line & Valve (if gas)",    pct:0.18, desc:"Dedicated gas line, shutoff, flex connector" },
+      { name:"Seating Wall / Bench",         pct:0.12, desc:"Built-in masonry seating or retaining wall" },
+      { name:"Permits & Inspection",         pct:0.05, desc:"Fire pit permit where required, gas inspection" },
+    ]
+  },
+  {
+    id: "lighting",
+    icon: "💡",
+    name: "Outdoor Lighting & Electrical",
+    tagline: "Landscape, accent, and task lighting throughout",
+    color: "#F59E0B",
+    defaultSqft: 0,   // flat cost, not area-driven
+    baseRate: 0,
+    flatBase: 4800,   // base cost (mid-range, whole project)
+    sizeOptions: ["Basic","Standard","Full"],
+    sizeValues:  [0.55, 1.0, 1.60],
+    structureOptions: [],
+    structureMults:   [],
+    activeStructure: 1,
+    lineItems: [
+      { name:"Low-Voltage Landscape Lights", pct:0.28, desc:"Path lights, uplights, tree wraps — transformer package" },
+      { name:"String / Bistro Lighting",     pct:0.18, desc:"Cafe-style string lights on pergola or poles" },
+      { name:"Step & Hardscape Lighting",    pct:0.16, desc:"In-paver LED lights, step risers, deck lights" },
+      { name:"Accent & Architectural Lights",pct:0.14, desc:"Directional spots, wall sconces, soffit lights" },
+      { name:"Electrical Panel & Circuits",  pct:0.24, desc:"Dedicated outdoor sub-panel or circuits, GFCI breakers" },
+    ]
+  },
+  {
+    id: "plumbing",
+    icon: "💧",
+    name: "Outdoor Plumbing & Gas",
+    tagline: "Water features, irrigation, gas supply, and stub-outs",
+    color: "#2d7ab5",
+    defaultSqft: 0,
+    baseRate: 0,
+    flatBase: 3200,
+    sizeOptions: ["Basic","Standard","Full"],
+    sizeValues:  [0.50, 1.0, 1.70],
+    structureOptions: [],
+    structureMults:   [],
+    activeStructure: 1,
+    lineItems: [
+      { name:"Gas Line Main Run",            pct:0.30, desc:"From meter to outdoor spaces, sized for all appliances" },
+      { name:"Water Supply Line(s)",         pct:0.22, desc:"Cold supply to kitchen & bar, freeze-proof valve" },
+      { name:"Drain Lines & Grading",        pct:0.20, desc:"Sink drains, area drains, proper slope-away" },
+      { name:"Irrigation Stub-Outs",         pct:0.14, desc:"Zone valve stubs for surrounding landscape" },
+      { name:"Water Feature Plumbing",       pct:0.14, desc:"Recirculating pump, basin, supply if water feature added" },
+    ]
+  },
+  {
+    id: "landscape",
+    icon: "🌿",
+    name: "Landscaping & Borders",
+    tagline: "Plant material, mulch, decorative rock, and edging",
+    color: "#15803D",
+    defaultSqft: 400,
+    baseRate: 12,
+    sizeOptions: ["200 sf","400 sf","600 sf","800 sf","1,200 sf"],
+    sizeValues:  [200,400,600,800,1200],
+    structureOptions: ["Mulch Beds","Sod & Mulch","Native Plants","Mixed Ornamental","Full Landscape Design"],
+    structureMults:   [0.60, 0.85, 1.0, 1.30, 1.80],
+    activeStructure: 2,
+    lineItems: [
+      { name:"Soil Prep & Amendments",       pct:0.15, desc:"Tilling, compost, topsoil, grade adjustment" },
+      { name:"Plant Material",               pct:0.40, desc:"Trees, shrubs, perennials, ornamental grasses" },
+      { name:"Mulch / Decorative Rock",      pct:0.15, desc:"Hardwood mulch or decorative stone, 3\" depth" },
+      { name:"Edging & Borders",             pct:0.12, desc:"Steel or stone edging, bed definition" },
+      { name:"Sod Repair / New Sod",         pct:0.10, desc:"Repair construction damage, tie-in to existing lawn" },
+      { name:"Irrigation Heads",             pct:0.08, desc:"Rotor or drip heads in landscape beds" },
+    ]
+  },
+];
+
+// Shopping guide items — keyed to base costs
+const SHOP_ITEMS = [
+  { icon:"🔥", name:"Built-in Gas Grill",        zoneId:"kitchen",  pct:0.18, note:"36\"–42\" insert" },
+  { icon:"🪨", name:"Patio Pavers / Stone",       zoneId:"hardscape",pct:0.50, note:"Material + install" },
+  { icon:"🏡", name:"Pergola / Structure",         zoneId:"covered",  pct:0.58, note:"Frame + roof system" },
+  { icon:"🔥", name:"Fire Feature",               zoneId:"firepit",  pct:0.40, note:"Structure only" },
+  { icon:"🍽️", name:"Countertops",                zoneId:"kitchen",  pct:0.14, note:"Granite/quartzite" },
+  { icon:"❄️", name:"Outdoor Refrigerator",       zoneId:"kitchen",  pct:0.09, note:"Undercounter unit" },
+  { icon:"💡", name:"Lighting Package",           zoneId:"lighting", pct:1.00, note:"Full system" },
+  { icon:"🌿", name:"Plant & Landscape Material", zoneId:"landscape",pct:0.40, note:"Trees + shrubs" },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let activeZones  = new Set(["covered","hardscape"]);  // default 2 zones on
+let finishLevel  = 1;   // 0–3
+let feePercent   = 25;
+
+// Per-zone state
+const zoneState = {};
+ZONE_DEFS.forEach(z => {
+  zoneState[z.id] = {
+    sqft: z.defaultSqft,
+    sizeIdx: z.sizeOptions ? z.sizeOptions.indexOf(z.sizeOptions.find((s,i) => z.sizeValues[i] === z.defaultSqft)) : 1,
+    structureIdx: z.activeStructure,
+    scaleIdx: z.id === "lighting" || z.id === "plumbing" ? 1 : null,
+  };
+});
+
+// ── COST CALC ─────────────────────────────────────────────────────────────────
+function getZoneCost(zone) {
+  const state = zoneState[zone.id];
+  const fm = FINISH_LEVELS[finishLevel].mult;
+
+  if (zone.flatBase) {
+    // Flat-cost zones (lighting, plumbing)
+    const scaleVals = zone.sizeValues;
+    const scale = scaleVals[state.structureIdx] || 1.0;
+    return zone.flatBase * scale * fm;
+  }
+
+  const sqft = state.sqft || zone.defaultSqft;
+  const structMult = zone.structureMults ? zone.structureMults[state.structureIdx] || 1.0 : 1.0;
+  return sqft * zone.baseRate * structMult * fm;
+}
+
+function getBaseCost() {
+  let total = 0;
+  activeZones.forEach(id => {
+    const z = ZONE_DEFS.find(z => z.id === id);
+    if (z) total += getZoneCost(z);
+  });
+  return total;
+}
+
+function getFee()   { return getBaseCost() * (feePercent / 100); }
+function getTotal() { return getBaseCost() + getFee(); }
+
+function getTotalSqft() {
+  let sf = 0;
+  activeZones.forEach(id => {
+    const z = ZONE_DEFS.find(z => z.id === id);
+    if (z && !z.flatBase) sf += zoneState[id].sqft || z.defaultSqft;
+  });
+  return sf;
+}
+
+// ── FORMAT ────────────────────────────────────────────────────────────────────
+function fmt(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const base  = getBaseCost();
+  const fee   = getFee();
+  const total = getTotal();
+  const sqft  = getTotalSqft();
+
+  // Total band
+  document.getElementById("total-display").textContent = activeZones.size > 0 ? fmt(total) : "—";
+  document.getElementById("total-sub").textContent =
+    activeZones.size > 0
+      ? `${activeZones.size} zone(s) · ${FINISH_LEVELS[finishLevel].name} finish · ${feePercent}% contractor fee`
+      : "Select your zones to begin estimating";
+  document.getElementById("stat-total-sqft").textContent = sqft > 0 ? sqft.toLocaleString() + " sq ft" : "—";
+  document.getElementById("stat-per-sqft").textContent   = sqft > 0 ? fmt(total / sqft) + "/sf" : "—";
+
+  // Fee slider
+  const fs = document.getElementById("fee-slider");
+  const fp = (feePercent - 5) / 35 * 100;
+  let fc = "#D97706";
+  if (feePercent <= 15) fc = "#16A34A";
+  else if (feePercent >= 34) fc = "#DC2626";
+  fs.style.background = `linear-gradient(to right, ${fc} 0%, ${fc} ${fp}%, rgba(255,255,255,0.1) ${fp}%, rgba(255,255,255,0.1) 100%)`;
+
+  document.getElementById("fee-display").innerHTML = feePercent + '<span>%</span>';
+  let fctx = "";
+  if (feePercent <= 10)      fctx = "Well below market;<br>verify scope coverage";
+  else if (feePercent <= 15) fctx = "Below standard rate;<br>simpler or repeat work";
+  else if (feePercent <= 20) fctx = "Competitive rate;<br>good client relationship";
+  else if (feePercent <= 25) fctx = "Industry standard<br>outdoor living fee";
+  else if (feePercent <= 33) fctx = "Elevated rate;<br>complex or luxury builds";
+  else                        fctx = "Premium rate;<br>high-touch luxury builds";
+  document.getElementById("fee-ctx").innerHTML = fctx;
+
+  // Summary panel
+  let sumHTML = "";
+  if (activeZones.size === 0) {
+    sumHTML = `<div style="text-align:center;padding:20px;font-size:13px;color:var(--gray-400)">No zones selected yet</div>`;
+  } else {
+    activeZones.forEach(id => {
+      const z = ZONE_DEFS.find(z => z.id === id);
+      const cost = getZoneCost(z);
+      sumHTML += `<div class="sum-row"><span class="sum-lbl">${z.icon} ${z.name.split("&")[0].trim()}</span><span class="sum-val">${fmt(cost)}</span></div>`;
+    });
+    sumHTML += `<div class="sum-row"><span class="sum-lbl">Project Subtotal</span><span class="sum-val lg">${fmt(base)}</span></div>`;
+    sumHTML += `<div class="sum-row"><span class="sum-lbl">Contractor Fee (${feePercent}%)</span><span class="sum-val" style="color:var(--terra-light)">${fmt(fee)}</span></div>`;
+    sumHTML += `<div class="sum-row divider"><span class="sum-lbl bold">Total Investment</span><span class="sum-val total">${fmt(total)}</span></div>`;
+  }
+  document.getElementById("summary-rows").innerHTML = sumHTML;
+
+  // List
+  renderList(base);
+  renderChart(base);
+  renderShopper(base);
+}
+
+function renderList(base) {
+  const grid = document.getElementById("spaces-grid");
+
+  const openMap = {};
+  grid.querySelectorAll(".space-block").forEach(b => {
+    openMap[b.dataset.zid] = b.classList.contains("open");
+  });
+
+  grid.innerHTML = "";
+
+  if (activeZones.size === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🌿</div>
+        <h3>Start by choosing your zones</h3>
+        <p>Toggle the spaces you want on the left panel.<br>Costs will appear here instantly.</p>
+      </div>`;
+    return;
+  }
+
+  let maxItem = 0;
+  activeZones.forEach(id => {
+    const z = ZONE_DEFS.find(z => z.id === id);
+    const zc = getZoneCost(z);
+    z.lineItems.forEach(li => { if (zc * li.pct > maxItem) maxItem = zc * li.pct; });
+  });
+
+  let pi = 0;
+  activeZones.forEach(id => {
+    const z = ZONE_DEFS.find(z => z.id === id);
+    const zoneCost = getZoneCost(z);
+    const state = zoneState[id];
+
+    const block = document.createElement("div");
+    block.className = "space-block";
+    block.dataset.zid = id;
+    const wasOpen = openMap[id] !== undefined ? openMap[id] : pi < 2;
+    if (wasOpen) block.classList.add("open");
+
+    const sqftLabel = z.flatBase
+      ? (z.sizeOptions[state.structureIdx] || "Standard")
+      : ((state.sqft || z.defaultSqft).toLocaleString() + " sf");
+
+    const hdr = document.createElement("div");
+    hdr.className = "space-hdr";
+    hdr.style.borderLeft = `3px solid ${z.color}`;
+    hdr.innerHTML = `
+      <div class="space-icon">${z.icon}</div>
+      <div class="space-name">${z.name}</div>
+      <div class="space-sqft">${sqftLabel}</div>
+      <div class="space-amount">${fmt(zoneCost)}</div>
+      <div class="space-chevron">▼</div>
+    `;
+    hdr.addEventListener("click", () => block.classList.toggle("open"));
+
+    const items = document.createElement("div");
+    items.className = "space-items";
+
+    z.lineItems.forEach((li, ii) => {
+      const amt = zoneCost * li.pct;
+      const bw = Math.round(amt / maxItem * 100);
+      const div = document.createElement("div");
+      div.className = "line-item";
+      div.style.setProperty("--bw", bw + "%");
+      div.style.animationDelay = (ii * 0.04) + "s";
+      div.innerHTML = `
+        <div>
+          <div class="item-name">${li.name}</div>
+          <div class="item-desc">${li.desc}</div>
+        </div>
+        <div>
+          <div class="item-amount">${fmt(amt)}</div>
+          <span class="item-sub">of zone budget</span>
+        </div>
+        <div class="mini-bar-wrap">
+          <div class="mini-track">
+            <div class="mini-fill" style="width:${bw}%;background:${z.color}"></div>
+          </div>
+          <div class="mini-pct">${Math.round(li.pct*100)}%</div>
+        </div>
+      `;
+      items.appendChild(div);
+    });
+
+    block.appendChild(hdr);
+    block.appendChild(items);
+    grid.appendChild(block);
+    pi++;
+  });
+}
+
+function renderChart(base) {
+  const canvas = document.getElementById("donut-canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, 220, 220);
+  const cx = 110, cy = 110, outer = 100, inner = 62;
+
+  if (activeZones.size === 0) {
+    ctx.beginPath(); ctx.arc(cx, cy, outer, 0, 2*Math.PI);
+    ctx.fillStyle = "rgba(255,255,255,0.04)"; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, inner, 0, 2*Math.PI);
+    ctx.fillStyle = "#050D18"; ctx.fill();
+    document.getElementById("donut-val").textContent = "—";
+    document.getElementById("donut-sub").textContent = "select zones";
+    document.getElementById("donut-legend").innerHTML = "";
+    return;
+  }
+
+  let angle = 0;
+  const activeArr = Array.from(activeZones).map(id => ZONE_DEFS.find(z => z.id === id));
+  activeArr.forEach(z => {
+    const cost = getZoneCost(z);
+    const slice = (cost / base) * 2 * Math.PI;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outer, angle, angle + slice);
+    ctx.closePath(); ctx.fillStyle = z.color; ctx.fill();
+    angle += slice;
+  });
+  ctx.beginPath(); ctx.arc(cx, cy, inner, 0, 2*Math.PI);
+  ctx.fillStyle = "#050D18"; ctx.fill();
+
+  document.getElementById("donut-val").textContent = fmt(base);
+  document.getElementById("donut-sub").textContent = activeZones.size + " zone(s)";
+
+  const legend = document.getElementById("donut-legend");
+  legend.innerHTML = "";
+  activeArr.forEach(z => {
+    const cost = getZoneCost(z);
+    const div = document.createElement("div");
+    div.className = "legend-item";
+    div.innerHTML = `
+      <div class="legend-dot" style="background:${z.color}"></div>
+      <div class="legend-name">${z.icon} ${z.name.split("&")[0].split("/")[0].trim()}</div>
+      <div class="legend-val">${fmt(cost)}</div>
+      <div class="legend-pct">${Math.round(cost/base*100)}%</div>
+    `;
+    legend.appendChild(div);
+  });
+}
+
+function renderShopper(base) {
+  const grid = document.getElementById("shopper-grid");
+  grid.innerHTML = "";
+  SHOP_ITEMS.forEach(item => {
+    const z = ZONE_DEFS.find(z => z.id === item.zoneId);
+    if (!z) return;
+    const zActive = activeZones.has(item.zoneId);
+    const cost = getZoneCost(z) * item.pct;
+    const card = document.createElement("div");
+    card.className = "shop-card";
+    card.style.opacity = zActive ? "1" : "0.35";
+    card.innerHTML = `
+      <div class="shop-icon">${item.icon}</div>
+      <div class="shop-name">${item.name}</div>
+      <div class="shop-val">${zActive ? fmt(cost) : "—"}</div>
+      <div class="shop-note">${zActive ? item.note : "Zone not selected"}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── ZONE PANEL ────────────────────────────────────────────────────────────────
+function renderZones() {
+  const list = document.getElementById("zones-list");
+  list.innerHTML = "";
+
+  ZONE_DEFS.forEach(zone => {
+    const isActive = activeZones.has(zone.id);
+    const state = zoneState[zone.id];
+    const cost = getZoneCost(zone);
+
+    const card = document.createElement("div");
+    card.className = "zone-card" + (isActive ? " active" : "");
+    card.dataset.zid = zone.id;
+
+    // Header
+    const sqftDisplay = zone.flatBase
+      ? (zone.sizeOptions[state.structureIdx] || "Standard")
+      : ((state.sqft || zone.defaultSqft).toLocaleString() + " sf");
+
+    card.innerHTML = `
+      <div class="zone-header">
+        <div class="zone-toggle-box">${isActive ? "✓" : ""}</div>
+        <div class="zone-icon">${zone.icon}</div>
+        <div class="zone-meta">
+          <div class="zone-name">${zone.name}</div>
+          <div class="zone-tagline">${zone.tagline}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="zone-est">${isActive ? fmt(cost) : "—"}</div>
+          <div class="zone-est-label">${isActive ? sqftDisplay : "toggle to add"}</div>
+        </div>
+      </div>
+    `;
+
+    // Controls (only if active)
+    if (isActive) {
+      const ctrls = document.createElement("div");
+      ctrls.className = "zone-controls";
+
+      // SIZE CONTROL
+      if (!zone.flatBase && zone.sizeOptions) {
+        const row = document.createElement("div");
+        row.className = "zone-ctrl-row";
+        row.innerHTML = `<div class="zone-ctrl-label">Size</div>`;
+        const pills = document.createElement("div");
+        pills.className = "option-pills";
+        zone.sizeOptions.forEach((opt, i) => {
+          const p = document.createElement("div");
+          p.className = "pill" + (i === zone.sizeOptions.indexOf(zone.sizeOptions.find((_,si) => zone.sizeValues[si] === state.sqft)) ? " active" : "");
+          // Find closest match
+          const closestIdx = zone.sizeValues.reduce((best, v, idx) => Math.abs(v - state.sqft) < Math.abs(zone.sizeValues[best] - state.sqft) ? idx : best, 0);
+          if (i === closestIdx) p.classList.add("active");
+          p.textContent = opt;
+          p.addEventListener("click", () => {
+            zoneState[zone.id].sqft = zone.sizeValues[i];
+            renderZones(); render();
+          });
+          pills.appendChild(p);
+        });
+        row.appendChild(pills);
+        ctrls.appendChild(row);
+      }
+
+      // STYLE / STRUCTURE CONTROL
+      const optKey = zone.structureOptions && zone.structureOptions.length > 0;
+      const scaleKey = zone.flatBase && zone.sizeOptions;
+      if (optKey || scaleKey) {
+        const row2 = document.createElement("div");
+        row2.className = "zone-ctrl-row";
+        row2.innerHTML = `<div class="zone-ctrl-label">${zone.flatBase ? "Level" : "Style"}</div>`;
+        const pills2 = document.createElement("div");
+        pills2.className = "option-pills";
+        const opts = zone.flatBase ? zone.sizeOptions : zone.structureOptions;
+        opts.forEach((opt, i) => {
+          const p = document.createElement("div");
+          p.className = "pill" + (i === state.structureIdx ? " active" : "");
+          p.textContent = opt;
+          p.addEventListener("click", () => {
+            zoneState[zone.id].structureIdx = i;
+            renderZones(); render();
+          });
+          pills2.appendChild(p);
+        });
+        row2.appendChild(pills2);
+        ctrls.appendChild(row2);
+      }
+
+      card.appendChild(ctrls);
+    }
+
+    // Toggle click
+    card.querySelector(".zone-header").addEventListener("click", () => {
+      if (activeZones.has(zone.id)) {
+        activeZones.delete(zone.id);
+      } else {
+        activeZones.add(zone.id);
+      }
+      renderZones();
+      render();
+    });
+
+    list.appendChild(card);
+  });
+}
+
+// ── FINISH LEVEL ──────────────────────────────────────────────────────────────
+document.getElementById("finish-slider").addEventListener("input", function() {
+  finishLevel = parseInt(this.value);
+  updateFinishBadge();
+  document.querySelectorAll(".finish-label").forEach((l, i) => l.classList.toggle("active", i === finishLevel));
+  renderZones();
+  render();
+});
+
+function setFinish(level, el) {
+  finishLevel = level;
+  document.getElementById("finish-slider").value = level;
+  updateFinishBadge();
+  document.querySelectorAll(".finish-label").forEach((l, i) => l.classList.toggle("active", i === finishLevel));
+  renderZones();
+  render();
+}
+
+function updateFinishBadge() {
+  const f = FINISH_LEVELS[finishLevel];
+  document.getElementById("fb-icon").textContent = f.icon;
+  document.getElementById("fb-name").textContent = f.name;
+  document.getElementById("fb-desc").textContent = f.desc;
+  document.getElementById("fb-mult").textContent = "×" + f.mult.toFixed(2);
+}
+
+// ── FEE SLIDER ────────────────────────────────────────────────────────────────
+document.getElementById("fee-slider").addEventListener("input", function() {
+  feePercent = parseInt(this.value);
+  render();
+});
+
+// ── VIEW / EXPAND ─────────────────────────────────────────────────────────────
+function switchView(view, btn) {
+  document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("list-view").classList.toggle("hidden", view !== "list");
+  document.getElementById("chart-view").classList.toggle("active", view === "chart");
+}
+
+function expandAll() {
+  document.querySelectorAll(".space-block").forEach(s => s.classList.add("open"));
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+updateFinishBadge();
+renderZones();
+render();
+</script>
+</body>
+</html>

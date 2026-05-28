@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LC General Contracting — Construction Budget & Draw Schedule Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:        #0A2540;
+    --navy-mid:    #1a3d5c;
+    --navy-light:  #1e4d6b;
+    --amber:       #D97706;
+    --amber-light: #F59E0B;
+    --amber-pale:  #FEF3C7;
+    --cream:       #F8F7F4;
+    --white:       #FFFFFF;
+    --gray-100:    #F1F0ED;
+    --gray-200:    #E2E0DB;
+    --gray-400:    #9CA3AF;
+    --gray-600:    #6B7280;
+    --slate:       #334155;
+    --green:       #059669;
+    --green-light: #34d399;
+    --green-pale:  #D1FAE5;
+    --red:         #DC2626;
+    --red-light:   #fca5a5;
+    --red-pale:    #FEE2E2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(180deg, #05162a 0%, var(--navy) 100%);
+    padding: 32px 40px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 85% 0%, rgba(217,119,6,0.16) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 28px;
+    position: relative; z-index: 1;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-mark { display: flex; align-items: center; gap: 14px; }
+
+  .logo-box {
+    width: 52px; height: 52px;
+    background: var(--amber);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 24px; font-weight: 900;
+    color: var(--white);
+    letter-spacing: -1px;
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(217,119,6,0.3);
+  }
+
+  .logo-text { display: flex; flex-direction: column; }
+
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+  }
+
+  .logo-sub {
+    font-size: 11px; font-weight: 500;
+    color: var(--amber-light);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  .header-badge {
+    background: rgba(217,119,6,0.15);
+    border: 1px solid rgba(217,119,6,0.35);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 11px; font-weight: 600;
+    color: var(--amber-light);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+
+  .header-badge::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--amber-light);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--amber-light);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 48px 40px 32px;
+    position: relative;
+  }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    color: var(--amber);
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2.5px;
+    margin-bottom: 16px;
+  }
+
+  .eyebrow::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--amber);
+    border-radius: 50%;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -1.5px;
+    max-width: 900px;
+  }
+
+  .hero h1 em {
+    color: var(--amber-light);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .hero p.lead {
+    font-size: 17px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 20px;
+    max-width: 760px;
+    line-height: 1.6;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+  }
+
+  /* ── PROGRESS HERO ── */
+  .progress-card {
+    background: linear-gradient(135deg, rgba(5,150,105,0.08) 0%, rgba(217,119,6,0.06) 100%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    padding: 26px 32px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .progress-text { min-width: 0; }
+
+  .progress-eyebrow {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2.5px;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+
+  .progress-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px; font-weight: 700;
+    line-height: 1.2;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+
+  .progress-headline em {
+    color: var(--amber-light);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .progress-bar-wrap {
+    height: 14px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green) 0%, var(--green-light) 100%);
+    border-radius: 100px;
+    transition: width 0.4s ease, background 0.4s ease;
+    width: 0%;
+    position: relative;
+    box-shadow: 0 0 12px rgba(52,211,153,0.4);
+  }
+
+  .progress-bar-fill.over {
+    background: linear-gradient(90deg, var(--red) 0%, #ef4444 100%);
+    box-shadow: 0 0 14px rgba(220,38,38,0.5);
+  }
+  .progress-pct.over { color: var(--red-light); font-weight: 600; }
+
+  .progress-bar-fill.warning {
+    background: linear-gradient(90deg, var(--green) 0%, var(--amber-light) 100%);
+    box-shadow: 0 0 12px rgba(245,158,11,0.4);
+  }
+
+  .progress-meta {
+    display: flex; justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; color: var(--gray-400);
+  }
+
+  .progress-meta .lhs { color: var(--white); }
+  .progress-meta .lhs strong { color: var(--green-light); font-weight: 500; }
+  .progress-meta .lhs strong.over { color: var(--amber-light); }
+
+  .progress-stats {
+    display: flex; flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    text-align: right;
+  }
+
+  .progress-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 42px; font-weight: 500;
+    color: var(--green-light);
+    line-height: 1;
+    letter-spacing: -1px;
+    transition: color 0.3s;
+  }
+
+  .progress-pct.over { color: var(--amber-light); }
+  .progress-pct.warning { color: var(--amber-light); }
+
+  .progress-stats .sub {
+    font-size: 11px; color: var(--gray-400);
+    line-height: 1.4;
+  }
+
+  /* ── CONTROL PANEL ── */
+  .control-panel {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 32px;
+    backdrop-filter: blur(8px);
+    margin-bottom: 32px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+  }
+
+  .controls-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.1fr;
+    gap: 28px;
+    align-items: stretch;
+  }
+
+  .control-cell {
+    display: flex; flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .control-cell + .control-cell {
+    padding-left: 28px;
+    border-left: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .control-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2.5px;
+    color: var(--amber);
+  }
+
+  .control-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px; font-weight: 700;
+    color: var(--white);
+    line-height: 1.2;
+  }
+
+  /* shared money input */
+  .money-input-wrap { position: relative; }
+
+  .money-prefix {
+    position: absolute; left: 18px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 22px; font-weight: 500;
+    color: var(--amber);
+    pointer-events: none;
+  }
+
+  .money-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 16px 18px 16px 44px;
+    font-family: 'DM Mono', monospace;
+    font-size: 24px; font-weight: 500;
+    color: var(--white);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    letter-spacing: -0.5px;
+  }
+
+  .money-input:focus {
+    border-color: var(--amber);
+    background: rgba(217,119,6,0.08);
+  }
+
+  .money-input.total {
+    color: var(--green-light);
+    border-color: rgba(5,150,105,0.32);
+    background: rgba(5,150,105,0.06);
+  }
+  .money-input.total:focus {
+    border-color: var(--green-light);
+    background: rgba(5,150,105,0.10);
+  }
+  .money-input.total + .money-prefix,
+  .money-input-wrap.total .money-prefix { color: var(--green-light); }
+
+  .hint { font-size: 11px; color: var(--gray-400); line-height: 1.5; }
+  .hint .arrow { color: var(--amber-light); }
+
+  /* O&P slider */
+  .oop-display {
+    display: flex; align-items: baseline; gap: 4px;
+    font-family: 'DM Mono', monospace;
+    color: var(--amber-light);
+  }
+  .oop-display .num { font-size: 36px; font-weight: 500; line-height: 1; }
+  .oop-display .pct { font-size: 20px; color: var(--amber); }
+
+  .slider-wrap { padding: 4px 0; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--amber) 0%, var(--amber) var(--fill, 50%), rgba(255,255,255,0.1) var(--fill, 50%), rgba(255,255,255,0.1) 100%);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--amber);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 2px var(--amber), 0 4px 12px rgba(217,119,6,0.4);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.12); }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--amber);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 2px var(--amber);
+    cursor: pointer;
+  }
+
+  .slider-ticks {
+    display: flex; justify-content: space-between;
+    margin-top: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; color: var(--gray-400);
+  }
+
+  /* summary strip */
+  .summary-strip {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+  }
+
+  .summary-cell {
+    display: flex; flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .summary-cell.tint-under {
+    background: rgba(5,150,105,0.10);
+    border-color: rgba(5,150,105,0.28);
+  }
+  .summary-cell.tint-warn {
+    background: rgba(245,158,11,0.10);
+    border-color: rgba(245,158,11,0.32);
+  }
+  .summary-cell.tint-over {
+    background: rgba(220,38,38,0.12);
+    border-color: rgba(220,38,38,0.40);
+  }
+
+  .summary-cell .lab {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gray-400);
+    font-weight: 600;
+  }
+
+  .summary-cell .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px; font-weight: 500;
+    color: var(--white);
+    letter-spacing: -0.5px;
+    transition: color 0.3s;
+  }
+
+  .summary-cell .val.over { color: var(--amber-light); }
+  .summary-cell .val.over-critical { color: var(--red-light); font-weight: 600; }
+  .summary-cell .val.warn { color: var(--amber-light); }
+  .summary-cell .val.under { color: var(--green-light); }
+  .summary-cell .val.on-track { color: var(--white); }
+  .summary-cell .val.zero { color: var(--white); }
+  .summary-cell .val.paid { color: var(--green-light); }
+  .summary-cell .val.remaining { color: var(--amber-light); }
+
+  .summary-cell .delta-pct {
+    font-size: 11px;
+    color: var(--gray-400);
+    font-family: 'DM Mono', monospace;
+    margin-top: 2px;
+  }
+
+  .reset-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 9px 14px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+    width: 100%;
+  }
+  .reset-btn:hover {
+    background: rgba(217,119,6,0.15);
+    border-color: var(--amber);
+    color: var(--amber-light);
+  }
+  .reset-btn.danger:hover {
+    background: rgba(220,38,38,0.15);
+    border-color: var(--red);
+    color: var(--red-light);
+  }
+
+  .reset-row {
+    display: flex; gap: 8px;
+    margin-top: 8px;
+  }
+
+  /* ── LINE ITEMS TABLE ── */
+  .table-card {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .table-head-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px;
+    gap: 12px;
+    padding: 18px 24px;
+    background: rgba(217,119,6,0.06);
+    border-bottom: 1px solid rgba(217,119,6,0.2);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--amber);
+  }
+
+  .table-head-row .col-pct,
+  .table-head-row .col-budget,
+  .table-head-row .col-paid,
+  .table-head-row .col-actualpct { text-align: right; }
+  .table-head-row .col-id { text-align: center; }
+  .table-head-row .col-overage { text-align: center; }
+  .table-head-row .col-actualpct,
+  .table-head-row .col-paid { color: var(--green-light); }
+
+  .category-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 26px 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .category-row:first-child { border-top: none; }
+
+  .category-row .cat-bar {
+    width: 28px; height: 2px;
+    background: var(--amber);
+  }
+
+  .category-row .cat-name {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--amber-light);
+  }
+
+  .category-row .cat-totals {
+    margin-left: auto;
+    display: flex; gap: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gray-400);
+  }
+  .category-row .cat-totals span strong {
+    color: var(--white);
+    font-weight: 500;
+  }
+  .category-row .cat-totals .paid-cat strong { color: var(--green-light); }
+
+  .line-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px;
+    gap: 12px;
+    padding: 10px 24px;
+    align-items: center;
+    transition: background 0.2s;
+    border-top: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .line-actualpct {
+    display: flex; justify-content: flex-end; align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--green-light);
+    padding-right: 12px;
+    transition: color 0.18s;
+  }
+  .line-actualpct.empty {
+    color: var(--gray-600);
+    font-weight: 400;
+  }
+  .line-row:hover { background: rgba(255,255,255,0.025); }
+
+  .line-row .col-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--gray-400);
+    text-align: center;
+  }
+
+  .line-row .col-name {
+    font-size: 14px;
+    color: var(--white);
+    font-weight: 400;
+  }
+
+  .input-cell {
+    position: relative;
+    display: flex; align-items: center; justify-content: flex-end;
+  }
+
+  .cell-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--white);
+    text-align: right;
+    outline: none;
+    transition: all 0.18s;
+  }
+  .cell-input:hover { border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.07); }
+  .cell-input:focus { border-color: var(--amber); background: rgba(217,119,6,0.10); }
+
+  .cell-input.paid-input {
+    border-color: rgba(5,150,105,0.25);
+    background: rgba(5,150,105,0.04);
+  }
+  .cell-input.paid-input:focus {
+    border-color: var(--green-light);
+    background: rgba(5,150,105,0.10);
+  }
+  .cell-input.paid-input.empty {
+    color: var(--gray-600);
+  }
+
+  .cell-suffix {
+    position: absolute; right: 14px;
+    pointer-events: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--amber);
+  }
+
+  .cell-prefix {
+    position: absolute; left: 12px;
+    pointer-events: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--amber);
+  }
+  .col-paid .cell-prefix { color: var(--green-light); }
+
+  .cell-input.pct-input { padding-right: 32px; }
+  .cell-input.dollar-input,
+  .cell-input.paid-input { padding-left: 24px; text-align: right; }
+
+  .flash {
+    background: rgba(217,119,6,0.22) !important;
+    border-color: var(--amber-light) !important;
+    transition: background 0.05s, border-color 0.05s !important;
+  }
+
+  /* overage flag */
+  .line-overage {
+    display: flex; justify-content: center; align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-400);
+  }
+  .line-overage.over { color: var(--amber-light); }
+  .line-overage.under { color: var(--green-light); }
+  .line-overage.at { color: var(--white); }
+
+  /* Footer */
+  footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 12px;
+    color: var(--gray-400);
+    line-height: 1.7;
+    max-width: 900px;
+  }
+
+  footer strong { color: var(--amber-light); font-weight: 600; }
+
+  /* Reveal animation */
+  .reveal { opacity: 0; transform: translateY(12px); transition: opacity 0.6s, transform 0.6s; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Mobile */
+  @media (max-width: 1200px) {
+    .controls-row { grid-template-columns: 1fr 1fr; }
+    .controls-row .control-cell:nth-child(3) {
+      grid-column: 1 / -1;
+      padding-left: 0;
+      border-left: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 20px;
+      margin-top: 8px;
+    }
+    .summary-strip { grid-template-columns: repeat(3, 1fr); }
+    .table-head-row, .line-row {
+      grid-template-columns: 36px 1fr 70px 110px 80px 110px 80px;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+    .category-row { padding-left: 16px; padding-right: 16px; }
+  }
+
+  @media (max-width: 820px) {
+    .progress-card { grid-template-columns: 1fr; }
+    .progress-stats { align-items: flex-start; text-align: left; }
+    .summary-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 720px) {
+    header { padding: 20px 18px 0; }
+    .header-inner { padding-bottom: 18px; }
+    .hero { padding: 28px 18px 20px; }
+    main { padding: 0 18px 60px; }
+    .control-panel { padding: 22px; border-radius: 18px; }
+    .progress-card { padding: 20px; border-radius: 16px; }
+    .progress-headline { font-size: 18px; }
+    .progress-pct { font-size: 32px; }
+    .controls-row { grid-template-columns: 1fr; gap: 22px; }
+    .control-cell + .control-cell {
+      padding-left: 0;
+      border-left: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 22px;
+    }
+    .summary-strip { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .summary-cell .val { font-size: 16px; }
+
+    .table-head-row { display: none; }
+    .category-row { padding: 16px 16px 8px; }
+    .category-row .cat-totals { flex-direction: column; gap: 2px; }
+    .line-row {
+      display: grid;
+      grid-template-columns: 32px 1fr 1fr;
+      grid-template-areas:
+        "id name name"
+        "id pct apct"
+        "id budget paid"
+        "id overage overage";
+      gap: 6px 12px;
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .line-row .col-id { grid-area: id; align-self: start; padding-top: 4px; }
+    .line-row .col-name { grid-area: name; font-weight: 500; margin-bottom: 4px; }
+    .line-row .col-pct       { grid-area: pct; }
+    .line-row .col-budget    { grid-area: budget; }
+    .line-row .col-actualpct { grid-area: apct; justify-content: flex-end; }
+    .line-row .col-paid      { grid-area: paid; }
+    .line-row .col-overage   { grid-area: overage; justify-content: flex-end; }
+    .cell-input { font-size: 14px; padding: 8px 12px; }
+    .cell-input.pct-input { padding-right: 28px; }
+    .hero h1 { font-size: 32px; }
+    .reset-row { flex-direction: column; }
+  }
+
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 28px; }
+    .oop-display .num { font-size: 28px; }
+    .money-input { font-size: 20px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; color: black; }
+    .control-panel { box-shadow: none; }
+    .reset-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-mark">
+      <div class="logo-box">LC</div>
+      <div class="logo-text">
+        <div class="logo-name">LC General Contracting</div>
+        <div class="logo-sub">Construction Budget Planner</div>
+      </div>
+    </div>
+    <div class="header-badge">Draw Schedule · Track Actuals</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">For Builders &amp; Their Customers</div>
+  <h1>Know the <em>real</em> number — and watch every dollar.</h1>
+  <p class="lead">Set the build budget and your overhead &amp; profit, or work backwards from the total. Then track every invoice paid against every phase. The progress bar tells you exactly where the job stands financially.</p>
+</section>
+
+<main>
+
+  <!-- ── PROGRESS HERO ── -->
+  <div class="progress-card reveal">
+    <div class="progress-text">
+      <div class="progress-eyebrow">Build Progress · Dollars</div>
+      <div class="progress-headline">You're <em><span id="progress-headline-pct">0%</span></em> through the build journey.</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span class="lhs"><strong id="progress-paid">$0</strong> paid so far</span>
+        <span><span id="progress-remaining">$342,000</span> remaining to total project budget</span>
+      </div>
+    </div>
+    <div class="progress-stats">
+      <div class="progress-pct" id="progress-pct">0.0%</div>
+      <div class="sub">of $<span id="progress-total">342,000</span> total project budget</div>
+    </div>
+  </div>
+
+  <!-- ── CONTROL PANEL ── -->
+  <div class="control-panel reveal">
+    <div class="controls-row">
+
+      <!-- Build Budget -->
+      <div class="control-cell">
+        <div class="control-label">Build Budget · Hard Cost</div>
+        <div class="control-title">Construction only</div>
+        <div class="money-input-wrap">
+          <span class="money-prefix">$</span>
+          <input id="budget-input" class="money-input" type="text" inputmode="numeric" autocomplete="off" value="285,000" aria-label="Build Budget">
+        </div>
+        <p class="hint">Labor, materials, subs — what the bank lends against. Excludes O&amp;P.</p>
+      </div>
+
+      <!-- O&P -->
+      <div class="control-cell">
+        <div class="control-label">Overhead &amp; Profit · O&amp;P</div>
+        <div class="control-title">Contractor margin</div>
+        <div class="oop-display"><span class="num" id="oop-num">20.0</span><span class="pct">%</span></div>
+        <div class="slider-wrap">
+          <input id="oop-slider" type="range" min="10" max="25" step="0.5" value="20" aria-label="Overhead and Profit percent">
+        </div>
+        <div class="slider-ticks">
+          <span>10%</span><span>15%</span><span>20%</span><span>25%</span>
+        </div>
+        <p class="hint">Per builder agreement — typical residential range 10–25%.</p>
+      </div>
+
+      <!-- Total Project Budget — EDITABLE -->
+      <div class="control-cell">
+        <div class="control-label">Total Project Budget</div>
+        <div class="control-title">Build + O&amp;P · all-in</div>
+        <div class="money-input-wrap total">
+          <span class="money-prefix">$</span>
+          <input id="total-input" class="money-input total" type="text" inputmode="numeric" autocomplete="off" value="342,000" aria-label="Total Project Budget">
+        </div>
+        <p class="hint"><span class="arrow">↻</span> Enter total here to reverse-calculate Build Budget at current O&amp;P (cost-plus model).</p>
+        <div class="reset-row">
+          <button class="reset-btn" id="reset-btn" type="button">Reset Schedule</button>
+          <button class="reset-btn danger" id="clear-paid-btn" type="button">Clear Paid</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary strip -->
+    <div class="summary-strip">
+      <div class="summary-cell">
+        <div class="lab">Base Build Budget</div>
+        <div class="val" id="base-value">$285,000</div>
+      </div>
+      <div class="summary-cell" id="overunder-cell">
+        <div class="lab">Over/Under Budget · Actuals vs Plan</div>
+        <div class="val on-track" id="overunder-value">$0 no actuals</div>
+        <div class="delta-pct" id="overunder-sub">Enter Amount Paid on any line to start tracking variance</div>
+      </div>
+      <div class="summary-cell">
+        <div class="lab">O&amp;P Dollars</div>
+        <div class="val" id="oop-value">$57,000</div>
+        <div class="delta-pct" id="oop-pct-display">at 20.0%</div>
+      </div>
+      <div class="summary-cell">
+        <div class="lab">Total Paid</div>
+        <div class="val paid" id="paid-value">$0</div>
+        <div class="delta-pct" id="paid-pct-display">0.0% of total</div>
+      </div>
+      <div class="summary-cell">
+        <div class="lab">Remaining to Spend</div>
+        <div class="val remaining" id="remaining-value">$342,000</div>
+        <div class="delta-pct" id="remaining-pct-display">100.0% remaining</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LINE-ITEMS TABLE ── -->
+  <div class="table-card reveal">
+    <div class="table-head-row">
+      <div class="col-id">#</div>
+      <div class="col-name">Phase / Line Item</div>
+      <div class="col-pct">% of Build</div>
+      <div class="col-budget">Budget</div>
+      <div class="col-actualpct">Actual % of Build</div>
+      <div class="col-paid">Amount Paid</div>
+      <div class="col-overage">Overage %</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <footer>
+    Default percentages from a standard residential construction draw schedule used by lenders for construction-to-permanent loans. <strong>Budget</strong> is what you plan to spend on each phase — adjust either the % or the dollars. <strong>Amount Paid</strong> is what you've actually paid out — type invoice totals as they come in. <strong>Overage %</strong> shows where you're over or under budget on each line. The progress bar reflects total paid against the full Total Project Budget (Build + O&amp;P). You can also enter the Total Project Budget first and the planner reverse-calculates the Build Budget at the current O&amp;P (cost-plus model). This tool is for planning estimates and job tracking — not a binding quote, contract, or loan disclosure.
+  </footer>
+
+</main>
+
+<script>
+'use strict';
+
+// ──────────────────────────────────────────────────────────────────
+//  DATA — 44 line items from the bank's residential draw schedule
+// ──────────────────────────────────────────────────────────────────
+const PHASES = [
+  { id: 1,  name: "Closing",                          category: "Pre-Construction",      pct: 2 },
+  { id: 2,  name: "Clearing/Grading",                 category: "Site Prep",             pct: 3 },
+  { id: 3,  name: "Septic/Sewer Tap",                 category: "Site Prep",             pct: 2 },
+  { id: 4,  name: "Footings",                         category: "Foundation",            pct: 1 },
+  { id: 5,  name: "Foundation Walls",                 category: "Foundation",            pct: 3 },
+  { id: 6,  name: "Framing: Floors/Subfloors",        category: "Framing",               pct: 7 },
+  { id: 7,  name: "Framing: Walls/Studs/Sheathing",   category: "Framing",               pct: 7 },
+  { id: 8,  name: "Framing: Roof Rafters/Sheathing",  category: "Framing",               pct: 4 },
+  { id: 9,  name: "Plumbing Rough/Tub",               category: "MEP Rough",             pct: 2 },
+  { id: 10, name: "HVAC Rough (Ducts)",               category: "MEP Rough",             pct: 1 },
+  { id: 11, name: "Electrical Rough",                 category: "MEP Rough",             pct: 2 },
+  { id: 12, name: "Furnaces",                         category: "MEP Rough",             pct: 2 },
+  { id: 13, name: "Fireplace",                        category: "Specialty",             pct: 1 },
+  { id: 14, name: "Permanent Roof",                   category: "Exterior",              pct: 2 },
+  { id: 15, name: "Garage Doors",                     category: "Exterior",              pct: 1 },
+  { id: 16, name: "Exterior Doors/Windows",           category: "Exterior",              pct: 2 },
+  { id: 17, name: "Cornice/Fascia",                   category: "Exterior",              pct: 2 },
+  { id: 18, name: "Exterior Veneer Started (Siding)", category: "Exterior",              pct: 4 },
+  { id: 19, name: "Exterior Veneer Finished",         category: "Exterior",              pct: 4 },
+  { id: 20, name: "Exterior Prime",                   category: "Exterior",              pct: 1 },
+  { id: 21, name: "Wall Insulation",                  category: "Insulation/Drywall",    pct: 1 },
+  { id: 22, name: "Attic Insulation",                 category: "Insulation/Drywall",    pct: 1 },
+  { id: 23, name: "Sheetrock Started",                category: "Insulation/Drywall",    pct: 3 },
+  { id: 24, name: "Sheetrock Finished",               category: "Insulation/Drywall",    pct: 2 },
+  { id: 25, name: "Hardwood Floors",                  category: "Interior Finish",       pct: 2 },
+  { id: 26, name: "Cabinets/Vanities",                category: "Interior Finish",       pct: 4 },
+  { id: 27, name: "Cabinets/Vanity Tops",             category: "Interior Finish",       pct: 1 },
+  { id: 28, name: "Interior Doors",                   category: "Interior Finish",       pct: 2 },
+  { id: 29, name: "Interior Trim & Millwork",         category: "Interior Finish",       pct: 3 },
+  { id: 30, name: "Concrete/Driveway/Patio/Walks",    category: "Exterior Finish",       pct: 3 },
+  { id: 31, name: "Wood Decks",                       category: "Exterior Finish",       pct: 1 },
+  { id: 32, name: "Exterior Painting",                category: "Exterior Finish",       pct: 2 },
+  { id: 33, name: "Gutters/Downspouts",               category: "Exterior Finish",       pct: 1 },
+  { id: 34, name: "Interior Prime",                   category: "Paint & Finish",        pct: 2 },
+  { id: 35, name: "Interior Paint & Wallcovering",    category: "Paint & Finish",        pct: 2 },
+  { id: 36, name: "Hardware",                         category: "Paint & Finish",        pct: 1 },
+  { id: 37, name: "Carpet",                           category: "Paint & Finish",        pct: 2 },
+  { id: 38, name: "Ceramic Tile/Vinyl",               category: "Paint & Finish",        pct: 1 },
+  { id: 39, name: "Plumbing Fixtures",                category: "MEP Trim",              pct: 2 },
+  { id: 40, name: "Electrical Fixtures",              category: "MEP Trim",              pct: 3 },
+  { id: 41, name: "AC Compressors/HVAC Trim Out",     category: "MEP Trim",              pct: 2 },
+  { id: 42, name: "Appliances",                       category: "Final",                 pct: 2 },
+  { id: 43, name: "Landscaping",                      category: "Final",                 pct: 2 },
+  { id: 44, name: "Final Clean Up",                   category: "Final",                 pct: 2 },
+];
+
+// ──────────────────────────────────────────────────────────────────
+//  STATE & FORMATTING
+// ──────────────────────────────────────────────────────────────────
+const state = {
+  baseBudget: 285000,
+  oop: 20,
+  lineDollars: {},  // budget per line — canonical
+  linePaid: {},     // actual paid per line — defaults to 0
+};
+
+function applyDefaults() {
+  for (const p of PHASES) {
+    state.lineDollars[p.id] = state.baseBudget * p.pct / 100;
+  }
+}
+function clearPaid() {
+  for (const p of PHASES) {
+    state.linePaid[p.id] = 0;
+  }
+}
+applyDefaults();
+clearPaid();
+
+const fmtMoney = new Intl.NumberFormat('en-US', {
+  style: 'currency', currency: 'USD',
+  minimumFractionDigits: 0, maximumFractionDigits: 0,
+});
+const fmtMoneyPlain = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 0, maximumFractionDigits: 0,
+});
+function formatMoney(n) { return fmtMoney.format(Math.round(n)); }
+function formatMoneyPlain(n) { return fmtMoneyPlain.format(Math.round(n)); }
+function formatPct(n) { return n.toFixed(1) + '%'; }
+function parseNumber(str) {
+  if (typeof str !== 'string') str = String(str);
+  const cleaned = str.replace(/[^\d.\-]/g, '');
+  const v = parseFloat(cleaned);
+  return isNaN(v) ? 0 : v;
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// ──────────────────────────────────────────────────────────────────
+//  ROW RENDERING (table body)
+// ──────────────────────────────────────────────────────────────────
+const rowsEl = document.getElementById('rows');
+
+function renderRows() {
+  rowsEl.innerHTML = '';
+  let lastCategory = null;
+
+  // category totals (budget + paid)
+  const catBudget = {};
+  const catPaid = {};
+  for (const p of PHASES) {
+    catBudget[p.category] = (catBudget[p.category] || 0) + state.lineDollars[p.id];
+    catPaid[p.category] = (catPaid[p.category] || 0) + state.linePaid[p.id];
+  }
+
+  for (const p of PHASES) {
+    if (p.category !== lastCategory) {
+      const cat = document.createElement('div');
+      cat.className = 'category-row';
+      cat.innerHTML = `
+        <div class="cat-bar"></div>
+        <div class="cat-name">${p.category}</div>
+        <div class="cat-totals">
+          <span>Budget <strong data-cat-budget="${p.category}">${formatMoney(catBudget[p.category])}</strong></span>
+          <span class="paid-cat">Paid <strong data-cat-paid="${p.category}">${formatMoney(catPaid[p.category])}</strong></span>
+        </div>
+      `;
+      rowsEl.appendChild(cat);
+      lastCategory = p.category;
+    }
+
+    const budgetDollars = state.lineDollars[p.id];
+    const paidDollars = state.linePaid[p.id];
+    const pct = state.baseBudget > 0 ? (budgetDollars / state.baseBudget) * 100 : 0;
+    const overageInfo = computeOverage(budgetDollars, paidDollars);
+    const actualPctInfo = computeActualPct(paidDollars);
+
+    const row = document.createElement('div');
+    row.className = 'line-row';
+    row.dataset.id = p.id;
+
+    row.innerHTML = `
+      <div class="col-id">${p.id}</div>
+      <div class="col-name">${escapeHtml(p.name)}</div>
+      <div class="col-pct input-cell">
+        <input class="cell-input pct-input" type="text" inputmode="decimal"
+               autocomplete="off" data-id="${p.id}" data-kind="pct"
+               value="${pct.toFixed(1)}" aria-label="${escapeHtml(p.name)} percent">
+        <span class="cell-suffix">%</span>
+      </div>
+      <div class="col-budget input-cell">
+        <span class="cell-prefix">$</span>
+        <input class="cell-input dollar-input" type="text" inputmode="numeric"
+               autocomplete="off" data-id="${p.id}" data-kind="budget"
+               value="${formatMoneyPlain(budgetDollars)}" aria-label="${escapeHtml(p.name)} budget">
+      </div>
+      <div class="col-actualpct line-actualpct ${actualPctInfo.cls}" aria-label="${escapeHtml(p.name)} actual percent of build">${actualPctInfo.text}</div>
+      <div class="col-paid input-cell">
+        <span class="cell-prefix">$</span>
+        <input class="cell-input paid-input ${paidDollars === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
+               autocomplete="off" data-id="${p.id}" data-kind="paid"
+               value="${formatMoneyPlain(paidDollars)}" aria-label="${escapeHtml(p.name)} amount paid"
+               placeholder="0">
+      </div>
+      <div class="col-overage line-overage ${overageInfo.cls}">${overageInfo.text}</div>
+    `;
+    rowsEl.appendChild(row);
+  }
+
+  wireRowInputs();
+}
+
+function computeActualPct(paid) {
+  if (paid === 0) return { cls: 'empty', text: '—' };
+  if (state.baseBudget === 0) return { cls: 'empty', text: 'n/a' };
+  const pct = (paid / state.baseBudget) * 100;
+  return { cls: '', text: pct.toFixed(1) + '%' };
+}
+
+function computeOverage(budget, paid) {
+  if (paid === 0) return { cls: '', text: '—' };
+  if (budget === 0) return { cls: 'over', text: 'n/a' };
+  const diff = paid - budget;
+  const diffPct = (diff / budget) * 100;
+  if (Math.abs(diffPct) < 0.05) return { cls: 'at', text: 'at budget' };
+  if (diff > 0) return { cls: 'over', text: '+' + diffPct.toFixed(1) + '%' };
+  return { cls: 'under', text: '−' + Math.abs(diffPct).toFixed(1) + '%' };
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  CELL EDIT HANDLERS  (with feedback-loop guard via direct .value writes)
+// ──────────────────────────────────────────────────────────────────
+function wireRowInputs() {
+  document.querySelectorAll('.cell-input').forEach(input => {
+    input.addEventListener('input', onCellInput);
+    input.addEventListener('focus', e => e.target.select());
+    input.addEventListener('blur', onCellBlur);
+  });
+}
+
+function onCellInput(e) {
+  const input = e.target;
+  const id = +input.dataset.id;
+  const kind = input.dataset.kind;
+  const raw = parseNumber(input.value);
+  const safe = Math.max(0, raw);
+  const row = input.closest('.line-row');
+
+  if (kind === 'pct') {
+    // % entered → recompute budget for this row
+    const dollars = state.baseBudget * safe / 100;
+    state.lineDollars[id] = dollars;
+    row.querySelector('input[data-kind="budget"]').value = formatMoneyPlain(dollars);
+  } else if (kind === 'budget') {
+    // budget $ entered → recompute % for this row
+    state.lineDollars[id] = safe;
+    const pct = state.baseBudget > 0 ? (safe / state.baseBudget) * 100 : 0;
+    row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
+  } else if (kind === 'paid') {
+    // paid $ entered → update state only
+    state.linePaid[id] = safe;
+    input.classList.toggle('empty', safe === 0);
+    updateRowActualPct(row);
+  }
+  flash(input);
+  recalcDerived();
+  updateRowOverage(row);
+  updateCategoryTotals();
+}
+
+function updateRowActualPct(row) {
+  const id = +row.dataset.id;
+  const info = computeActualPct(state.linePaid[id]);
+  const el = row.querySelector('.line-actualpct');
+  if (el) {
+    el.className = 'col-actualpct line-actualpct ' + info.cls;
+    el.textContent = info.text;
+  }
+}
+
+function updateAllRowActualPct() {
+  document.querySelectorAll('.line-row').forEach(updateRowActualPct);
+}
+
+function onCellBlur(e) {
+  const input = e.target;
+  const id = +input.dataset.id;
+  if (input.dataset.kind === 'budget') {
+    input.value = formatMoneyPlain(state.lineDollars[id]);
+  } else if (input.dataset.kind === 'paid') {
+    input.value = formatMoneyPlain(state.linePaid[id]);
+    input.classList.toggle('empty', state.linePaid[id] === 0);
+  } else {
+    const pct = state.baseBudget > 0 ? (state.lineDollars[id] / state.baseBudget) * 100 : 0;
+    input.value = pct.toFixed(1);
+  }
+}
+
+function flash(el) {
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 320);
+}
+
+function updateRowOverage(row) {
+  const id = +row.dataset.id;
+  const budget = state.lineDollars[id];
+  const paid = state.linePaid[id];
+  const info = computeOverage(budget, paid);
+  const flagEl = row.querySelector('.line-overage');
+  flagEl.className = 'col-overage line-overage ' + info.cls;
+  flagEl.textContent = info.text;
+}
+
+function updateAllRowOverages() {
+  document.querySelectorAll('.line-row').forEach(updateRowOverage);
+}
+
+function updateCategoryTotals() {
+  const catBudget = {};
+  const catPaid = {};
+  for (const p of PHASES) {
+    catBudget[p.category] = (catBudget[p.category] || 0) + state.lineDollars[p.id];
+    catPaid[p.category] = (catPaid[p.category] || 0) + state.linePaid[p.id];
+  }
+  document.querySelectorAll('[data-cat-budget]').forEach(el => {
+    el.textContent = formatMoney(catBudget[el.dataset.catBudget] || 0);
+  });
+  document.querySelectorAll('[data-cat-paid]').forEach(el => {
+    el.textContent = formatMoney(catPaid[el.dataset.catPaid] || 0);
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  TOP PANEL CONTROLS
+// ──────────────────────────────────────────────────────────────────
+const budgetInput = document.getElementById('budget-input');
+const totalInput = document.getElementById('total-input');
+const oopSlider = document.getElementById('oop-slider');
+const oopNum = document.getElementById('oop-num');
+const baseValueEl = document.getElementById('base-value');
+const overUnderCellEl = document.getElementById('overunder-cell');
+const overUnderValueEl = document.getElementById('overunder-value');
+const overUnderSubEl = document.getElementById('overunder-sub');
+const oopValueEl = document.getElementById('oop-value');
+const oopPctDisplayEl = document.getElementById('oop-pct-display');
+const paidValueEl = document.getElementById('paid-value');
+const paidPctDisplayEl = document.getElementById('paid-pct-display');
+const remainingValueEl = document.getElementById('remaining-value');
+const remainingPctDisplayEl = document.getElementById('remaining-pct-display');
+const progressFillEl = document.getElementById('progress-fill');
+const progressPctEl = document.getElementById('progress-pct');
+const progressHeadlinePctEl = document.getElementById('progress-headline-pct');
+const progressPaidEl = document.getElementById('progress-paid');
+const progressRemainingEl = document.getElementById('progress-remaining');
+const progressTotalEl = document.getElementById('progress-total');
+const resetBtn = document.getElementById('reset-btn');
+const clearPaidBtn = document.getElementById('clear-paid-btn');
+
+function paintSliderFill() {
+  const v = parseFloat(oopSlider.value);
+  const fillPct = ((v - 10) / (25 - 10)) * 100;
+  oopSlider.style.setProperty('--fill', fillPct + '%');
+}
+
+budgetInput.addEventListener('input', onBudgetInput);
+budgetInput.addEventListener('blur', () => {
+  budgetInput.value = formatMoneyPlain(state.baseBudget);
+});
+budgetInput.addEventListener('focus', e => e.target.select());
+
+totalInput.addEventListener('input', onTotalInput);
+totalInput.addEventListener('blur', () => {
+  const adjusted = sumLineDollars();
+  const total = adjusted * (1 + state.oop / 100);
+  totalInput.value = formatMoneyPlain(total);
+});
+totalInput.addEventListener('focus', e => e.target.select());
+
+oopSlider.addEventListener('input', e => {
+  state.oop = clamp(parseFloat(e.target.value), 10, 25);
+  oopNum.textContent = state.oop.toFixed(1);
+  paintSliderFill();
+  recalcDerived();
+});
+
+resetBtn.addEventListener('click', () => {
+  applyDefaults();
+  renderRows();
+  recalcDerived();
+});
+
+clearPaidBtn.addEventListener('click', () => {
+  clearPaid();
+  renderRows();
+  recalcDerived();
+});
+
+function sumLineDollars() {
+  return Object.values(state.lineDollars).reduce((a, b) => a + b, 0);
+}
+function sumLinePaid() {
+  return Object.values(state.linePaid).reduce((a, b) => a + b, 0);
+}
+
+function onBudgetInput(e) {
+  const oldBase = state.baseBudget;
+  const raw = parseNumber(e.target.value);
+  const newBase = clamp(Math.round(raw), 0, 9999999);
+  state.baseBudget = newBase;
+
+  // rescale line dollars proportionally — preserve current % distribution
+  if (oldBase > 0) {
+    for (const p of PHASES) {
+      const oldDollars = state.lineDollars[p.id];
+      state.lineDollars[p.id] = newBase * (oldDollars / oldBase);
+    }
+  } else {
+    applyDefaults();
+  }
+
+  // refresh row inputs (no events)
+  document.querySelectorAll('.line-row').forEach(row => {
+    const id = +row.dataset.id;
+    const dollars = state.lineDollars[id];
+    const pct = newBase > 0 ? (dollars / newBase) * 100 : 0;
+    row.querySelector('input[data-kind="budget"]').value = formatMoneyPlain(dollars);
+    row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
+  });
+
+  recalcDerived();
+  updateAllRowOverages();
+  updateAllRowActualPct();
+  updateCategoryTotals();
+}
+
+function onTotalInput(e) {
+  // user typed a new total → reverse-calc the base build budget
+  const raw = parseNumber(e.target.value);
+  const newTotal = clamp(Math.round(raw), 0, 99999999);
+  const factor = 1 + state.oop / 100;
+  const newBase = factor > 0 ? newTotal / factor : 0;
+  const clampedBase = clamp(Math.round(newBase), 0, 9999999);
+
+  const oldBase = state.baseBudget;
+  state.baseBudget = clampedBase;
+
+  if (oldBase > 0) {
+    for (const p of PHASES) {
+      const oldDollars = state.lineDollars[p.id];
+      state.lineDollars[p.id] = clampedBase * (oldDollars / oldBase);
+    }
+  } else {
+    applyDefaults();
+  }
+
+  // mirror new base into the Build Budget input (no event)
+  budgetInput.value = formatMoneyPlain(clampedBase);
+
+  // refresh row inputs
+  document.querySelectorAll('.line-row').forEach(row => {
+    const id = +row.dataset.id;
+    const dollars = state.lineDollars[id];
+    const pct = clampedBase > 0 ? (dollars / clampedBase) * 100 : 0;
+    row.querySelector('input[data-kind="budget"]').value = formatMoneyPlain(dollars);
+    row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
+  });
+
+  recalcDerived({ skipTotalInputUpdate: true });
+  updateAllRowOverages();
+  updateAllRowActualPct();
+  updateCategoryTotals();
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  DERIVED VALUES — summary strip + progress bar
+// ──────────────────────────────────────────────────────────────────
+function recalcDerived(opts) {
+  opts = opts || {};
+  const adjusted = sumLineDollars();
+  const overage = adjusted - state.baseBudget;
+  const overagePctVal = state.baseBudget > 0 ? (overage / state.baseBudget) * 100 : 0;
+  const oopDollars = adjusted * state.oop / 100;
+  const total = adjusted + oopDollars;
+  const totalPaid = sumLinePaid();
+  const remaining = total - totalPaid;
+  const progressPct = total > 0 ? (totalPaid / total) * 100 : 0;
+
+  // Top inputs
+  if (!opts.skipTotalInputUpdate && document.activeElement !== totalInput) {
+    totalInput.value = formatMoneyPlain(total);
+  }
+
+  // Summary strip
+  baseValueEl.textContent = formatMoney(state.baseBudget);
+
+  // Over/Under Budget cell — actual paid vs original plan, aggregated across paid lines only
+  let paidLines = 0;
+  let paidDelta = 0;        // sum of (paid - planned) where paid > 0
+  let paidPlannedTotal = 0; // sum of planned for those same lines
+  let paidActualTotal = 0;  // sum of paid for those same lines
+  for (const p of PHASES) {
+    if (state.linePaid[p.id] > 0) {
+      paidLines++;
+      paidDelta += state.linePaid[p.id] - state.lineDollars[p.id];
+      paidPlannedTotal += state.lineDollars[p.id];
+      paidActualTotal += state.linePaid[p.id];
+    }
+  }
+  const paidVariancePct = paidPlannedTotal > 0 ? (paidDelta / paidPlannedTotal) * 100 : 0;
+  const linesLabel = paidLines + ' of ' + PHASES.length + ' line' + (PHASES.length === 1 ? '' : 's');
+
+  overUnderCellEl.classList.remove('tint-under', 'tint-warn', 'tint-over');
+  if (paidLines === 0) {
+    overUnderValueEl.textContent = '$0 no actuals';
+    overUnderValueEl.className = 'val on-track';
+    overUnderSubEl.textContent = 'Enter Amount Paid on any line to start tracking variance';
+  } else if (Math.abs(paidDelta) < 1) {
+    overUnderValueEl.textContent = '$0 on track';
+    overUnderValueEl.className = 'val on-track';
+    overUnderSubEl.textContent = 'across ' + linesLabel + ' · paid ' + formatMoney(paidActualTotal) + ' vs planned ' + formatMoney(paidPlannedTotal);
+  } else if (paidDelta < 0) {
+    overUnderValueEl.textContent = '−' + formatMoney(Math.abs(paidDelta)) + ' under';
+    overUnderValueEl.className = 'val under';
+    overUnderCellEl.classList.add('tint-under');
+    overUnderSubEl.textContent = '−' + Math.abs(paidVariancePct).toFixed(1) + '% across ' + linesLabel + ' · paid ' + formatMoney(paidActualTotal) + ' vs ' + formatMoney(paidPlannedTotal) + ' planned';
+  } else if (paidVariancePct <= 10) {
+    overUnderValueEl.textContent = '+' + formatMoney(paidDelta) + ' over';
+    overUnderValueEl.className = 'val warn';
+    overUnderCellEl.classList.add('tint-warn');
+    overUnderSubEl.textContent = '+' + paidVariancePct.toFixed(1) + '% across ' + linesLabel + ' · paid ' + formatMoney(paidActualTotal) + ' vs ' + formatMoney(paidPlannedTotal) + ' planned';
+  } else {
+    overUnderValueEl.textContent = '+' + formatMoney(paidDelta) + ' over';
+    overUnderValueEl.className = 'val over-critical';
+    overUnderCellEl.classList.add('tint-over');
+    overUnderSubEl.textContent = '+' + paidVariancePct.toFixed(1) + '% across ' + linesLabel + ' · critical · paid ' + formatMoney(paidActualTotal) + ' vs ' + formatMoney(paidPlannedTotal) + ' planned';
+  }
+
+  oopValueEl.textContent = formatMoney(oopDollars);
+  oopPctDisplayEl.textContent = 'at ' + state.oop.toFixed(1) + '%';
+
+  paidValueEl.textContent = formatMoney(totalPaid);
+  paidPctDisplayEl.textContent = (total > 0 ? (totalPaid / total * 100).toFixed(1) : '0.0') + '% of total';
+
+  // Remaining to Spend — color-tier when over-spent
+  const remainingCell = remainingValueEl.closest('.summary-cell');
+  remainingCell.classList.remove('tint-warn', 'tint-over');
+  remainingValueEl.textContent = formatMoney(remaining);
+  if (remaining >= 0) {
+    remainingValueEl.className = 'val remaining';
+    remainingPctDisplayEl.textContent = (total > 0 ? (remaining / total * 100).toFixed(1) : '100.0') + '% remaining';
+  } else {
+    remainingValueEl.className = 'val over-critical';
+    remainingCell.classList.add('tint-over');
+    remainingPctDisplayEl.textContent = 'over by ' + formatMoney(Math.abs(remaining));
+  }
+
+  // Progress bar
+  progressTotalEl.textContent = formatMoneyPlain(total);
+  progressPaidEl.textContent = formatMoney(totalPaid);
+  progressRemainingEl.textContent = formatMoney(Math.max(0, remaining));
+  progressPctEl.textContent = progressPct.toFixed(1) + '%';
+  progressHeadlinePctEl.textContent = progressPct.toFixed(1) + '%';
+
+  const fillPct = Math.min(100, Math.max(0, progressPct));
+  progressFillEl.style.width = fillPct + '%';
+
+  // color states
+  progressFillEl.classList.remove('warning', 'over');
+  progressPctEl.classList.remove('warning', 'over');
+  const progressPaidStrong = document.querySelector('.progress-meta .lhs strong');
+  if (progressPaidStrong) progressPaidStrong.classList.remove('over');
+
+  if (progressPct > 100) {
+    progressFillEl.classList.add('over');
+    progressPctEl.classList.add('over');
+    if (progressPaidStrong) progressPaidStrong.classList.add('over');
+  } else if (progressPct >= 85) {
+    progressFillEl.classList.add('warning');
+    progressPctEl.classList.add('warning');
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  INIT
+// ──────────────────────────────────────────────────────────────────
+renderRows();
+recalcDerived();
+paintSliderFill();
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// sanity self-test
+(function selfTest() {
+  const defaultsSum = PHASES.reduce((a, p) => a + p.pct, 0);
+  console.log('[LCGC] default %% sum =', defaultsSum.toFixed(1), defaultsSum === 100 ? 'OK' : 'WARNING');
+  console.log('[LCGC] phases loaded =', PHASES.length);
+  console.log('[LCGC] base=' + state.baseBudget + ', oop=' + state.oop +
+              ', adjusted=' + sumLineDollars() + ', total=' + (sumLineDollars() * (1 + state.oop/100)));
+})();
+</script>
+
+</body>
+</html>

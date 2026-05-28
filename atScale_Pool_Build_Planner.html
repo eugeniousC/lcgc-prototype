@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>atScale Advisors — Pool Build Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep:        #061824;
+    --ocean:       #0d3347;
+    --ocean-mid:   #0e4d6b;
+    --ocean-light: #1a6f8a;
+    --teal:        #0891B2;
+    --teal-light:  #22D3EE;
+    --teal-pale:   #CFFAFE;
+    --sand:        #F5F0E8;
+    --white:       #FFFFFF;
+    --gray-400:    #94A3B8;
+    --gray-600:    #64748B;
+    --slate:       #1E3A4A;
+    --green:       #059669;
+    --amber:       #D97706;
+    --amber-light: #F59E0B;
+    --red:         #DC2626;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--deep);
+    color: var(--white);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(180deg, #020e18 0%, var(--deep) 100%);
+    padding: 28px 40px 0;
+    border-bottom: 1px solid rgba(8,145,178,0.15);
+    position: relative; overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 85% 50%, rgba(8,145,178,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse at 15% 50%, rgba(34,211,238,0.06) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  /* Animated water ripple in header */
+  header::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      var(--teal) 20%,
+      var(--teal-light) 50%,
+      var(--teal) 80%,
+      transparent 100%);
+    opacity: 0.6;
+  }
+
+  .header-inner {
+    max-width: 1320px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 24px;
+    position: relative; z-index: 1;
+  }
+
+  .logo-mark { display: flex; align-items: center; gap: 14px; }
+
+  .logo-box {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--ocean-light) 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: var(--white); letter-spacing: -0.5px;
+    font-family: 'DM Sans', sans-serif;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(8,145,178,0.35);
+  }
+
+  .logo-text { display: flex; flex-direction: column; }
+
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700; color: var(--white); line-height: 1.2;
+  }
+
+  .logo-sub {
+    font-size: 11px; font-weight: 500;
+    color: var(--teal-light);
+    text-transform: uppercase; letter-spacing: 2px;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .header-badge {
+    background: rgba(8,145,178,0.15);
+    border: 1px solid rgba(8,145,178,0.35);
+    border-radius: 100px;
+    padding: 7px 18px;
+    font-size: 12px; font-weight: 600;
+    color: var(--teal-light);
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1320px; margin: 0 auto;
+    padding: 36px 40px 80px;
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* ── PANEL ── */
+  .controls-panel { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 20px; }
+
+  .panel {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(8,145,178,0.15);
+    border-radius: 18px;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+  }
+
+  .panel-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2.5px;
+    color: var(--teal); margin-bottom: 6px;
+  }
+
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--white); margin-bottom: 18px; line-height: 1.2;
+  }
+
+  /* ── POOL DIMENSIONS ── */
+  .pool-visual {
+    position: relative;
+    margin-bottom: 20px;
+    background: linear-gradient(160deg, rgba(8,145,178,0.15) 0%, rgba(6,24,36,0.4) 100%);
+    border: 1px solid rgba(8,145,178,0.2);
+    border-radius: 14px;
+    padding: 20px;
+    overflow: hidden;
+  }
+
+  .pool-visual::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(34,211,238,0.08) 0%, transparent 60%);
+  }
+
+  /* Animated pool water ripple */
+  .pool-water-anim {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 40px; overflow: hidden; opacity: 0.3;
+  }
+
+  .pool-water-anim svg { animation: wave 4s linear infinite; }
+
+  @keyframes wave {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .pool-dims-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px; position: relative; z-index: 1;
+  }
+
+  .dim-input-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .dim-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--teal-light);
+  }
+
+  .dim-input-wrap { position: relative; }
+
+  .dim-input {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(8,145,178,0.25);
+    border-radius: 10px;
+    padding: 10px 36px 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 20px; font-weight: 500;
+    color: var(--white); outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+
+  .dim-input:focus {
+    border-color: var(--teal);
+    background: rgba(8,145,178,0.1);
+  }
+
+  .dim-unit {
+    position: absolute; right: 10px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px; color: var(--teal);
+    font-weight: 600; font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+  }
+
+  /* Pool stats row */
+  .pool-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-top: 14px; position: relative; z-index: 1;
+  }
+
+  .pool-stat {
+    background: rgba(8,145,178,0.1);
+    border: 1px solid rgba(8,145,178,0.2);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .pool-stat-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px; font-weight: 500;
+    color: var(--teal-light); display: block;
+  }
+
+  .pool-stat-label {
+    font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--gray-400); margin-top: 3px;
+  }
+
+  /* Shape selector */
+  .shape-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px; margin-bottom: 18px;
+  }
+
+  .shape-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 6px;
+    cursor: pointer; text-align: center;
+    transition: all 0.2s;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 5px;
+  }
+
+  .shape-btn:hover { border-color: rgba(8,145,178,0.4); background: rgba(8,145,178,0.08); }
+
+  .shape-btn.active {
+    border-color: var(--teal);
+    background: rgba(8,145,178,0.15);
+  }
+
+  .shape-icon { font-size: 20px; }
+  .shape-name { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; }
+  .shape-btn.active .shape-name { color: var(--teal-light); }
+  .shape-mult { font-size: 9px; color: var(--gray-600); margin-top: 1px; }
+
+  /* Finish selector */
+  .finish-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .finish-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .finish-btn:hover { border-color: rgba(8,145,178,0.4); }
+  .finish-btn.active { border-color: var(--teal); background: rgba(8,145,178,0.12); }
+
+  .finish-name { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 3px; }
+  .finish-desc { font-size: 10px; color: var(--gray-400); line-height: 1.4; }
+  .finish-price { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--teal-light); margin-top: 4px; font-weight: 500; }
+  .finish-btn.active .finish-price { color: var(--teal-light); }
+
+  /* Sliders */
+  .slider-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .slider-val-lg {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px; font-weight: 500;
+    color: var(--teal-light); line-height: 1;
+  }
+
+  .slider-val-lg span { font-size: 16px; color: var(--teal); }
+
+  .slider-ctx {
+    font-size: 11px; color: var(--gray-400);
+    text-align: right; line-height: 1.5;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%; height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    outline: none; cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--teal);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 2px var(--teal), 0 4px 12px rgba(8,145,178,0.5);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+  .slider-markers {
+    display: flex; justify-content: space-between;
+    margin-top: 6px; font-size: 10px;
+    color: var(--gray-400); font-family: 'DM Mono', monospace;
+  }
+
+  /* Features checkboxes */
+  .features-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .feature-toggle {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .feature-toggle:hover { border-color: rgba(8,145,178,0.3); }
+
+  .feature-toggle.active {
+    border-color: var(--teal);
+    background: rgba(8,145,178,0.1);
+  }
+
+  .feature-check {
+    width: 18px; height: 18px; border-radius: 5px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .feature-toggle.active .feature-check {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+
+  .feature-text { flex: 1; }
+  .feature-name { font-size: 12px; font-weight: 600; color: var(--white); }
+  .feature-cost { font-size: 10px; color: var(--teal-light); font-family: 'DM Mono', monospace; }
+
+  /* Summary */
+  .summary-rows { display: flex; flex-direction: column; }
+
+  .sum-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .sum-row:last-child { border-bottom: none; }
+  .sum-row.divider { border-top: 1px solid rgba(8,145,178,0.25); padding-top: 14px; margin-top: 4px; border-bottom: none; }
+
+  .sum-lbl { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .sum-lbl.bold { color: var(--white); font-weight: 600; font-size: 13px; }
+  .sum-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--white); }
+  .sum-val.lg { font-size: 20px; color: var(--teal-light); }
+  .sum-val.total { font-size: 24px; color: var(--teal); font-weight: 500; }
+
+  /* ── RIGHT PANEL ── */
+  .breakdown-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  .breakdown-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+
+  .breakdown-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700; color: var(--white); line-height: 1.2;
+  }
+
+  .breakdown-title em { color: var(--teal-light); font-style: italic; }
+
+  .view-toggle {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 10px; padding: 4px;
+    flex-shrink: 0;
+  }
+
+  .view-btn {
+    padding: 6px 14px; border-radius: 7px;
+    font-size: 12px; font-weight: 600;
+    border: none; cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(255,255,255,0.45);
+    background: transparent;
+  }
+
+  .view-btn.active { background: var(--teal); color: var(--white); }
+
+  /* Phase cards */
+  .phases-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .phase-section { border-radius: 14px; overflow: hidden; }
+
+  .phase-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(8,145,178,0.12);
+    border-radius: 12px 12px 0 0;
+    cursor: pointer; transition: background 0.2s;
+    user-select: none;
+  }
+
+  .phase-section:not(.open) .phase-header {
+    border-radius: 12px;
+  }
+
+  .phase-header:hover { background: rgba(255,255,255,0.07); }
+
+  .phase-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(8,145,178,0.2);
+    border: 1px solid rgba(8,145,178,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    color: var(--teal-light); flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .phase-icon { font-size: 18px; flex-shrink: 0; }
+  .phase-name { font-weight: 600; font-size: 14px; color: var(--white); flex: 1; }
+
+  .phase-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px; font-weight: 500;
+    color: var(--teal-light);
+  }
+
+  .phase-pct {
+    font-size: 11px; color: var(--gray-400);
+    font-family: 'DM Mono', monospace;
+    width: 36px; text-align: right;
+  }
+
+  .phase-chevron {
+    color: var(--gray-400); font-size: 11px;
+    transition: transform 0.2s; margin-left: 4px;
+  }
+
+  .phase-section.open .phase-chevron { transform: rotate(180deg); }
+
+  .phase-items {
+    display: none; flex-direction: column;
+    border: 1px solid rgba(8,145,178,0.12);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+  }
+
+  .phase-section.open .phase-items { display: flex; }
+
+  .line-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px; align-items: center;
+    padding: 13px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+    transition: background 0.15s;
+  }
+
+  .line-item:last-child { border-bottom: none; }
+  .line-item:hover { background: rgba(255,255,255,0.025); }
+
+  .line-item::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: var(--bar-w, 0%);
+    background: rgba(8,145,178,0.06);
+    border-right: 2px solid rgba(8,145,178,0.18);
+    transition: width 0.4s ease;
+    pointer-events: none;
+  }
+
+  .item-name { font-size: 13px; font-weight: 500; color: var(--white); margin-bottom: 2px; }
+  .item-desc { font-size: 11px; color: var(--gray-400); line-height: 1.4; }
+
+  .item-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px; font-weight: 500; color: var(--white);
+    text-align: right; white-space: nowrap;
+  }
+
+  .item-sub-label {
+    font-size: 10px; color: var(--gray-400);
+    display: block; margin-top: 1px; text-align: right;
+  }
+
+  .mini-bar-wrap { width: 52px; }
+  .mini-track { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+  .mini-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+  .mini-pct { font-size: 10px; color: var(--gray-400); font-family: 'DM Mono', monospace; text-align: right; margin-top: 3px; }
+
+  /* Optional feature line items */
+  .line-item.feature-item { background: rgba(8,145,178,0.04); }
+  .line-item.feature-item .item-name { color: var(--teal-light); }
+
+  /* Grand total band */
+  .total-band {
+    background: linear-gradient(135deg, var(--ocean) 0%, var(--slate) 100%);
+    border: 1px solid rgba(8,145,178,0.3);
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex; align-items: center; gap: 32px;
+  }
+
+  .total-main { flex: 1; }
+
+  .total-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--teal); margin-bottom: 8px;
+  }
+
+  .total-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 42px; font-weight: 500;
+    color: var(--teal-light); line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .total-sub { font-size: 13px; color: var(--gray-400); margin-top: 8px; }
+
+  .total-stats {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .total-stat {
+    text-align: right;
+  }
+
+  .total-stat-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px; font-weight: 500; color: var(--white);
+  }
+
+  .total-stat-lbl { font-size: 11px; color: var(--gray-400); }
+
+  /* Shopper cards */
+  .shopper-section {
+    background: rgba(8,145,178,0.06);
+    border: 1px solid rgba(8,145,178,0.2);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .shopper-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--white); margin-bottom: 6px;
+  }
+
+  .shopper-section p {
+    font-size: 13px; color: rgba(255,255,255,0.55);
+    margin-bottom: 18px; font-weight: 300; line-height: 1.6;
+  }
+
+  .shopper-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .shop-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 14px 12px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .shop-card:hover {
+    border-color: rgba(8,145,178,0.35);
+    background: rgba(8,145,178,0.07);
+  }
+
+  .shop-icon { font-size: 18px; margin-bottom: 6px; }
+  .shop-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.75); margin-bottom: 5px; line-height: 1.3; }
+  .shop-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--teal-light); }
+  .shop-note { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+  /* Chart view */
+  .chart-view { display: none; }
+  .chart-view.active { display: block; }
+  .list-view.hidden { display: none; }
+
+  .donut-wrap-outer {
+    display: flex; gap: 36px; align-items: center;
+    padding: 28px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(8,145,178,0.12);
+    border-radius: 16px; margin-bottom: 16px;
+  }
+
+  .donut-rel { position: relative; width: 220px; height: 220px; flex-shrink: 0; }
+
+  #donut-canvas { transform: rotate(-90deg); }
+
+  .donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+
+  .donut-center-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--gray-400); margin-bottom: 4px; }
+  .donut-center-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--teal-light); }
+  .donut-center-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+  .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+
+  .legend-item { display: flex; align-items: center; gap: 10px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-name { font-size: 12px; color: rgba(255,255,255,0.7); flex: 1; }
+  .legend-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--white); font-weight: 500; }
+  .legend-pct { font-size: 10px; color: var(--gray-400); font-family: 'DM Mono', monospace; width: 32px; text-align: right; }
+
+  /* Warning */
+  .warning-band {
+    display: none; padding: 12px 18px;
+    background: rgba(217,119,6,0.1);
+    border: 1px solid rgba(217,119,6,0.3);
+    border-radius: 10px;
+    font-size: 13px; color: #fcd34d;
+    align-items: center; gap: 10px;
+  }
+
+  .warning-band.show { display: flex; }
+
+  /* Print button */
+  .print-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 10px 18px;
+    font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .print-btn:hover { background: rgba(255,255,255,0.09); color: var(--white); }
+
+  /* Footer */
+  .app-footer {
+    border-top: 1px solid rgba(8,145,178,0.1);
+    padding: 20px 40px; text-align: center;
+    font-size: 12px; color: var(--gray-400);
+  }
+
+  /* Responsive */
+  @media (max-width: 1000px) {
+    main { grid-template-columns: 1fr; padding: 20px; }
+    .controls-panel { position: static; }
+    .shopper-grid { grid-template-columns: repeat(2, 1fr); }
+    .donut-wrap-outer { flex-direction: column; }
+    header { padding: 20px 20px 0; }
+  }
+
+  @media print {
+    body { background: white; color: black; }
+    .controls-panel, .view-toggle, .print-btn { display: none; }
+    .phase-items { display: flex !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-mark">
+      <div class="logo-box">atS</div>
+      <div class="logo-text">
+        <div class="logo-name">atScale Advisors</div>
+        <div class="logo-sub">Pool Build Cost Planner</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-badge">💧 Shotcrete Pool Estimator</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ LEFT CONTROLS ══ -->
+  <div class="controls-panel">
+
+    <!-- POOL DIMENSIONS -->
+    <div class="panel">
+      <div class="panel-label">Step 1 — Pool Size</div>
+      <div class="panel-title">Dimensions & Volume</div>
+
+      <div class="pool-visual">
+        <div class="pool-dims-grid">
+          <div class="dim-input-group">
+            <div class="dim-label">↔ Width</div>
+            <div class="dim-input-wrap">
+              <input class="dim-input" id="dim-w" type="text" value="16" inputmode="numeric">
+              <span class="dim-unit">ft</span>
+            </div>
+          </div>
+          <div class="dim-input-group">
+            <div class="dim-label">↕ Length</div>
+            <div class="dim-input-wrap">
+              <input class="dim-input" id="dim-l" type="text" value="32" inputmode="numeric">
+              <span class="dim-unit">ft</span>
+            </div>
+          </div>
+          <div class="dim-input-group">
+            <div class="dim-label">↓ Avg Depth</div>
+            <div class="dim-input-wrap">
+              <input class="dim-input" id="dim-d" type="text" value="5.0" inputmode="decimal">
+              <span class="dim-unit">ft</span>
+            </div>
+          </div>
+        </div>
+        <div class="pool-stats">
+          <div class="pool-stat">
+            <span class="pool-stat-val" id="stat-sqft">—</span>
+            <div class="pool-stat-label">Surface Sq Ft</div>
+          </div>
+          <div class="pool-stat">
+            <span class="pool-stat-val" id="stat-gallons">—</span>
+            <div class="pool-stat-label">Gallons</div>
+          </div>
+          <div class="pool-stat">
+            <span class="pool-stat-val" id="stat-shell">—</span>
+            <div class="pool-stat-label">Shell Sq Ft</div>
+          </div>
+        </div>
+        <!-- Animated water -->
+        <div class="pool-water-anim">
+          <svg width="200%" height="40" viewBox="0 0 800 40" fill="none">
+            <path d="M0 20 Q50 5 100 20 Q150 35 200 20 Q250 5 300 20 Q350 35 400 20 Q450 5 500 20 Q550 35 600 20 Q650 5 700 20 Q750 35 800 20 L800 40 L0 40 Z" fill="rgba(8,145,178,0.15)"/>
+            <path d="M0 25 Q40 12 80 25 Q120 38 160 25 Q200 12 240 25 Q280 38 320 25 Q360 12 400 25 Q440 38 480 25 Q520 12 560 25 Q600 38 640 25 Q680 12 720 25 Q760 38 800 25 L800 40 L0 40 Z" fill="rgba(34,211,238,0.1)"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Pool Shape -->
+      <div class="panel-label" style="margin-bottom:10px">Pool Shape</div>
+      <div class="shape-grid">
+        <div class="shape-btn active" data-shape="rectangle" data-mult="1.00" onclick="setShape(this)">
+          <span class="shape-icon">⬜</span>
+          <span class="shape-name">Rectangle</span>
+          <span class="shape-mult">×1.00</span>
+        </div>
+        <div class="shape-btn" data-shape="lshape" data-mult="1.08" onclick="setShape(this)">
+          <span class="shape-icon">🔲</span>
+          <span class="shape-name">L-Shape</span>
+          <span class="shape-mult">+8%</span>
+        </div>
+        <div class="shape-btn" data-shape="freeform" data-mult="1.18" onclick="setShape(this)">
+          <span class="shape-icon">🫧</span>
+          <span class="shape-name">Freeform</span>
+          <span class="shape-mult">+18%</span>
+        </div>
+        <div class="shape-btn" data-shape="lagoon" data-mult="1.28" onclick="setShape(this)">
+          <span class="shape-icon">🏝️</span>
+          <span class="shape-name">Lagoon</span>
+          <span class="shape-mult">+28%</span>
+        </div>
+      </div>
+
+      <!-- Interior Finish -->
+      <div class="panel-label" style="margin-bottom:10px">Interior Finish</div>
+      <div class="finish-grid">
+        <div class="finish-btn" data-finish="plaster" data-rate="6.50" onclick="setFinish(this)">
+          <div class="finish-name">White Plaster</div>
+          <div class="finish-desc">Classic, economical; resurface every 10–15 yrs</div>
+          <div class="finish-price">~$6.50/sq ft</div>
+        </div>
+        <div class="finish-btn active" data-finish="quartz" data-rate="9.50" onclick="setFinish(this)">
+          <div class="finish-name">Quartz Blend</div>
+          <div class="finish-desc">Durable, colorful; popular mid-range choice</div>
+          <div class="finish-price">~$9.50/sq ft</div>
+        </div>
+        <div class="finish-btn" data-finish="pebble" data-rate="14.00" onclick="setFinish(this)">
+          <div class="finish-name">Pebble Tec®</div>
+          <div class="finish-desc">Premium natural stone texture; 20+ yr lifespan</div>
+          <div class="finish-price">~$14.00/sq ft</div>
+        </div>
+        <div class="finish-btn" data-finish="tile" data-rate="22.00" onclick="setFinish(this)">
+          <div class="finish-name">Full Tile</div>
+          <div class="finish-desc">Luxury glass/mosaic tile throughout shell</div>
+          <div class="finish-price">~$22.00/sq ft</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUILDER FEE SLIDER -->
+    <div class="panel">
+      <div class="panel-label">Step 2 — Builder's Fee</div>
+      <div class="panel-title">Contractor Margin</div>
+      <div class="slider-row">
+        <div>
+          <div class="slider-val-lg" id="fee-display">25<span>%</span></div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:4px">of documented build costs</div>
+        </div>
+        <div class="slider-ctx" id="fee-ctx">Industry standard<br>pool contractor fee</div>
+      </div>
+      <input type="range" id="fee-slider" min="5" max="35" step="1" value="25">
+      <div class="slider-markers">
+        <span>5%</span><span>10%</span><span>15%</span><span>20%</span><span>25%</span><span>30%</span><span>35%</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <div style="flex:1;text-align:center;padding:6px 4px;border-radius:8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;background:rgba(5,150,105,0.15);color:#34d399;border:1px solid rgba(5,150,105,0.3)">5–15%<br>Below Mkt</div>
+        <div style="flex:1;text-align:center;padding:6px 4px;border-radius:8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;background:rgba(8,145,178,0.15);color:var(--teal-light);border:1px solid rgba(8,145,178,0.3)">16–25%<br>Standard</div>
+        <div style="flex:1;text-align:center;padding:6px 4px;border-radius:8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;background:rgba(217,119,6,0.15);color:#fcd34d;border:1px solid rgba(217,119,6,0.3)">26–30%<br>Elevated</div>
+        <div style="flex:1;text-align:center;padding:6px 4px;border-radius:8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;background:rgba(220,38,38,0.1);color:#fca5a5;border:1px solid rgba(220,38,38,0.2)">31–35%<br>Premium</div>
+      </div>
+    </div>
+
+    <!-- OPTIONAL FEATURES -->
+    <div class="panel">
+      <div class="panel-label">Step 3 — Optional Features</div>
+      <div class="panel-title">Add-Ons & Upgrades</div>
+      <div class="features-grid" id="features-grid">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+    <!-- LIVE SUMMARY -->
+    <div class="panel">
+      <div class="panel-label">Live Summary</div>
+      <div class="summary-rows">
+        <div class="sum-row">
+          <span class="sum-lbl">Pool Shell Area</span>
+          <span class="sum-val" id="s-shell">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Volume</span>
+          <span class="sum-val" id="s-gal">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Shape Multiplier</span>
+          <span class="sum-val" id="s-shape">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Interior Finish</span>
+          <span class="sum-val" id="s-finish">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Base Build Cost</span>
+          <span class="sum-val lg" id="s-base">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Optional Features</span>
+          <span class="sum-val" id="s-features" style="color:var(--teal-light)">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Contractor Fee (<span id="s-fee-pct">25</span>%)</span>
+          <span class="sum-val" id="s-fee" style="color:var(--amber-light)">—</span>
+        </div>
+        <div class="sum-row divider">
+          <span class="sum-lbl bold">Total Investment</span>
+          <span class="sum-val total" id="s-total">—</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨 Print Estimate</button>
+
+  </div>
+
+  <!-- ══ RIGHT BREAKDOWN ══ -->
+  <div class="breakdown-panel">
+
+    <div class="breakdown-header">
+      <div>
+        <div class="breakdown-title">Your Pool Build,<br><em>Phase by Phase</em></div>
+        <div style="font-size:13px;color:var(--gray-400);margin-top:6px">Click any phase to expand · All costs update live</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="print-btn" onclick="expandAll()">Expand All</button>
+        <div class="view-toggle">
+          <button class="view-btn active" onclick="switchView('list',this)">List</button>
+          <button class="view-btn" onclick="switchView('chart',this)">Chart</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="warning-band" class="warning-band">
+      ⚠️ <strong>Size Alert:</strong> Very small pool dimensions entered. Minimum practical pool is roughly 12×24 ft. Costs may not scale linearly below this size.
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="list-view" class="list-view">
+      <div class="phases-list" id="phases-list"></div>
+    </div>
+
+    <!-- CHART VIEW -->
+    <div id="chart-view" class="chart-view">
+      <div class="donut-wrap-outer">
+        <div class="donut-rel">
+          <canvas id="donut-canvas" width="220" height="220"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-lbl">Build Cost</div>
+            <div class="donut-center-val" id="donut-val">—</div>
+            <div class="donut-center-sub" id="donut-sub">10 phases</div>
+          </div>
+        </div>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+
+    <!-- TOTAL BAND -->
+    <div class="total-band">
+      <div class="total-main">
+        <div class="total-label">Total Project Investment</div>
+        <div class="total-value" id="total-display">—</div>
+        <div class="total-sub" id="total-sub">Including all phases, features & contractor fee</div>
+      </div>
+      <div class="total-stats">
+        <div class="total-stat">
+          <div class="total-stat-val" id="cost-per-gal">—</div>
+          <div class="total-stat-lbl">per gallon</div>
+        </div>
+        <div class="total-stat">
+          <div class="total-stat-val" id="cost-per-sqft">—</div>
+          <div class="total-stat-lbl">per surface sq ft</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT CAN I SHOP FOR -->
+    <div class="shopper-section">
+      <h3>🛒 What Can I Shop For?</h3>
+      <p>Maximum budgets for the key decisions you'll make with vendors and showrooms — so you walk in knowing your number.</p>
+      <div class="shopper-grid" id="shopper-grid"></div>
+    </div>
+
+  </div>
+</main>
+
+<div class="app-footer">
+  atScale Advisors &nbsp;·&nbsp; Revenue Intelligence Architecture &nbsp;·&nbsp; atscaleadvisors.com
+  <br><span style="font-size:10px;margin-top:4px;display:block">Estimates based on national averages adjusted for Southeast U.S. market (2026). Actual costs vary by site conditions, local labor markets, material pricing, and permit requirements. All figures are for educational purposes only.</span>
+</div>
+
+<script>
+// ── POOL PHASES ──────────────────────────────────────────────────────────────
+// Each item has: name, desc, and a baseCost function(shellSqft, surfaceSqft, gallons)
+// pct = fraction of total BASE build cost (excluding features & fee) — used for display
+
+const PHASES = [
+  {
+    id: "layout",
+    num: "01",
+    icon: "📐",
+    name: "Layout & Excavation",
+    color: "#8B5CF6",
+    pct: 0.13,
+    items: [
+      { name: "Site Survey & Engineering Layout",   pct: 0.018, desc: "Staking, grade survey, setback verification, permit drawings" },
+      { name: "Permit & Plan Review Fees",           pct: 0.022, desc: "Building permit, engineering review, health dept (if applicable)" },
+      { name: "Excavation & Hauling",                pct: 0.062, desc: "Machine dig to design depth, dirt haul-off (est. 150–300 tons)" },
+      { name: "Rough Grading & Access",              pct: 0.028, desc: "Equipment access path, spoil staging, site restoration" },
+    ]
+  },
+  {
+    id: "steel",
+    num: "02",
+    icon: "🔩",
+    name: "Steel Reinforcement (Rebar)",
+    color: "#6366F1",
+    pct: 0.10,
+    items: [
+      { name: "Rebar Grid – Floor & Walls",          pct: 0.060, desc: "#3/#4 rebar at 12\" on center, all walls and floor" },
+      { name: "Beam & Bond Beam Steel",              pct: 0.022, desc: "Top bond beam, step and bench reinforcement" },
+      { name: "Steel Inspection",                    pct: 0.008, desc: "City/county structural inspection before shotcrete" },
+      { name: "Radius & Custom Form Work",           pct: 0.010, desc: "Curves, radius corners, bench and tanning ledge forms" },
+    ]
+  },
+  {
+    id: "plumbing",
+    num: "03",
+    icon: "🔧",
+    name: "Plumbing & Hydraulics",
+    color: "#3B82F6",
+    pct: 0.11,
+    items: [
+      { name: "Main Drain & Anti-Vortex Fittings",  pct: 0.018, desc: "Virginia Graeme Baker-compliant dual main drain system" },
+      { name: "Return Lines & Fittings",             pct: 0.028, desc: "1.5\"–2\" PVC returns, all wall fittings, eyeball returns" },
+      { name: "Suction Lines – Skimmers",            pct: 0.022, desc: "Skimmer rough-in, suction plumbing to equipment pad" },
+      { name: "Equipment Pad Plumbing",              pct: 0.025, desc: "Manifold, valves, flex connections at equipment pad" },
+      { name: "Pressure Test & Inspection",          pct: 0.017, desc: "Pressure test all lines before shotcrete application" },
+    ]
+  },
+  {
+    id: "shotcrete",
+    num: "04",
+    icon: "💨",
+    name: "Shotcrete Application",
+    color: "#0891B2",
+    pct: 0.14,
+    items: [
+      { name: "Shotcrete – Shell Walls & Floor",     pct: 0.085, desc: "3.5\"–4\" pneumatically applied concrete, full shell" },
+      { name: "Shotcrete – Steps & Benches",         pct: 0.022, desc: "Entry steps, tanning ledge, wet ledge, benches" },
+      { name: "Nozzleman & Crew Labor",              pct: 0.020, desc: "ACI-certified nozzleman, rodmen, curing crew" },
+      { name: "Curing & Hydration",                  pct: 0.013, desc: "28-day cure schedule, wet cure, structural integrity" },
+    ]
+  },
+  {
+    id: "tile-coping",
+    num: "05",
+    icon: "🧱",
+    name: "Tile, Coping & Waterline",
+    color: "#059669",
+    pct: 0.12,
+    items: [
+      { name: "Waterline Tile Band",                 pct: 0.045, desc: "6\" glass or porcelain tile band at waterline, full perimeter" },
+      { name: "Coping – Stone or Pavers",            pct: 0.040, desc: "Travertine, limestone, or concrete coping cap, mortared" },
+      { name: "Coping Mortar & Setting Materials",  pct: 0.018, desc: "Polymer-modified mortar, grout, expansion joints" },
+      { name: "Tile Labor",                          pct: 0.017, desc: "Waterline tile set labor, grouting, cleanup" },
+    ]
+  },
+  {
+    id: "decking",
+    num: "06",
+    icon: "🪨",
+    name: "Decking & Surround",
+    color: "#D97706",
+    pct: 0.11,
+    items: [
+      { name: "Concrete Deck – Broom Finish",        pct: 0.042, desc: "4\" reinforced concrete, standard broom finish (est. 800 sq ft)" },
+      { name: "Deck Upgrade – Exposed Aggregate",    pct: 0.025, desc: "Exposed aggregate or stamped finish upcharge" },
+      { name: "Expansion Joints & Control Joints",   pct: 0.013, desc: "Fiber expansion joints, saw-cut control joints" },
+      { name: "Drainage & Gutter",                   pct: 0.030, desc: "Deck drains, channel drain, slope-away grading" },
+    ]
+  },
+  {
+    id: "equipment",
+    num: "07",
+    icon: "⚙️",
+    name: "Equipment Package",
+    color: "#EC4899",
+    pct: 0.13,
+    items: [
+      { name: "Variable Speed Pump",                 pct: 0.038, desc: "Energy-efficient 2-speed or VS pump (1.5–3HP), includes pre-filter" },
+      { name: "Filter – Sand or Cartridge",          pct: 0.028, desc: "24\"–36\" filter vessel sized to pool volume" },
+      { name: "Heater – Gas or Heat Pump",           pct: 0.035, desc: "400K BTU gas heater or 120K BTU heat pump (gas shown)" },
+      { name: "Salt / Chlorine Generator",           pct: 0.018, desc: "Salt chlorinator sized for pool volume + 20% buffer" },
+      { name: "Automation Controller",               pct: 0.011, desc: "App-enabled automation: pump, lights, heater, valve control" },
+    ]
+  },
+  {
+    id: "interior",
+    num: "08",
+    icon: "✨",
+    name: "Interior Finish (Plaster / Pebble)",
+    color: "#14B8A6",
+    pct: 0.09,
+    items: [
+      { name: "Interior Finish Application",         pct: 0.065, desc: "Selected finish applied to full shell (rate set by finish choice)" },
+      { name: "Start-Up Chemical Package",           pct: 0.012, desc: "Acid wash, initial balance chemicals, 30-day startup kit" },
+      { name: "Final Finish Inspection",             pct: 0.013, desc: "Application inspection, spot repairs, bond verification" },
+    ]
+  },
+  {
+    id: "electrical",
+    num: "09",
+    icon: "⚡",
+    name: "Electrical & Bonding",
+    color: "#F59E0B",
+    pct: 0.08,
+    items: [
+      { name: "Equipotential Bonding Grid",          pct: 0.020, desc: "#8 solid copper bonding, all metal components, required by NEC" },
+      { name: "Equipment Pad Wiring",                pct: 0.025, desc: "Sub-panel or breaker, wiring to pump, heater, automation" },
+      { name: "GFCI Protection & Outlets",           pct: 0.012, desc: "Code-compliant GFCI breakers, outdoor outlets at pad" },
+      { name: "Electrical Inspection",               pct: 0.008, desc: "Licensed electrician sign-off, county electrical inspection" },
+      { name: "Conduit & Trenching",                 pct: 0.015, desc: "PVC conduit, trenching from house panel to equipment pad" },
+    ]
+  },
+  {
+    id: "startup",
+    num: "10",
+    icon: "🔑",
+    name: "Startup, Testing & Closeout",
+    color: "#64748B",
+    pct: 0.09,
+    items: [
+      { name: "Equipment Startup & Commissioning",   pct: 0.020, desc: "System balance, prime, flow test, automation programming" },
+      { name: "Water Fill & Initial Balance",        pct: 0.012, desc: "Fill water (city/well), initial chemical balance, pH set" },
+      { name: "Owner Orientation & Training",        pct: 0.010, desc: "Operating instructions, maintenance schedule, warranty walk" },
+      { name: "Final Inspection & Certificate",      pct: 0.015, desc: "All county/city final inspections, CO or permit closeout" },
+      { name: "Cleanup & Site Restoration",          pct: 0.033, desc: "Construction debris, concrete washout, final grading, sod repair" },
+    ]
+  },
+];
+
+// ── OPTIONAL FEATURES ────────────────────────────────────────────────────────
+const FEATURES = [
+  { id: "spa",         icon: "♨️",  name: "Attached Spa",          cost: 14500, desc: "6–8 person gunite spa, jets, blower" },
+  { id: "waterfall",   icon: "🌊",  name: "Rock Waterfall",        cost: 8500,  desc: "Natural stone waterfall feature" },
+  { id: "bubblers",    icon: "💦",  name: "Deck Bubblers (×3)",    cost: 2800,  desc: "3 tanning ledge bubblers" },
+  { id: "ledge",       icon: "🏖️",  name: "Tanning Ledge",         cost: 4200,  desc: "12\" submerged sun shelf" },
+  { id: "lights",      icon: "💡",  name: "LED Color Lights (×4)", cost: 3600,  desc: "4 color-changing LED lights" },
+  { id: "heater",      icon: "🔥",  name: "Heater Upgrade",        cost: 2200,  desc: "Gas to heat pump upgrade" },
+  { id: "automation",  icon: "📱",  name: "Full Automation",       cost: 4800,  desc: "Phone control all systems" },
+  { id: "coverauto",   icon: "🔒",  name: "Auto Safety Cover",     cost: 7500,  desc: "Motorized ASTM-rated cover" },
+  { id: "fence",       icon: "🏗️",  name: "Safety Fence (100 LF)", cost: 3200,  desc: "4ft aluminum code-compliant fence" },
+  { id: "firepit",     icon: "🔥",  name: "Fire Pit / Fire Bowl",  cost: 5500,  desc: "Gas fire feature near pool" },
+  { id: "pergola",     icon: "⛱️",  name: "Pergola / Shade",       cost: 6800,  desc: "12×16 aluminum pergola" },
+  { id: "outdoor",     icon: "🍳",  name: "Outdoor Kitchen Stub",  cost: 4500,  desc: "Gas, electric, plumbing rough-in" },
+];
+
+// Shopping guide items — % of base build cost
+const SHOP_ITEMS = [
+  { icon: "🧱", name: "Coping Stone",         pct: 0.040, note: "Travertine or limestone" },
+  { icon: "🪟", name: "Waterline Tile",        pct: 0.045, note: "Glass or porcelain 6\" band" },
+  { icon: "⚙️", name: "Pump & Filter",         pct: 0.066, note: "VS pump + filter vessel" },
+  { icon: "🔥", name: "Heater",                pct: 0.035, note: "Gas 400K BTU" },
+  { icon: "🤖", name: "Automation System",     pct: 0.011, note: "App-enabled controller" },
+  { icon: "💡", name: "LED Lighting (×4)",     pct: 0.028, note: "Color-changing LED" },
+  { icon: "🏖️", name: "Deck Surface",          pct: 0.067, note: "~800 sq ft concrete deck" },
+  { icon: "🧂", name: "Salt Chlorinator",      pct: 0.018, note: "Full-pool sized unit" },
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let poolW     = 16;
+let poolL     = 32;
+let poolD     = 5.0;
+let shapeMult = 1.00;
+let finishRate = 9.50; // $/sqft for interior finish
+let feePercent = 25;
+let activeFeatures = new Set();
+
+// ── CALCULATIONS ────────────────────────────────────────────────────────────
+function getSurfaceSqft() { return poolW * poolL; }
+function getShellSqft() {
+  // Shell = floor + walls. Approximate: floor + perimeter * avg depth
+  const floor = poolW * poolL;
+  const walls = 2 * (poolW + poolL) * poolD;
+  return Math.round((floor + walls) * shapeMult);
+}
+function getGallons() { return Math.round(poolW * poolL * poolD * 7.48 * shapeMult); }
+
+function getBaseBuildCost() {
+  const shell = getShellSqft();
+  const surf  = getSurfaceSqft();
+  // Anchor to shell sq footage — industry scales to surface area
+  // Base reference: $225/shell sq ft for mid-size pool, scaled by finish choice
+  const baseRate = 225; // base $/shell sqft for standard quartz build
+  const finishAdj = (finishRate - 9.50) * surf / getShellSqft(); // finish delta per shell sqft
+  return shell * (baseRate + finishAdj) * shapeMult;
+}
+
+function getFeatureCost() {
+  let total = 0;
+  activeFeatures.forEach(id => {
+    const f = FEATURES.find(f => f.id === id);
+    if (f) total += f.cost;
+  });
+  return total;
+}
+
+function getTotalBeforeFee() { return getBaseBuildCost() + getFeatureCost(); }
+
+function getFee() { return getTotalBeforeFee() * (feePercent / 100); }
+
+function getTotal() { return getTotalBeforeFee() + getFee(); }
+
+// ── FORMAT ──────────────────────────────────────────────────────────────────
+function fmt(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
+function fmtK(n) { return n >= 1000 ? "$" + (n/1000).toFixed(0)+"K" : fmt(n); }
+
+// ── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const shell   = getShellSqft();
+  const surf    = getSurfaceSqft();
+  const gal     = getGallons();
+  const base    = getBaseBuildCost();
+  const feats   = getFeatureCost();
+  const fee     = getFee();
+  const total   = getTotal();
+
+  // Pool stats
+  document.getElementById("stat-sqft").textContent    = surf.toLocaleString() + " sf";
+  document.getElementById("stat-gallons").textContent = gal.toLocaleString() + " gal";
+  document.getElementById("stat-shell").textContent   = shell.toLocaleString() + " sf";
+
+  // Summary panel
+  document.getElementById("s-shell").textContent  = shell.toLocaleString() + " sq ft";
+  document.getElementById("s-gal").textContent    = gal.toLocaleString() + " gallons";
+  document.getElementById("s-shape").textContent  = "×" + shapeMult.toFixed(2);
+  document.getElementById("s-finish").textContent = "$" + finishRate.toFixed(2) + "/sq ft";
+  document.getElementById("s-base").textContent   = fmt(base);
+  document.getElementById("s-features").textContent = activeFeatures.size > 0 ? fmt(feats) : "None selected";
+  document.getElementById("s-fee-pct").textContent  = feePercent;
+  document.getElementById("s-fee").textContent      = fmt(fee);
+  document.getElementById("s-total").textContent    = fmt(total);
+
+  // Fee display
+  document.getElementById("fee-display").innerHTML = feePercent + '<span>%</span>';
+  let fctx = "";
+  if (feePercent <= 10)      fctx = "Well below market;<br>verify scope & coverage";
+  else if (feePercent <= 15) fctx = "Below standard;<br>simpler builds or<br>repeat clients";
+  else if (feePercent <= 20) fctx = "Competitive rate;<br>established contractor<br>relationship";
+  else if (feePercent <= 25) fctx = "Industry standard<br>pool contractor fee";
+  else if (feePercent <= 30) fctx = "Elevated fee;<br>complex design or<br>premium service";
+  else                        fctx = "Premium rate;<br>luxury builds &<br>high-touch service";
+  document.getElementById("fee-ctx").innerHTML = fctx;
+
+  // Fee slider fill
+  const fs = document.getElementById("fee-slider");
+  const fp = (feePercent - 5) / 30 * 100;
+  let fc = "#0891B2";
+  if (feePercent <= 15) fc = "#059669";
+  else if (feePercent >= 31) fc = "#DC2626";
+  fs.style.background = `linear-gradient(to right, ${fc} 0%, ${fc} ${fp}%, rgba(255,255,255,0.1) ${fp}%, rgba(255,255,255,0.1) 100%)`;
+
+  // Total band
+  document.getElementById("total-display").textContent = fmt(total);
+  document.getElementById("total-sub").textContent =
+    `${shell.toLocaleString()} shell sq ft · ${gal.toLocaleString()} gallons · ${activeFeatures.size} feature(s) added`;
+  document.getElementById("cost-per-gal").textContent = "$" + (total / gal).toFixed(2);
+  document.getElementById("cost-per-sqft").textContent = "$" + Math.round(total / surf);
+
+  // Warning
+  document.getElementById("warning-band").classList.toggle("show", poolW < 12 || poolL < 20);
+
+  // List + chart + shopper
+  renderList(base);
+  renderChart(base);
+  renderShopper(base);
+}
+
+function renderList(base) {
+  const list = document.getElementById("phases-list");
+
+  // Preserve open state
+  const openMap = {};
+  list.querySelectorAll(".phase-section").forEach(s => {
+    openMap[s.dataset.pid] = s.classList.contains("open");
+  });
+
+  list.innerHTML = "";
+
+  let maxItem = 0;
+  PHASES.forEach(p => p.items.forEach(i => {
+    const a = base * i.pct;
+    if (a > maxItem) maxItem = a;
+  }));
+
+  PHASES.forEach((phase, pi) => {
+    const phaseAmt = base * phase.pct;
+    const section = document.createElement("div");
+    section.className = "phase-section";
+    section.dataset.pid = phase.id;
+    const wasOpen = openMap[phase.id] !== undefined ? openMap[phase.id] : pi < 2;
+    if (wasOpen) section.classList.add("open");
+
+    const hdr = document.createElement("div");
+    hdr.className = "phase-header";
+    hdr.style.borderLeft = `3px solid ${phase.color}`;
+    hdr.innerHTML = `
+      <div class="phase-num">${phase.num}</div>
+      <div class="phase-icon">${phase.icon}</div>
+      <div class="phase-name">${phase.name}</div>
+      <div class="phase-amount">${fmt(phaseAmt)}</div>
+      <div class="phase-pct">${Math.round(phase.pct*100)}%</div>
+      <div class="phase-chevron">▼</div>
+    `;
+    hdr.addEventListener("click", () => section.classList.toggle("open"));
+
+    const items = document.createElement("div");
+    items.className = "phase-items";
+
+    phase.items.forEach((item, ii) => {
+      const amt = base * item.pct;
+      const barW = Math.round(amt / maxItem * 100);
+      const div = document.createElement("div");
+      div.className = "line-item";
+      div.style.setProperty("--bar-w", barW + "%");
+      div.style.animationDelay = (ii * 0.04) + "s";
+      div.innerHTML = `
+        <div>
+          <div class="item-name">${item.name}</div>
+          <div class="item-desc">${item.desc}</div>
+        </div>
+        <div>
+          <div class="item-amount">${fmt(amt)}</div>
+          <span class="item-sub-label">estimated max</span>
+        </div>
+        <div class="mini-bar-wrap">
+          <div class="mini-track">
+            <div class="mini-fill" style="width:${barW}%;background:${phase.color}"></div>
+          </div>
+          <div class="mini-pct">${(item.pct*100).toFixed(1)}%</div>
+        </div>
+      `;
+      items.appendChild(div);
+    });
+
+    // Append active feature items to phase 10 (startup/closeout) visually
+    if (phase.id === "startup" && activeFeatures.size > 0) {
+      const featSection = document.createElement("div");
+      featSection.className = "line-item feature-item";
+      featSection.style.setProperty("--bar-w", "0%");
+      featSection.innerHTML = `
+        <div>
+          <div class="item-name">✦ Optional Features Total</div>
+          <div class="item-desc">${activeFeatures.size} add-on(s) selected</div>
+        </div>
+        <div>
+          <div class="item-amount" style="color:var(--teal-light)">${fmt(getFeatureCost())}</div>
+          <span class="item-sub-label">added to build cost</span>
+        </div>
+        <div class="mini-bar-wrap"></div>
+      `;
+      items.appendChild(featSection);
+    }
+
+    section.appendChild(hdr);
+    section.appendChild(items);
+    list.appendChild(section);
+  });
+}
+
+function renderChart(base) {
+  const canvas = document.getElementById("donut-canvas");
+  const ctx = canvas.getContext("2d");
+  const cx = 110, cy = 110, outer = 100, inner = 62;
+  ctx.clearRect(0, 0, 220, 220);
+
+  let angle = 0;
+  PHASES.forEach(p => {
+    const slice = p.pct * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outer, angle, angle + slice);
+    ctx.closePath();
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    angle += slice;
+  });
+  ctx.beginPath();
+  ctx.arc(cx, cy, inner, 0, 2 * Math.PI);
+  ctx.fillStyle = "#061824";
+  ctx.fill();
+
+  document.getElementById("donut-val").textContent = fmt(base);
+
+  const legend = document.getElementById("donut-legend");
+  legend.innerHTML = "";
+  PHASES.forEach(p => {
+    const amt = base * p.pct;
+    const div = document.createElement("div");
+    div.className = "legend-item";
+    div.innerHTML = `
+      <div class="legend-dot" style="background:${p.color}"></div>
+      <div class="legend-name">${p.icon} ${p.name.split(" (")[0]}</div>
+      <div class="legend-val">${fmt(amt)}</div>
+      <div class="legend-pct">${Math.round(p.pct*100)}%</div>
+    `;
+    legend.appendChild(div);
+  });
+}
+
+function renderShopper(base) {
+  const grid = document.getElementById("shopper-grid");
+  grid.innerHTML = "";
+  SHOP_ITEMS.forEach(item => {
+    const amt = base * item.pct;
+    const card = document.createElement("div");
+    card.className = "shop-card";
+    card.innerHTML = `
+      <div class="shop-icon">${item.icon}</div>
+      <div class="shop-name">${item.name}</div>
+      <div class="shop-val">${fmt(amt)}</div>
+      <div class="shop-note">${item.note}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderFeatures() {
+  const grid = document.getElementById("features-grid");
+  grid.innerHTML = "";
+  FEATURES.forEach(f => {
+    const div = document.createElement("div");
+    div.className = "feature-toggle" + (activeFeatures.has(f.id) ? " active" : "");
+    div.innerHTML = `
+      <div class="feature-check">${activeFeatures.has(f.id) ? "✓" : ""}</div>
+      <div class="feature-text">
+        <div class="feature-name">${f.icon} ${f.name}</div>
+        <div class="feature-cost">${fmt(f.cost)}</div>
+      </div>
+    `;
+    div.addEventListener("click", () => {
+      if (activeFeatures.has(f.id)) activeFeatures.delete(f.id);
+      else activeFeatures.add(f.id);
+      renderFeatures();
+      render();
+    });
+    grid.appendChild(div);
+  });
+}
+
+// ── SHAPE / FINISH SELECTORS ─────────────────────────────────────────────────
+function setShape(btn) {
+  document.querySelectorAll(".shape-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  shapeMult = parseFloat(btn.dataset.mult);
+  render();
+}
+
+function setFinish(btn) {
+  document.querySelectorAll(".finish-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  finishRate = parseFloat(btn.dataset.rate);
+  render();
+}
+
+// ── VIEW TOGGLE ──────────────────────────────────────────────────────────────
+function switchView(view, btn) {
+  document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("list-view").classList.toggle("hidden", view !== "list");
+  document.getElementById("chart-view").classList.toggle("active", view === "chart");
+}
+
+function expandAll() {
+  document.querySelectorAll(".phase-section").forEach(s => s.classList.add("open"));
+}
+
+// ── DIM INPUTS ───────────────────────────────────────────────────────────────
+function bindDim(id, assign, isFloat) {
+  const el = document.getElementById(id);
+  el.addEventListener("focus", function() { this.select(); });
+  el.addEventListener("blur", function() {
+    let v = isFloat ? parseFloat(this.value) : parseInt(this.value);
+    if (isNaN(v) || v <= 0) v = isFloat ? 5.0 : 16;
+    assign(v);
+    this.value = isFloat ? v.toFixed(1) : v;
+    render();
+  });
+  el.addEventListener("keydown", function(e) { if (e.key === "Enter") this.blur(); });
+}
+
+bindDim("dim-w", v => poolW = Math.max(8, Math.min(v, 80)),  false);
+bindDim("dim-l", v => poolL = Math.max(12, Math.min(v, 150)), false);
+bindDim("dim-d", v => poolD = Math.max(3, Math.min(v, 12)),   true);
+
+// ── FEE SLIDER ───────────────────────────────────────────────────────────────
+document.getElementById("fee-slider").addEventListener("input", function() {
+  feePercent = parseInt(this.value);
+  render();
+});
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+renderFeatures();
+render();
+</script>
+</body>
+</html>
