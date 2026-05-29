@@ -2788,8 +2788,22 @@ const LS_KEY_ENDPOINT = 'lcgc_appsscript_url';
 const LS_KEY_DIRTY = 'lcgc_unsaved_record';
 const LS_KEY_LAST = 'lcgc_last_customer_id';
 
+// localStorage helpers — Safari Private Browsing and iOS strict storage modes
+// throw on setItem (QuotaExceededError). Without guarding, an unhandled throw
+// here halts the surrounding handler — most visibly, the Connect banner stops
+// dismissing because the throw happens before hideSetupBanner() runs.
+function lsRead(key) {
+  try { return localStorage.getItem(key); } catch (_) { return null; }
+}
+function lsWrite(key, val) {
+  try { localStorage.setItem(key, val); return true; } catch (_) { return false; }
+}
+function lsRemove(key) {
+  try { localStorage.removeItem(key); } catch (_) { /* ignore */ }
+}
+
 const persistence = {
-  endpoint: localStorage.getItem(LS_KEY_ENDPOINT) || '',
+  endpoint: lsRead(LS_KEY_ENDPOINT) || '',
   currentId: null,            // null = "+ New Customer" (unsaved)
   isDirty: false,
   isSaving: false,
@@ -2822,10 +2836,16 @@ setupBannerSave.addEventListener('click', () => {
     alert('Please paste a valid Apps Script web app URL (starts with https://script.google.com/).');
     return;
   }
+  // Set in-memory + hide banner FIRST so visual succeeds even if the
+  // localStorage write throws (iPad Safari Private Browsing, strict storage).
   persistence.endpoint = url;
-  localStorage.setItem(LS_KEY_ENDPOINT, url);
   hideSetupBanner();
-  setSaveStatus('idle', 'Connected · loading…');
+  const persisted = lsWrite(LS_KEY_ENDPOINT, url);
+  if (!persisted) {
+    setSaveStatus('idle', 'Connected · session only (private browsing — won’t persist after refresh)');
+  } else {
+    setSaveStatus('idle', 'Connected · loading…');
+  }
   refreshCustomerList();
 });
 setupBannerDismiss.addEventListener('click', () => { hideSetupBanner(); });
@@ -2964,10 +2984,8 @@ function markDirty() {
     setSaveStatus('dirty', persistence.currentId ? 'Unsaved changes' : 'Unsaved · new customer');
   }
   saveBtn.disabled = false;
-  // localStorage backup
-  try {
-    localStorage.setItem(LS_KEY_DIRTY, JSON.stringify(captureState()));
-  } catch (e) {/* quota — ignore */}
+  // localStorage backup (best-effort — Safari Private Browsing will refuse)
+  lsWrite(LS_KEY_DIRTY, JSON.stringify(captureState()));
   // 2s debounced auto-save when configured AND we have an id (don't auto-create new customers)
   if (persistenceConfigured() && persistence.currentId) {
     clearTimeout(persistence.saveTimer);
@@ -3000,8 +3018,8 @@ async function doSave() {
     const saved = await ssPost(payload);
     if (saved && saved.id) {
       persistence.currentId = saved.id;
-      localStorage.setItem(LS_KEY_LAST, saved.id);
-      localStorage.removeItem(LS_KEY_DIRTY);
+      lsWrite(LS_KEY_LAST, saved.id);
+      lsRemove(LS_KEY_DIRTY);
       persistence.isDirty = false;
       saveBtn.disabled = true;
       archiveBtn.disabled = false;
@@ -3029,14 +3047,14 @@ async function loadCustomerById(id) {
     const record = await ssGet({ op: 'load', id: id });
     if (record && record.id) {
       persistence.currentId = record.id;
-      localStorage.setItem(LS_KEY_LAST, record.id);
+      lsWrite(LS_KEY_LAST, record.id);
       customerDescInput.value = record.description || '';
       customerDescInput.disabled = false;
       archiveBtn.disabled = !!record.archived ? true : false;
       applyRecord(record);
       persistence.isDirty = false;
       saveBtn.disabled = true;
-      localStorage.removeItem(LS_KEY_DIRTY);
+      lsRemove(LS_KEY_DIRTY);
       setSaveStatus('saved', 'Loaded · ' + record.id + (record.archived ? ' (archived)' : ''));
     } else {
       throw new Error('Empty record');
@@ -3049,7 +3067,7 @@ async function loadCustomerById(id) {
 
 function startNewCustomer() {
   persistence.currentId = null;
-  localStorage.removeItem(LS_KEY_LAST);
+  lsRemove(LS_KEY_LAST);
   customerDescInput.value = '';
   customerDescInput.disabled = false;
   customerDescInput.focus();
@@ -3145,7 +3163,7 @@ refreshQuickstartDisplay();
 if (persistenceConfigured()) {
   setSaveStatus('idle', 'Loading customers…');
   refreshCustomerList().then(() => {
-    const lastId = localStorage.getItem(LS_KEY_LAST);
+    const lastId = lsRead(LS_KEY_LAST);
     if (lastId && persistence.list.some(c => c.id === lastId)) {
       customerPicker.value = lastId;
       loadCustomerById(lastId);
