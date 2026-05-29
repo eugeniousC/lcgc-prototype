@@ -51,7 +51,26 @@ function setupSheet() {
     lines.getRange(1, 1, 1, LINE_HEADERS.length).setFontWeight('bold');
     lines.setFrozenRows(1);
   }
+  // Force ID columns to plain text so zero-padded ids ('0001') survive appendRow.
+  // Without '@' format, Sheets coerces '0001' → number 1 and findCustomerRow_ fails on read.
+  custs.getRange('A:A').setNumberFormat('@');
+  lines.getRange('A:A').setNumberFormat('@');
   return 'Setup complete. Customer Records spreadsheet ready.';
+}
+
+// Wipe all customer + line_item data (keeps headers + formatting).
+// Run from the editor when you need a clean slate during testing.
+function wipeAllData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const custs = ss.getSheetByName(SHEET_CUSTOMERS);
+  const lines = ss.getSheetByName(SHEET_LINE_ITEMS);
+  if (custs && custs.getLastRow() > 1) {
+    custs.getRange(2, 1, custs.getLastRow() - 1, CUST_HEADERS.length).clearContent();
+  }
+  if (lines && lines.getLastRow() > 1) {
+    lines.getRange(2, 1, lines.getLastRow() - 1, LINE_HEADERS.length).clearContent();
+  }
+  return 'Wiped. Headers preserved.';
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -112,7 +131,7 @@ function listCustomers() {
 }
 
 function rowToCustomerSummary_(row) {
-  const id = String(row[0] || '').trim();
+  const id = padId_(row[0]);
   if (!id) return null;
   return {
     id: id,
@@ -131,7 +150,7 @@ function loadCustomer(id) {
   if (rowIdx < 0) return null;
   const row = sheet.getRange(rowIdx, 1, 1, CUST_HEADERS.length).getValues()[0];
   const summary = {
-    id: String(row[0]),
+    id: padId_(row[0]),
     description: String(row[1] || ''),
     created_at: row[2] ? new Date(row[2]).toISOString() : '',
     updated_at: row[3] ? new Date(row[3]).toISOString() : '',
@@ -149,8 +168,9 @@ function loadCustomer(id) {
   const lLast = lineSheet.getLastRow();
   if (lLast >= 2) {
     const lineRows = lineSheet.getRange(2, 1, lLast - 1, LINE_HEADERS.length).getValues();
+    const targetId = padId_(id);
     for (const lr of lineRows) {
-      if (String(lr[0]) === id) {
+      if (padId_(lr[0]) === targetId) {
         const lid = Number(lr[1]);
         if (lid >= 1 && lid <= NUM_LINES) {
           summary.line_budgets[lid] = Number(lr[2] || 0);
@@ -217,7 +237,7 @@ function saveCustomer(body) {
       const lLast = lineSheet.getLastRow();
       if (lLast >= 2) {
         const all = lineSheet.getRange(2, 1, lLast - 1, LINE_HEADERS.length).getValues();
-        const kept = all.filter(r => String(r[0]) !== id);
+        const kept = all.filter(r => padId_(r[0]) !== id);
         // clear and rewrite the kept rows
         lineSheet.getRange(2, 1, lLast - 1, LINE_HEADERS.length).clearContent();
         if (kept.length > 0) {
@@ -268,9 +288,12 @@ function getLineItemsSheet_() {
 function findCustomerRow_(sheet, id) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return -1;
+  const target = padId_(id);
   const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
   for (let i = 0; i < ids.length; i++) {
-    if (String(ids[i][0]) === id) return i + 2;
+    // Defensive: rows written before '@' format may store ids as numbers.
+    // padId_ normalizes both sides so '1' and '0001' compare equal.
+    if (padId_(ids[i][0]) === target) return i + 2;
   }
   return -1;
 }
