@@ -728,6 +728,12 @@
     border-color: var(--red);
     color: var(--red-light);
   }
+  .reset-btn.confirm-armed,
+  .reset-btn.confirm-armed:hover {
+    background: var(--amber-light);
+    border-color: var(--amber);
+    color: #1a1a1a;
+  }
 
   .reset-row {
     display: flex; gap: 8px;
@@ -2238,13 +2244,34 @@ oopSlider.addEventListener('input', e => {
   recalcDerived();
 });
 
-resetBtn.addEventListener('click', () => {
+function armOnce(btn, label, confirmLabel, action) {
+  let armed = false;
+  let timer = null;
+  const disarm = () => {
+    armed = false;
+    btn.textContent = label;
+    btn.classList.remove('confirm-armed');
+    if (timer) { clearTimeout(timer); timer = null; }
+  };
+  btn.addEventListener('click', () => {
+    if (!armed) {
+      armed = true;
+      btn.textContent = confirmLabel;
+      btn.classList.add('confirm-armed');
+      timer = setTimeout(disarm, 4000);
+    } else {
+      try { action(); } finally { disarm(); }
+    }
+  });
+}
+
+armOnce(resetBtn, 'Reset Schedule', 'Reset Schedule?', () => {
   applyDefaults();
   renderRows();
   recalcDerived();
 });
 
-clearPaidBtn.addEventListener('click', () => {
+armOnce(clearPaidBtn, 'Clear Paid', 'Clear Paid?', () => {
   clearPaid();
   renderRows();
   recalcDerived();
