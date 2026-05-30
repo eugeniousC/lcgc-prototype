@@ -353,7 +353,7 @@
   .hero {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 48px 40px 32px;
+    padding: 24px 40px 12px;
     position: relative;
   }
 
@@ -362,7 +362,7 @@
     color: var(--amber);
     font-size: 12px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 2.5px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
   }
 
   .eyebrow::before {
@@ -955,7 +955,7 @@
   @media (max-width: 720px) {
     header { padding: 20px 18px 0; }
     .header-inner { padding-bottom: 18px; }
-    .hero { padding: 28px 18px 20px; }
+    .hero { padding: 16px 18px 8px; }
     main { padding: 0 18px 60px; }
     .control-panel { padding: 22px; border-radius: 18px; }
     .progress-card { padding: 20px; border-radius: 16px; }
@@ -1340,26 +1340,8 @@
       letter-spacing: 0.4pt;
     }
 
-    /* HERO */
-    .hero {
-      padding: 14pt 0 6pt !important;
-      max-width: 100% !important;
-      page-break-after: avoid;
-    }
-    .hero h1 {
-      font-size: 19pt !important;
-      color: var(--navy) !important;
-      line-height: 1.1 !important;
-      max-width: 100% !important;
-    }
-    .hero h1 em { color: var(--amber) !important; }
-    .hero p.lead {
-      color: #555 !important;
-      font-size: 10pt !important;
-      margin-top: 6pt !important;
-      max-width: 100% !important;
-    }
-    .eyebrow { display: none !important; }
+    /* HERO — eyebrow-only after H1/lead removal */
+    .hero { display: none !important; }
 
     main {
       max-width: 100% !important;
@@ -1737,8 +1719,6 @@
 
 <section class="hero">
   <div class="eyebrow">For Builders &amp; Their Customers</div>
-  <h1>Know the <em>real</em> number — and watch every dollar.</h1>
-  <p class="lead">Set the build budget and your overhead &amp; profit, or work backwards from the total. Then track every invoice paid against every phase. The progress bar tells you exactly where the job stands financially.</p>
 </section>
 
 <main>
@@ -2002,6 +1982,8 @@ function parseNumber(str) {
   return isNaN(v) ? 0 : v;
 }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+const MAX_MONEY = 9999999999; // 10-digit cap for monetary inputs ($9,999,999,999)
 
 // ──────────────────────────────────────────────────────────────────
 //  ROW RENDERING (table body)
@@ -2283,7 +2265,7 @@ function sumLineEffective() {
 function onBudgetInput(e) {
   const oldBase = state.baseBudget;
   const raw = parseNumber(e.target.value);
-  const newBase = clamp(Math.round(raw), 0, 9999999);
+  const newBase = clamp(Math.round(raw), 0, MAX_MONEY);
   state.baseBudget = newBase;
 
   // rescale line dollars proportionally — preserve current % distribution
@@ -2315,10 +2297,10 @@ function onBudgetInput(e) {
 function onTotalInput(e) {
   // user typed a new total → reverse-calc the base build budget
   const raw = parseNumber(e.target.value);
-  const newTotal = clamp(Math.round(raw), 0, 99999999);
+  const newTotal = clamp(Math.round(raw), 0, MAX_MONEY);
   const factor = 1 + state.oop / 100;
   const newBase = factor > 0 ? newTotal / factor : 0;
-  const clampedBase = clamp(Math.round(newBase), 0, 9999999);
+  const clampedBase = clamp(Math.round(newBase), 0, MAX_MONEY);
 
   const oldBase = state.baseBudget;
   state.baseBudget = clampedBase;
@@ -2515,7 +2497,7 @@ function refreshQuickstartFromBase() {
 }
 
 function applyQuickstartChange() {
-  const newBase = clamp(Math.round(state.sqft * state.costPerSqft), 0, 9999999);
+  const newBase = clamp(Math.round(state.sqft * state.costPerSqft), 0, MAX_MONEY);
   rescaleLineDollarsToBase(newBase);
   budgetInput.value = formatMoneyPlain(newBase);
   refreshQuickstartDisplay();
