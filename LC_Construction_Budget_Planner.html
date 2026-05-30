@@ -2373,8 +2373,12 @@ function recalcDerived(opts) {
   const oopDollars = adjusted * state.oop / 100;
   const total = adjusted + oopDollars;
   const totalPaid = sumLinePaid();
-  const remaining = total - totalPaid;
-  const progressPct = total > 0 ? (totalPaid / total) * 100 : 0;
+  // Amount Paid cells are build-level dollars (no O&P). The total project budget
+  // is O&P-inclusive, so gross up paid by the same rate to compare like-for-like.
+  // Without this the bar can never reach 100% even when every line is fully paid.
+  const totalPaidWithOop = totalPaid * (1 + state.oop / 100);
+  const remaining = total - totalPaidWithOop;
+  const progressPct = total > 0 ? (totalPaidWithOop / total) * 100 : 0;
 
   // Top inputs
   if (!opts.skipTotalInputUpdate && document.activeElement !== totalInput) {
@@ -2429,8 +2433,8 @@ function recalcDerived(opts) {
   oopValueEl.textContent = formatMoney(oopDollars);
   oopPctDisplayEl.textContent = 'at ' + state.oop.toFixed(1) + '%';
 
-  paidValueEl.textContent = formatMoney(totalPaid);
-  paidPctDisplayEl.textContent = (total > 0 ? (totalPaid / total * 100).toFixed(1) : '0.0') + '% of total';
+  paidValueEl.textContent = formatMoney(totalPaidWithOop);
+  paidPctDisplayEl.textContent = (total > 0 ? (totalPaidWithOop / total * 100).toFixed(1) : '0.0') + '% of total';
 
   // Remaining to Spend — color-tier when over-spent
   const remainingCell = remainingValueEl.closest('.summary-cell');
@@ -2447,7 +2451,7 @@ function recalcDerived(opts) {
 
   // Progress bar
   progressTotalEl.textContent = formatMoneyPlain(total);
-  progressPaidEl.textContent = formatMoney(totalPaid);
+  progressPaidEl.textContent = formatMoney(totalPaidWithOop);
   progressRemainingEl.textContent = formatMoney(Math.max(0, remaining));
   progressPctEl.textContent = progressPct.toFixed(1) + '%';
   progressHeadlinePctEl.textContent = progressPct.toFixed(1) + '%';
