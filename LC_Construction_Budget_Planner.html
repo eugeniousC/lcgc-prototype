@@ -2211,7 +2211,9 @@ const clearPaidBtn = document.getElementById('clear-paid-btn');
 
 function paintSliderFill() {
   const v = parseFloat(oopSlider.value);
-  const fillPct = ((v - 10) / (25 - 10)) * 100;
+  const min = parseFloat(oopSlider.min);
+  const max = parseFloat(oopSlider.max);
+  const fillPct = max > min ? ((v - min) / (max - min)) * 100 : 0;
   oopSlider.style.setProperty('--fill', fillPct + '%');
 }
 
