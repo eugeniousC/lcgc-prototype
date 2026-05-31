@@ -750,7 +750,7 @@
 
   .table-head-row {
     display: grid;
-    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px;
     gap: 12px;
     padding: 18px 24px;
     background: rgba(217,119,6,0.06);
@@ -765,11 +765,13 @@
   .table-head-row .col-pct,
   .table-head-row .col-budget,
   .table-head-row .col-paid,
+  .table-head-row .col-oop,
   .table-head-row .col-actualpct { text-align: right; }
   .table-head-row .col-id { text-align: center; }
   .table-head-row .col-overage { text-align: center; }
   .table-head-row .col-actualpct,
   .table-head-row .col-paid { color: var(--green-light); }
+  .table-head-row .col-oop { color: var(--amber-light); }
 
   .category-row {
     display: flex; align-items: center; gap: 14px;
@@ -806,7 +808,7 @@
 
   .line-row {
     display: grid;
-    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px;
     gap: 12px;
     padding: 10px 24px;
     align-items: center;
@@ -915,6 +917,51 @@
   .line-overage.under { color: var(--green-light); }
   .line-overage.at { color: var(--white); }
 
+  /* per-line O&P — null until Amount Paid is entered */
+  .line-oop {
+    display: flex; justify-content: flex-end; align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--amber-light);
+    padding-right: 12px;
+    transition: color 0.18s;
+  }
+  .line-oop.empty {
+    color: var(--gray-600);
+    font-weight: 400;
+  }
+
+  /* grand totals row — bottom of the ledger */
+  .totals-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px;
+    gap: 12px;
+    padding: 16px 24px;
+    align-items: center;
+    background: rgba(217,119,6,0.06);
+    border-top: 2px solid rgba(217,119,6,0.28);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .totals-row .col-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--amber);
+  }
+  .totals-row .col-pct,
+  .totals-row .col-budget,
+  .totals-row .col-paid,
+  .totals-row .col-oop { text-align: right; justify-content: flex-end; display: flex; }
+  .totals-row .col-budget { color: var(--white); }
+  .totals-row .col-paid { color: var(--green-light); }
+  .totals-row .col-oop { color: var(--amber-light); padding-right: 12px; }
+  /* % of budget total — reconciliation flag */
+  .totals-row .col-pct { color: var(--green-light); transition: color 0.2s; }
+  .totals-row .col-pct.off-100 { color: var(--amber-light); }
+
   /* Footer */
   footer {
     margin-top: 56px;
@@ -944,8 +991,8 @@
       margin-top: 8px;
     }
     .summary-strip { grid-template-columns: repeat(3, 1fr); }
-    .table-head-row, .line-row {
-      grid-template-columns: 36px 1fr 70px 110px 80px 110px 80px;
+    .table-head-row, .line-row, .totals-row {
+      grid-template-columns: 36px 1fr 70px 110px 80px 110px 80px 90px;
       gap: 8px;
       padding: 12px 16px;
     }
@@ -987,7 +1034,7 @@
         "id name name"
         "id pct apct"
         "id budget paid"
-        "id overage overage";
+        "id overage oop";
       gap: 6px 12px;
       padding: 14px 16px;
       border-top: 1px solid rgba(255,255,255,0.05);
@@ -999,6 +1046,17 @@
     .line-row .col-actualpct { grid-area: apct; justify-content: flex-end; }
     .line-row .col-paid      { grid-area: paid; }
     .line-row .col-overage   { grid-area: overage; justify-content: flex-end; }
+    .line-row .col-oop       { grid-area: oop; justify-content: flex-end; }
+
+    /* totals row stacks to a labeled chip bar on narrow screens */
+    .totals-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+      padding: 14px 16px;
+    }
+    .totals-row .col-id { display: none; }
+    .totals-row .col-name { grid-column: 1 / -1; }
+    .totals-row .col-actualpct, .totals-row .col-overage { display: none; }
     .cell-input { font-size: 14px; padding: 8px 12px; }
     .cell-input.pct-input { padding-right: 28px; }
     .hero h1 { font-size: 32px; }
@@ -1482,7 +1540,7 @@
     }
     .table-head-row {
       display: grid !important;
-      grid-template-columns: 26pt 1fr 50pt 70pt 56pt 70pt 56pt !important;
+      grid-template-columns: 26pt 1fr 50pt 70pt 56pt 70pt 56pt 56pt !important;
       gap: 6pt !important;
       background: #f5f3ef !important;
       color: var(--amber) !important;
@@ -1508,7 +1566,7 @@
 
     .line-row {
       display: grid !important;
-      grid-template-columns: 26pt 1fr 50pt 70pt 56pt 70pt 56pt !important;
+      grid-template-columns: 26pt 1fr 50pt 70pt 56pt 70pt 56pt 56pt !important;
       gap: 6pt !important;
       padding: 3pt 8pt !important;
       border-top: 0.5pt solid #f0f0f0 !important;
@@ -1878,8 +1936,19 @@
         <div class="col-actualpct">Actual % of Build</div>
         <div class="col-paid">Amount Paid</div>
         <div class="col-overage">Overage %</div>
+        <div class="col-oop">O&amp;P</div>
       </div>
       <div id="rows"></div>
+      <div class="totals-row" id="totals-row">
+        <div class="col-id"></div>
+        <div class="col-name">Totals</div>
+        <div class="col-pct" id="total-pct">100.0%</div>
+        <div class="col-budget" id="total-budget">$285,000</div>
+        <div class="col-actualpct"></div>
+        <div class="col-paid" id="total-paid">$0</div>
+        <div class="col-overage"></div>
+        <div class="col-oop" id="total-oop">$0</div>
+      </div>
     </div>
   </div>
 
@@ -2025,6 +2094,7 @@ function renderRows() {
     const pct = state.baseBudget > 0 ? (budgetDollars / state.baseBudget) * 100 : 0;
     const overageInfo = computeOverage(budgetDollars, paidDollars);
     const actualPctInfo = computeActualPct(paidDollars);
+    const oopInfo = computeLineOop(paidDollars);
 
     const row = document.createElement('div');
     row.className = 'line-row';
@@ -2054,11 +2124,13 @@ function renderRows() {
                placeholder="0">
       </div>
       <div class="col-overage line-overage ${overageInfo.cls}">${overageInfo.text}</div>
+      <div class="col-oop line-oop ${oopInfo.cls}" aria-label="${escapeHtml(p.name)} overhead and profit">${oopInfo.text}</div>
     `;
     rowsEl.appendChild(row);
   }
 
   wireRowInputs();
+  updateTotals();
 }
 
 function computeActualPct(paid) {
@@ -2066,6 +2138,14 @@ function computeActualPct(paid) {
   if (state.baseBudget === 0) return { cls: 'empty', text: 'n/a' };
   const pct = (paid / state.baseBudget) * 100;
   return { cls: '', text: pct.toFixed(1) + '%' };
+}
+
+// Per-line O&P — stays null until Amount Paid is entered, then shows the
+// O&P dollars earned on that line at the current rate. Full transparency:
+// every dollar of overhead & profit is tied to an actual payment.
+function computeLineOop(paid) {
+  if (paid === 0) return { cls: 'empty', text: '—' };
+  return { cls: '', text: formatMoney(paid * state.oop / 100) };
 }
 
 function computeOverage(budget, paid) {
@@ -2116,6 +2196,7 @@ function onCellInput(e) {
     state.linePaid[id] = safe;
     input.classList.toggle('empty', safe === 0);
     updateRowActualPct(row);
+    updateRowOop(row);
   }
   flash(input);
   recalcDerived();
@@ -2168,6 +2249,41 @@ function updateRowOverage(row) {
 
 function updateAllRowOverages() {
   document.querySelectorAll('.line-row').forEach(updateRowOverage);
+}
+
+function updateRowOop(row) {
+  const id = +row.dataset.id;
+  const info = computeLineOop(state.linePaid[id]);
+  const el = row.querySelector('.line-oop');
+  if (el) {
+    el.className = 'col-oop line-oop ' + info.cls;
+    el.textContent = info.text;
+  }
+}
+
+function updateAllRowOop() {
+  document.querySelectorAll('.line-row').forEach(updateRowOop);
+}
+
+// Grand totals row — budget, paid, O&P columns + the % reconciliation flag.
+function updateTotals() {
+  const totalBudget = sumLineDollars();
+  const totalPaid = sumLinePaid();
+  const totalOop = totalPaid * state.oop / 100;
+  const pctTotal = state.baseBudget > 0 ? (totalBudget / state.baseBudget) * 100 : 0;
+
+  const pctEl = document.getElementById('total-pct');
+  if (pctEl) {
+    pctEl.textContent = pctTotal.toFixed(1) + '%';
+    // Light color change whenever the budget %s don't reconcile to 100%.
+    pctEl.classList.toggle('off-100', Math.abs(pctTotal - 100) >= 0.05);
+  }
+  const budgetEl = document.getElementById('total-budget');
+  if (budgetEl) budgetEl.textContent = formatMoney(totalBudget);
+  const paidEl = document.getElementById('total-paid');
+  if (paidEl) paidEl.textContent = formatMoney(totalPaid);
+  const oopEl = document.getElementById('total-oop');
+  if (oopEl) oopEl.textContent = formatMoney(totalOop);
 }
 
 function updateCategoryTotals() {
@@ -2469,6 +2585,10 @@ function recalcDerived(opts) {
     progressFillEl.classList.add('warning');
     progressPctEl.classList.add('warning');
   }
+
+  // Bank Draw ledger — per-line O&P (depends on paid × current rate) + grand totals
+  updateAllRowOop();
+  updateTotals();
 
   // Customer-view phase cards stay in lockstep with bank-draw edits
   updatePhaseCards();
