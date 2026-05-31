@@ -506,22 +506,22 @@
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 24px;
-    padding: 32px;
+    padding: 24px;
     backdrop-filter: blur(8px);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     box-shadow: 0 16px 48px rgba(0,0,0,0.3);
   }
 
   .controls-row {
     display: grid;
     grid-template-columns: 1fr 1fr 1.1fr;
-    gap: 28px;
+    gap: 24px;
     align-items: stretch;
   }
 
   .control-cell {
     display: flex; flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
   }
 
@@ -638,8 +638,8 @@
 
   /* summary strip */
   .summary-strip {
-    margin-top: 24px;
-    padding-top: 24px;
+    margin-top: 20px;
+    padding-top: 18px;
     border-top: 1px solid rgba(255,255,255,0.08);
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -1016,8 +1016,8 @@
     background: linear-gradient(135deg, rgba(217,119,6,0.10) 0%, rgba(217,119,6,0.03) 100%);
     border: 1px solid rgba(217,119,6,0.32);
     border-radius: 20px;
-    padding: 24px 28px;
-    margin-bottom: 22px;
+    padding: 16px 24px;
+    margin-bottom: 16px;
   }
   .quickstart-label {
     font-size: 10px; font-weight: 700;
@@ -1029,7 +1029,7 @@
     font-family: 'Playfair Display', serif;
     font-size: 18px; font-weight: 700;
     color: var(--white);
-    margin-bottom: 18px;
+    margin-bottom: 12px;
     line-height: 1.3;
   }
   .quickstart-title em {
@@ -1097,7 +1097,7 @@
     cursor: default;
   }
   .quickstart-hint {
-    margin-top: 12px;
+    margin-top: 8px;
     font-size: 12px;
     color: var(--gray-400);
     line-height: 1.5;
@@ -1723,16 +1723,12 @@
   </div>
 </div>
 
-<section class="hero">
-  <div class="eyebrow">For Builders &amp; Their Customers</div>
-</section>
-
 <main>
 
   <!-- ── QUICKSTART — sqft × $/sqft drives the build budget ── -->
   <div class="quickstart-panel reveal">
-    <div class="quickstart-label">Start Here · Tell Us About Your Build</div>
-    <div class="quickstart-title">Your home's <em>square footage</em> × cost per square foot drives everything below</div>
+    <div class="quickstart-label">For Builders &amp; Their Customers · Start Here</div>
+    <div class="quickstart-title"><em>Square footage</em> × cost per sqft drives everything below</div>
     <div class="quickstart-grid">
       <div class="quickstart-cell">
         <div class="lab">Your Home's SQFT</div>
@@ -1759,7 +1755,7 @@
         </div>
       </div>
     </div>
-    <p class="quickstart-hint">Enter the home's square footage and Len's per-square-foot price. The hard build cost flows into the Build Budget below, and <strong>O&amp;P</strong> on top gives you the Total Project Budget.</p>
+    <p class="quickstart-hint">Hard build cost flows into the Build Budget below; <strong>O&amp;P</strong> on top gives the Total Project Budget.</p>
   </div>
 
   <!-- ── CONTROL PANEL ── -->
@@ -1774,7 +1770,7 @@
           <span class="money-prefix">$</span>
           <input id="budget-input" class="money-input" type="text" inputmode="numeric" autocomplete="off" value="285,000" aria-label="Build Budget">
         </div>
-        <p class="hint">Labor, materials, subs — what the bank lends against. Excludes O&amp;P.</p>
+        <p class="hint">Labor, materials, subs — what the bank lends against.</p>
       </div>
 
       <!-- O&P -->
@@ -1788,7 +1784,7 @@
         <div class="slider-ticks">
           <span>10%</span><span>15%</span><span>20%</span><span>25%</span><span>30%</span>
         </div>
-        <p class="hint">Per builder agreement — typical residential range 10–30%.</p>
+        <p class="hint">Typical residential range 10–30%.</p>
       </div>
 
       <!-- Total Project Budget — EDITABLE -->
@@ -1799,7 +1795,7 @@
           <span class="money-prefix">$</span>
           <input id="total-input" class="money-input total" type="text" inputmode="numeric" autocomplete="off" value="342,000" aria-label="Total Project Budget">
         </div>
-        <p class="hint"><span class="arrow">↻</span> Enter total here to reverse-calculate Build Budget at current O&amp;P (cost-plus model).</p>
+        <p class="hint"><span class="arrow">↻</span> Enter total to reverse-calc Build Budget at current O&amp;P.</p>
         <div class="reset-row">
           <button class="reset-btn" id="reset-btn" type="button">Reset Schedule</button>
           <button class="reset-btn danger" id="clear-paid-btn" type="button">Clear Paid</button>
