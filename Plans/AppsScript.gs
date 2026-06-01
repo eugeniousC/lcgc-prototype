@@ -27,7 +27,7 @@ const NUM_LINES = 44;
 const CUST_HEADERS = [
   'id', 'description', 'created_at', 'updated_at',
   'sqft', 'cost_per_sqft', 'base_build_budget', 'oop_pct', 'total_project_budget',
-  'archived',
+  'archived', 'template',
 ];
 
 const LINE_HEADERS = ['customer_id', 'line_id', 'budget_dollars', 'paid_dollars'];
@@ -43,6 +43,11 @@ function setupSheet() {
     custs.appendRow(CUST_HEADERS);
     custs.getRange(1, 1, 1, CUST_HEADERS.length).setFontWeight('bold');
     custs.setFrozenRows(1);
+  } else {
+    // Idempotent header repair — rewrites row 1 to the current CUST_HEADERS so
+    // re-running setup after a schema change (e.g. adding 'template') backfills
+    // any new column header without disturbing existing data rows.
+    custs.getRange(1, 1, 1, CUST_HEADERS.length).setValues([CUST_HEADERS]).setFontWeight('bold');
   }
   let lines = ss.getSheetByName(SHEET_LINE_ITEMS);
   if (!lines) {
@@ -160,6 +165,9 @@ function loadCustomer(id) {
     oop_pct: Number(row[7] || 0),
     total_project_budget: Number(row[8] || 0),
     archived: !!row[9],
+    // Legacy rows (saved before the template column existed) read as '' → the
+    // frontend's applyRecord falls back to 'conventional' for any unknown key.
+    template: String(row[10] || ''),
     line_budgets: new Array(NUM_LINES + 1).fill(0),  // 1-indexed
     line_paid: new Array(NUM_LINES + 1).fill(0),
   };
@@ -210,6 +218,7 @@ function saveCustomer(body) {
         Number(body.oop_pct || 0),
         Number(body.total_project_budget || 0),
         false,                                  // archived
+        String(body.template || ''),            // template (build type)
       ];
       custSheet.appendRow(newRow);
       rowIdx = custSheet.getLastRow();
@@ -227,6 +236,7 @@ function saveCustomer(body) {
         Number(body.oop_pct != null ? body.oop_pct : existing[7]),
         Number(body.total_project_budget != null ? body.total_project_budget : existing[8]),
         body.archived != null ? !!body.archived : !!existing[9],
+        String(body.template != null ? body.template : (existing[10] || '')),
       ];
       custSheet.getRange(rowIdx, 1, 1, CUST_HEADERS.length).setValues([updatedRow]);
     }
