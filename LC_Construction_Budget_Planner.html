@@ -1860,10 +1860,10 @@
         <div class="control-title">Contractor margin</div>
         <div class="oop-display"><span class="num" id="oop-num">20.0</span><span class="pct">%</span></div>
         <div class="slider-wrap">
-          <input id="oop-slider" type="range" min="10" max="30" step="0.5" value="20" aria-label="Overhead and Profit percent">
+          <input id="oop-slider" type="range" min="10" max="25" step="0.5" value="20" aria-label="Overhead and Profit percent">
         </div>
         <div class="slider-ticks">
-          <span>10%</span><span>15%</span><span>20%</span><span>25%</span><span>30%</span>
+          <span>10%</span><span>15%</span><span>20%</span><span>25%</span>
         </div>
         <p class="hint">Typical residential range 10–30%.</p>
       </div>
@@ -2446,7 +2446,7 @@ totalInput.addEventListener('blur', () => {
 totalInput.addEventListener('focus', e => e.target.select());
 
 oopSlider.addEventListener('input', e => {
-  state.oop = clamp(parseFloat(e.target.value), 10, 30);
+  state.oop = clamp(parseFloat(e.target.value), 10, 25);
   oopNum.textContent = state.oop.toFixed(1);
   paintSliderFill();
   recalcDerived();
@@ -3299,7 +3299,7 @@ function applyRecord(record) {
   state.sqft = Number(record.sqft || 1583);
   state.costPerSqft = Number(record.cost_per_sqft || 180);
   state.baseBudget = Number(record.base_build_budget || (state.sqft * state.costPerSqft));
-  state.oop = clamp(Number(record.oop_pct || 20), 10, 30);
+  state.oop = clamp(Number(record.oop_pct || 20), 10, 25);
   for (const p of PHASES) {
     state.lineDollars[p.id] = Number((record.line_budgets || [])[p.id] || 0);
     state.linePaid[p.id] = Number((record.line_paid || [])[p.id] || 0);
