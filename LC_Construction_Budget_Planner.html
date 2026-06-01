@@ -1162,6 +1162,59 @@
   }
   .quickstart-hint strong { color: var(--amber-light); font-weight: 600; }
 
+  /* ── BUILD TEMPLATE SELECTOR ── */
+  .template-bar {
+    max-width: 1400px;
+    margin: 0 auto 16px;
+    padding: 0 40px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .template-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2.5px;
+    color: var(--amber);
+  }
+  .template-seg {
+    display: inline-flex;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .template-pick {
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--gray-400);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .template-pick:hover { color: var(--white); }
+  .template-pick.active {
+    background: var(--amber);
+    color: #1a1a1a;
+  }
+  .template-hint {
+    font-size: 11px;
+    color: var(--gray-600);
+  }
+  /* armed = waiting for confirm click to switch (would reset the schedule) */
+  .template-pick.switch-armed,
+  .template-pick.switch-armed:hover {
+    background: var(--amber-light);
+    color: #1a1a1a;
+  }
+  @media (max-width: 720px) {
+    .template-bar { padding: 0 18px; gap: 10px; }
+    .template-hint { display: none; }
+    .template-pick { padding: 10px 14px; font-size: 12px; }
+  }
+
   /* ── TABS ── */
   .tab-bar {
     max-width: 1400px;
@@ -1910,6 +1963,16 @@
     </div>
   </div>
 
+  <!-- ── BUILD TEMPLATE SELECTOR ── -->
+  <div class="template-bar reveal">
+    <span class="template-label">Build Type</span>
+    <div class="template-seg">
+      <button class="template-pick active" type="button" data-template-pick="barndo">Barndominium Build</button>
+      <button class="template-pick" type="button" data-template-pick="conventional">Conventional Build</button>
+    </div>
+    <span class="template-hint">Switching reseeds the draw schedule for that build type.</span>
+  </div>
+
   <!-- ── TABS ── -->
   <div class="tab-bar reveal">
     <button class="tab-btn active" type="button" data-tab="customer">
@@ -1962,9 +2025,10 @@
 'use strict';
 
 // ──────────────────────────────────────────────────────────────────
-//  DATA — 44 line items from the bank's residential draw schedule
+//  DATA — bank draw schedules per build template
+//  IDs are STABLE per template — never renumber. pct is default % of build.
 // ──────────────────────────────────────────────────────────────────
-const PHASES = [
+const CONVENTIONAL_LINES = [
   { id: 1,  name: "Closing",                          category: "Pre-Construction",      pct: 2 },
   { id: 2,  name: "Clearing/Grading",                 category: "Site Prep",             pct: 3 },
   { id: 3,  name: "Septic/Sewer Tap",                 category: "Site Prep",             pct: 2 },
@@ -2011,10 +2075,47 @@ const PHASES = [
   { id: 44, name: "Final Clean Up",                   category: "Final",                 pct: 2 },
 ];
 
+// 24-line Barndominium draw schedule — Len's template. Order = draw sequence.
+// Percentages sum to exactly 100%. Flat list (no category sub-headers);
+// customer-view phase cards group these via BARNDO_LINE_TO_PHASE.
+const BARNDO_LINES = [
+  { id: 1,  name: "Clearing & Grading",            pct: 4 },
+  { id: 2,  name: "Framing Material & Labor",      pct: 12 },
+  { id: 3,  name: "Slab Material & Labor",         pct: 9 },
+  { id: 4,  name: "Plumbing",                      pct: 5 },
+  { id: 5,  name: "Electrical",                    pct: 5 },
+  { id: 6,  name: "HVAC",                          pct: 5 },
+  { id: 7,  name: "Septic Tank",                   pct: 3 },
+  { id: 8,  name: "Permanent Roof",                pct: 4.5 },
+  { id: 9,  name: "Fireplace",                     pct: 1 },
+  { id: 10, name: "Doors & Windows",               pct: 2 },
+  { id: 11, name: "Siding & Cornice",              pct: 8 },
+  { id: 12, name: "Foam Insulation",               pct: 4 },
+  { id: 13, name: "Sheetrock Labor & Material",    pct: 4 },
+  { id: 14, name: "Interior Doors & Trim",         pct: 4 },
+  { id: 15, name: "Cabinets & Counter Tops",       pct: 8 },
+  { id: 16, name: "Gutters",                       pct: 1 },
+  { id: 17, name: "Tile for Baths",                pct: 2.5 },
+  { id: 18, name: "Interior Paint",                pct: 3 },
+  { id: 19, name: "LVP for Floors",                pct: 3 },
+  { id: 20, name: "Concrete Allowance (Driveway)", pct: 4 },
+  { id: 21, name: "Appliance Allowance",           pct: 2 },
+  { id: 22, name: "Landscaping",                   pct: 2 },
+  { id: 23, name: "Clean Up & Misc",               pct: 1 },
+  { id: 24, name: "Garage Doors",                  pct: 3 },
+];
+
+// Active line set + phase metadata — swapped by template (see TEMPLATES registry below).
+// Declared mutable so applyTemplate() can repoint them.
+let PHASES = BARNDO_LINES;
+let PHASES_META;
+let LINE_TO_PHASE;
+
 // ──────────────────────────────────────────────────────────────────
 //  STATE & FORMATTING
 // ──────────────────────────────────────────────────────────────────
 const state = {
+  template: 'barndo',    // 'barndo' (default) | 'conventional'
   baseBudget: 285000,
   oop: 20,
   sqft: 1583,            // quickstart input
@@ -2064,6 +2165,7 @@ const rowsEl = document.getElementById('rows');
 function renderRows() {
   rowsEl.innerHTML = '';
   let lastCategory = null;
+  const showCats = !!(TEMPLATES[state.template] && TEMPLATES[state.template].showCategories);
 
   // category totals (budget + paid)
   const catBudget = {};
@@ -2074,7 +2176,7 @@ function renderRows() {
   }
 
   for (const p of PHASES) {
-    if (p.category !== lastCategory) {
+    if (showCats && p.category !== lastCategory) {
       const cat = document.createElement('div');
       cat.className = 'category-row';
       cat.innerHTML = `
@@ -2389,11 +2491,14 @@ armOnce(clearPaidBtn, 'Clear Paid', 'Clear Paid?', () => {
   recalcDerived();
 });
 
+// Sum over the ACTIVE template's lines only. Switching templates leaves stale
+// keys in state.lineDollars/linePaid (e.g. conventional lines 25-44 after a
+// switch back to the 24-line barndo); iterating PHASES keeps totals correct.
 function sumLineDollars() {
-  return Object.values(state.lineDollars).reduce((a, b) => a + b, 0);
+  return PHASES.reduce((s, p) => s + (state.lineDollars[p.id] || 0), 0);
 }
 function sumLinePaid() {
-  return Object.values(state.linePaid).reduce((a, b) => a + b, 0);
+  return PHASES.reduce((s, p) => s + (state.linePaid[p.id] || 0), 0);
 }
 // Effective per-line: paid (reality) where it exists, planned where it doesn't.
 // Drives Adjusted Build Budget + Total Project Budget so totals track real spend.
@@ -2682,7 +2787,8 @@ costPerSqftInput.addEventListener('focus', e => e.target.select());
 // ──────────────────────────────────────────────────────────────────
 //  CUSTOMER VIEW — 44 bank lines → 7 customer phases
 // ──────────────────────────────────────────────────────────────────
-const PHASES_META = [
+// Shared 7-phase customer-view metadata — both templates use the same generic phases
+const PHASES_META_7 = [
   { id: 1, icon: '🏗️', label: 'Phase 1',  name: 'Site &amp; Foundation',         color: '#3B82F6' },
   { id: 2, icon: '🪵', label: 'Phase 2',  name: 'Structure &amp; Roof',          color: '#8B5CF6' },
   { id: 3, icon: '⚙️', label: 'Phase 3',  name: 'Mechanical Systems',            color: '#EC4899' },
@@ -2692,8 +2798,8 @@ const PHASES_META = [
   { id: 7, icon: '🔑', label: 'Phase 7',  name: 'Final &amp; Closeout',          color: '#6366F1' },
 ];
 
-// 44 bank lines → 7 customer phases (locked mapping; ID-stable for future edits)
-const LINE_TO_PHASE = {
+// 44 conventional bank lines → 7 customer phases (locked mapping; ID-stable)
+const CONVENTIONAL_LINE_TO_PHASE = {
   1: 7,   // Closing → Final & Closeout
   2: 1,   // Clearing/Grading → Site & Foundation
   3: 1,   // Septic/Sewer Tap → Site & Foundation
@@ -2739,6 +2845,70 @@ const LINE_TO_PHASE = {
   43: 6,  // Landscaping → Exterior Final
   44: 7,  // Final Clean Up → Final & Closeout
 };
+
+// 24 barndominium bank lines → same 7 customer phases (groups Len's flat list)
+const BARNDO_LINE_TO_PHASE = {
+  1: 1, 3: 1, 7: 1,                          // Site & Foundation (Clearing, Slab, Septic)
+  2: 2, 8: 2, 11: 2, 16: 2,                  // Structure & Roof (Framing, Roof, Siding, Gutters)
+  4: 3, 5: 3, 6: 3,                          // Mechanical (Plumbing, Electrical, HVAC)
+  10: 4, 12: 4, 13: 4, 24: 4,                // Envelope & Insulation (Doors/Windows, Foam, Sheetrock, Garage Doors)
+  9: 5, 14: 5, 15: 5, 17: 5, 18: 5, 19: 5, 21: 5,  // Interior Finishes (Fireplace, Trim, Cabinets, Tile, Paint, LVP, Appliances)
+  20: 6, 22: 6,                              // Exterior & Site Completion (Driveway, Landscaping)
+  23: 7,                                     // Final & Closeout (Clean Up & Misc)
+};
+
+// ── TEMPLATE REGISTRY — two build types, identical machinery, different line sets ──
+const TEMPLATES = {
+  barndo: {
+    key: 'barndo',
+    label: 'Barndominium Build',
+    lines: BARNDO_LINES,
+    phasesMeta: PHASES_META_7,
+    lineToPhase: BARNDO_LINE_TO_PHASE,
+    showCategories: false,   // flat list in draw order — no category sub-headers
+  },
+  conventional: {
+    key: 'conventional',
+    label: 'Conventional Build',
+    lines: CONVENTIONAL_LINES,
+    phasesMeta: PHASES_META_7,
+    lineToPhase: CONVENTIONAL_LINE_TO_PHASE,
+    showCategories: true,    // grouped by category in the bank draw
+  },
+};
+
+// Wire the default template (Barndominium). state.lineDollars was seeded at top
+// on BARNDO_LINES; here we just point the phase metadata + map at the default.
+PHASES = TEMPLATES.barndo.lines;
+PHASES_META = TEMPLATES.barndo.phasesMeta;
+LINE_TO_PHASE = TEMPLATES.barndo.lineToPhase;
+state.template = 'barndo';
+
+// Swap the active build template. Keeps the Build Budget; reseeds line budgets
+// from the new template's default %s and clears paid (line items differ between
+// templates, so prior payments don't carry over). Re-renders everything.
+function applyTemplate(key, opts) {
+  opts = opts || {};
+  const t = TEMPLATES[key];
+  if (!t) return;
+  state.template = key;
+  PHASES = t.lines;
+  PHASES_META = t.phasesMeta;
+  LINE_TO_PHASE = t.lineToPhase;
+  if (!opts.preserveLines) {
+    applyDefaults();   // reseed lineDollars from new template's pct
+    clearPaid();
+  }
+  // reflect choice in any template selectors
+  document.querySelectorAll('[data-template-pick]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.templatePick === key);
+  });
+  renderRows();
+  renderPhaseCards();
+  recalcDerived();
+  updateAllRowOop();
+  updateTotals();
+}
 
 function phaseLinesFor(phaseId) {
   return PHASES.filter(p => LINE_TO_PHASE[p.id] === phaseId);
@@ -2891,6 +3061,35 @@ function setActiveTab(tab) {
   tabPanes.forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
 }
 tabButtons.forEach(b => b.addEventListener('click', () => setActiveTab(b.dataset.tab)));
+
+// ──────────────────────────────────────────────────────────────────
+//  BUILD TEMPLATE SWITCHER — two-click confirm (switching resets the schedule)
+// ──────────────────────────────────────────────────────────────────
+const templatePicks = document.querySelectorAll('[data-template-pick]');
+let templateArmTimer = null;
+function disarmTemplatePicks() {
+  templatePicks.forEach(b => {
+    b.classList.remove('switch-armed');
+    b.textContent = TEMPLATES[b.dataset.templatePick].label;
+  });
+  if (templateArmTimer) { clearTimeout(templateArmTimer); templateArmTimer = null; }
+}
+templatePicks.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.templatePick;
+    if (key === state.template) return;            // already on this template
+    if (!btn.classList.contains('switch-armed')) {
+      disarmTemplatePicks();
+      btn.classList.add('switch-armed');
+      btn.textContent = 'Switch? Resets schedule';
+      templateArmTimer = setTimeout(disarmTemplatePicks, 4000);
+    } else {
+      disarmTemplatePicks();
+      applyTemplate(key);
+      markDirty();
+    }
+  });
+});
 
 // ──────────────────────────────────────────────────────────────────
 //  PRINT / PDF
@@ -3072,6 +3271,7 @@ function captureState() {
   return {
     id: persistence.currentId || '',
     description: customerDescInput.value || '',
+    template: state.template,
     sqft: state.sqft,
     cost_per_sqft: state.costPerSqft,
     base_build_budget: state.baseBudget,
@@ -3081,10 +3281,20 @@ function captureState() {
     line_paid: linePaid,
   };
 }
-const NUM_LINES_PLUS = 44;
+const NUM_LINES_PLUS = 44;  // max line count across templates (conventional); array is sized to this
 
 function applyRecord(record) {
   if (!record) return;
+  // Restore the record's build template FIRST so PHASES/LINE_TO_PHASE point at
+  // the right line set before we fill budgets. Legacy records (no template field)
+  // predate barndominium and were all 44-line conventional.
+  const tplKey = TEMPLATES[record.template] ? record.template : 'conventional';
+  state.template = tplKey;
+  PHASES = TEMPLATES[tplKey].lines;
+  PHASES_META = TEMPLATES[tplKey].phasesMeta;
+  LINE_TO_PHASE = TEMPLATES[tplKey].lineToPhase;
+  templatePicks.forEach(b => b.classList.toggle('active', b.dataset.templatePick === tplKey));
+
   state.sqft = Number(record.sqft || 1583);
   state.costPerSqft = Number(record.cost_per_sqft || 180);
   state.baseBudget = Number(record.base_build_budget || (state.sqft * state.costPerSqft));
