@@ -1597,6 +1597,7 @@
       Save
     </button>
     <button class="archive-btn" type="button" id="archive-btn" disabled title="Archive this customer">Archive</button>
+    <button class="archive-btn" type="button" id="copy-link-btn" hidden title="Copy a bookmarkable link that auto-connects this device (survives iPad storage resets)">🔗 Copy iPad Link</button>
     <span class="save-status" id="save-status"><span class="dot"></span><span id="save-status-text">Not saved</span></span>
   </div>
 </div>
@@ -3057,8 +3058,28 @@ function lsRemove(key) {
   try { localStorage.removeItem(key); } catch (_) { /* ignore */ }
 }
 
+// Read an endpoint encoded in the URL hash (#endpoint=...). This is the iPad
+// lifeline: a bookmarked link carries the endpoint even after iOS Safari wipes
+// localStorage (Private Browsing, ITP 7-day eviction, storage-blocked contexts).
+// Only accept Apps Script URLs — never let a crafted link repoint the planner.
+function readEndpointFromHash() {
+  try {
+    const h = window.location.hash || '';
+    const m = h.match(/[#&]endpoint=([^&]+)/);
+    if (!m) return '';
+    const url = decodeURIComponent(m[1]);
+    return url.startsWith('https://script.google.com/') ? url : '';
+  } catch (_) { return ''; }
+}
+
+// Precedence: hash (bookmark) wins over localStorage. If the hash carries a
+// valid endpoint, also persist it to localStorage (best effort) so same-context
+// reloads stay fast.
+const hashEndpoint = readEndpointFromHash();
+if (hashEndpoint) lsWrite(LS_KEY_ENDPOINT, hashEndpoint);
+
 const persistence = {
-  endpoint: lsRead(LS_KEY_ENDPOINT) || '',
+  endpoint: hashEndpoint || lsRead(LS_KEY_ENDPOINT) || '',
   currentId: null,            // null = "+ New Customer" (unsaved)
   isDirty: false,
   isSaving: false,
@@ -3076,8 +3097,44 @@ const setupBanner = document.getElementById('setup-banner');
 const setupBannerInput = document.getElementById('setup-banner-input');
 const setupBannerSave = document.getElementById('setup-banner-save');
 const setupBannerDismiss = document.getElementById('setup-banner-dismiss');
+const copyLinkBtn = document.getElementById('copy-link-btn');
 
 function persistenceConfigured() { return !!persistence.endpoint; }
+
+// Build a bookmarkable, auto-connecting link with the endpoint in the hash.
+function buildConnectLink() {
+  return location.origin + location.pathname +
+    '#endpoint=' + encodeURIComponent(persistence.endpoint);
+}
+
+// Show the "Copy iPad Link" button only once we have an endpoint to share.
+function refreshCopyLinkBtn() {
+  if (copyLinkBtn) copyLinkBtn.hidden = !persistenceConfigured();
+}
+
+if (copyLinkBtn) {
+  copyLinkBtn.addEventListener('click', async () => {
+    if (!persistenceConfigured()) return;
+    const link = buildConnectLink();
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(link);
+      ok = true;
+    } catch (_) {
+      // Fallback for older WebKit / non-secure contexts
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = link; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (_) { ok = false; }
+    }
+    const orig = copyLinkBtn.textContent;
+    copyLinkBtn.textContent = ok ? '✓ Link copied' : '⚠ Copy failed';
+    setTimeout(() => { copyLinkBtn.textContent = orig; }, 2200);
+  });
+}
 
 function showSetupBanner() {
   setupBanner.classList.remove('hidden');
@@ -3101,6 +3158,7 @@ setupBannerSave.addEventListener('click', () => {
   } else {
     setSaveStatus('idle', 'Connected · loading…');
   }
+  refreshCopyLinkBtn();
   refreshCustomerList();
 });
 setupBannerDismiss.addEventListener('click', () => { hideSetupBanner(); });
@@ -3428,6 +3486,7 @@ paintSliderFill();
 refreshQuickstartDisplay();
 
 // Persistence init — load the list and optionally restore last customer
+refreshCopyLinkBtn();
 if (persistenceConfigured()) {
   setSaveStatus('idle', 'Loading customers…');
   refreshCustomerList().then(() => {
