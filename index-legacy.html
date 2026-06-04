@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LC's General Contracting & Remodeling — Custom Homes, Built Beautifully in West Georgia</title>
+<meta name="description" content="Custom homes, additions, sunrooms, decks, and full remodels across Coweta, Carroll, Haralson, and Paulding counties. 40+ years of West Georgia craftsmanship by Len Covington and Jeremy Fields.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --earth:       #050D18;
+    --bark:        #0A2540;
+    --bark-mid:    #1a3d5c;
+    --bark-light:  #1e4d6b;
+    --terracotta:  #D97706;
+    --terra-light: #F59E0B;
+    --terra-pale:  #FEF3C7;
+    --sage:        #1a4d7a;
+    --sage-light:  #2d7ab5;
+    --cream:       #F8F7F4;
+    --white:       #FFFFFF;
+    --gray-200:    #E2E0DB;
+    --gray-300:    #CBD5E1;
+    --gray-400:    #94A3B8;
+    --gray-500:    #64748B;
+    --gray-600:    #475569;
+    --green:       #15803D;
+    --ember:       #F59E0B;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--earth);
+    color: var(--white);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+
+  .container { max-width: 1320px; margin: 0 auto; padding: 0 40px; }
+
+  /* ─────────────── NAV ─────────────── */
+  nav.site-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 18px 0;
+    background: rgba(5,13,24,0.0);
+    backdrop-filter: blur(0);
+    transition: all 0.35s ease;
+    border-bottom: 1px solid transparent;
+  }
+  nav.site-nav.scrolled {
+    background: rgba(5,13,24,0.85);
+    backdrop-filter: blur(14px);
+    border-bottom-color: rgba(217,119,6,0.18);
+    padding: 12px 0;
+  }
+  .nav-inner {
+    max-width: 1320px; margin: 0 auto; padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-links { display: flex; gap: 34px; align-items: center; }
+  .nav-links a {
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.7);
+    transition: color 0.2s;
+    letter-spacing: 0.2px;
+  }
+  .nav-links a:hover { color: var(--terra-light); }
+  .nav-cta {
+    background: var(--terracotta);
+    color: var(--white);
+    padding: 10px 22px;
+    border-radius: 100px;
+    font-size: 13px; font-weight: 600;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(217,119,6,0.35);
+  }
+  .nav-cta:hover { background: var(--terra-light); transform: translateY(-1px); color: var(--white); }
+
+  /* ─────────────── LOGO MARK (shared) ─────────────── */
+  .logo-mark { display: flex; align-items: center; gap: 14px; }
+  .logo-box {
+    width: 46px; height: 46px;
+    background: var(--terracotta);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 900;
+    color: var(--white); letter-spacing: -1px;
+    box-shadow: 0 4px 18px rgba(217,119,6,0.42);
+  }
+  .logo-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; line-height: 1.15; color: var(--white); }
+  .logo-sub { font-size: 10px; font-weight: 600; color: var(--terra-light); text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+
+  /* ─────────────── HERO ─────────────── */
+  header.hero {
+    position: relative;
+    padding: 180px 0 110px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 75% 60% at 78% 32%, rgba(217,119,6,0.22) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 70% at 8% 92%, rgba(26,77,122,0.30) 0%, transparent 50%),
+      linear-gradient(180deg, #02060c 0%, var(--bark) 100%);
+  }
+  header.hero::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--terracotta) 30%, var(--terra-light) 50%, var(--terracotta) 70%, transparent 100%);
+    opacity: 0.55;
+  }
+  /* Architectural blueprint grid pattern, very subtle */
+  header.hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(217,119,6,0.15);
+    border: 1px solid rgba(217,119,6,0.42);
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-size: 11px; font-weight: 600;
+    color: var(--terra-light);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--terra-light); box-shadow: 0 0 12px var(--terra-light); }
+
+  .hero-grid {
+    display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 80px; align-items: end;
+    position: relative; z-index: 2;
+  }
+
+  h1.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: clamp(54px, 6.8vw, 92px);
+    line-height: 1.02;
+    letter-spacing: -1.5px;
+    color: var(--white);
+    margin-bottom: 26px;
+  }
+  h1.hero-title em { font-style: italic; font-weight: 400; color: var(--terra-light); }
+
+  p.hero-lede {
+    font-size: 19px; font-weight: 300;
+    color: rgba(255,255,255,0.75);
+    max-width: 580px;
+    line-height: 1.6;
+    margin-bottom: 38px;
+  }
+  p.hero-lede strong { color: var(--white); font-weight: 500; }
+
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 56px; }
+
+  .btn-primary {
+    background: var(--terracotta);
+    color: var(--white);
+    padding: 16px 32px;
+    border-radius: 100px;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.3px;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: all 0.2s;
+    box-shadow: 0 8px 28px rgba(217,119,6,0.45);
+    border: none; cursor: pointer;
+  }
+  .btn-primary:hover { background: var(--terra-light); transform: translateY(-2px); box-shadow: 0 12px 36px rgba(217,119,6,0.55); color: var(--white); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.06);
+    color: var(--white);
+    padding: 16px 30px;
+    border-radius: 100px;
+    font-size: 14px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.18);
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.12); border-color: rgba(217,119,6,0.5); color: var(--terra-light); }
+
+  .hero-right {
+    display: flex; flex-direction: column; gap: 14px;
+    padding-bottom: 8px;
+  }
+
+  .hero-stat-card {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(217,119,6,0.18);
+    border-radius: 16px;
+    padding: 24px 26px;
+    backdrop-filter: blur(8px);
+    position: relative; overflow: hidden;
+    transition: border-color 0.25s;
+  }
+  .hero-stat-card:hover { border-color: rgba(217,119,6,0.5); }
+  .hero-stat-card::before {
+    content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px;
+    background: radial-gradient(circle at top right, rgba(217,119,6,0.16), transparent 70%);
+    pointer-events: none;
+  }
+  .stat-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 38px; font-weight: 500;
+    color: var(--terra-light);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .stat-num small { font-size: 18px; color: var(--terracotta); }
+  .stat-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--gray-400); margin-top: 10px;
+  }
+  .stat-detail { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 6px; line-height: 1.45; }
+
+  .hero-trust-strip {
+    display: flex; flex-wrap: wrap; gap: 28px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 1.6px; font-weight: 600;
+  }
+  .hero-trust-strip span { display: inline-flex; align-items: center; gap: 8px; }
+  .hero-trust-strip span::before { content: '◆'; color: var(--terracotta); font-size: 10px; }
+
+  /* ─────────────── SECTION ─────────────── */
+  section { padding: 110px 0; position: relative; }
+
+  .section-eyebrow {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2.6px;
+    color: var(--terracotta);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: clamp(36px, 4.2vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -0.8px;
+    color: var(--white);
+    margin-bottom: 18px;
+    max-width: 760px;
+  }
+  .section-title em { font-style: italic; font-weight: 400; color: var(--terra-light); }
+  .section-lede {
+    font-size: 17px; font-weight: 300;
+    color: rgba(255,255,255,0.7);
+    max-width: 640px;
+    margin-bottom: 56px;
+    line-height: 1.7;
+  }
+
+  /* ─────────────── TRUST BAND ─────────────── */
+  .trust-band {
+    padding: 56px 0;
+    background: linear-gradient(180deg, var(--bark) 0%, var(--earth) 100%);
+    border-top: 1px solid rgba(217,119,6,0.14);
+    border-bottom: 1px solid rgba(217,119,6,0.14);
+  }
+  .trust-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .trust-cell {
+    padding: 0 30px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .trust-cell:last-child { border-right: none; }
+  .trust-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 32px; font-weight: 500;
+    color: var(--terra-light);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .trust-num small { font-size: 16px; color: var(--terracotta); }
+  .trust-lbl { font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 1.8px; margin-top: 10px; }
+  .trust-sub { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 6px; line-height: 1.5; }
+
+  /* ─────────────── SERVICES ─────────────── */
+  .services-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
+  }
+  .service-card {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(217,119,6,0.15);
+    border-radius: 18px;
+    padding: 32px 28px;
+    transition: all 0.3s;
+    position: relative; overflow: hidden;
+    backdrop-filter: blur(8px);
+  }
+  .service-card::before {
+    content: ''; position: absolute; top: 0; right: 0; width: 200px; height: 200px;
+    background: radial-gradient(circle at top right, rgba(217,119,6,0.10), transparent 70%);
+    pointer-events: none;
+    transition: opacity 0.3s; opacity: 0.6;
+  }
+  .service-card:hover { transform: translateY(-4px); border-color: rgba(217,119,6,0.42); box-shadow: 0 18px 50px rgba(0,0,0,0.4); }
+  .service-card:hover::before { opacity: 1; }
+
+  .service-icon {
+    width: 52px; height: 52px;
+    background: rgba(217,119,6,0.14);
+    border: 1px solid rgba(217,119,6,0.35);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 22px;
+  }
+  .service-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--white);
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .service-desc { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 18px; }
+  .service-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .service-tag {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 100px;
+    padding: 4px 11px;
+    font-size: 11px; font-weight: 500;
+    color: rgba(255,255,255,0.55);
+  }
+
+  /* ─────────────── PROCESS ─────────────── */
+  section.process { background: linear-gradient(180deg, var(--earth) 0%, #060f1e 100%); }
+  .process-timeline {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+    position: relative;
+  }
+  .process-timeline::before {
+    content: ''; position: absolute;
+    top: 28px; left: 8%; right: 8%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(217,119,6,0.5), transparent);
+  }
+  .process-step {
+    position: relative;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 70px 22px 26px;
+    text-align: left;
+  }
+  .step-num {
+    position: absolute;
+    top: -2px; left: 22px;
+    transform: translateY(-50%);
+    width: 56px; height: 56px;
+    background: var(--bark);
+    border: 2px solid var(--terracotta);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900; font-size: 22px;
+    color: var(--terra-light);
+    box-shadow: 0 4px 18px rgba(217,119,6,0.3);
+  }
+  .step-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px; font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .step-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+  .step-tag {
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--terracotta); margin-bottom: 8px;
+  }
+
+  /* ─────────────── PLANNER SHOWCASE ─────────────── */
+  section.planners {
+    background:
+      radial-gradient(ellipse at 30% 0%, rgba(217,119,6,0.10) 0%, transparent 55%),
+      linear-gradient(180deg, #060f1e 0%, var(--earth) 100%);
+  }
+  .planner-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px;
+  }
+  @media (max-width: 1100px) { .planner-grid { grid-template-columns: repeat(2, 1fr); } }
+  .planner-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(217,119,6,0.2);
+    border-radius: 20px;
+    padding: 32px;
+    transition: all 0.3s;
+    position: relative; overflow: hidden;
+    cursor: pointer;
+    display: flex; flex-direction: column;
+  }
+  .planner-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(217,119,6,0) 0%, rgba(217,119,6,0.08) 100%);
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .planner-card:hover { transform: translateY(-4px); border-color: var(--terracotta); }
+  .planner-card:hover::after { opacity: 1; }
+
+  .planner-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(217,119,6,0.18);
+    border: 1px solid rgba(217,119,6,0.4);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 10px; font-weight: 700;
+    color: var(--terra-light);
+    text-transform: uppercase; letter-spacing: 1.6px;
+    margin-bottom: 22px;
+    align-self: flex-start;
+  }
+  .planner-badge.live::before { content: ''; width: 6px; height: 6px; background: var(--terra-light); border-radius: 50%; box-shadow: 0 0 10px var(--terra-light); }
+  .planner-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--white); margin-bottom: 14px; line-height: 1.15; }
+  .planner-desc { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.65; margin-bottom: 24px; flex: 1; }
+  .planner-preview {
+    background: linear-gradient(135deg, var(--bark) 0%, var(--bark-mid) 100%);
+    border: 1px solid rgba(217,119,6,0.18);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+  .preview-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); }
+  .preview-row:last-child { border-bottom: none; padding-top: 9px; margin-top: 4px; border-top: 1px solid rgba(217,119,6,0.25); }
+  .preview-row span:first-child { color: rgba(255,255,255,0.5); }
+  .preview-row span:last-child { color: var(--terra-light); font-weight: 500; }
+  .preview-row.total span:last-child { font-size: 16px; }
+
+  .planner-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600;
+    color: var(--terra-light);
+    transition: gap 0.2s;
+  }
+  .planner-card:hover .planner-cta { gap: 12px; }
+
+  /* ─────────────── PROJECTS GALLERY ─────────────── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: 240px;
+    gap: 16px;
+  }
+  .project-tile {
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.35s;
+  }
+  .project-tile::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(0deg, rgba(5,13,24,0.85) 0%, rgba(5,13,24,0.15) 55%, rgba(5,13,24,0) 100%);
+    pointer-events: none;
+  }
+  .project-tile:hover { transform: translateY(-3px); border-color: rgba(217,119,6,0.4); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+
+  .project-tile.t1 { grid-column: span 7; grid-row: span 2;
+    background:
+      linear-gradient(135deg, #b45309 0%, #78350f 35%, #1a3d5c 100%),
+      radial-gradient(circle at 30% 40%, rgba(217,119,6,0.4), transparent 60%);
+  }
+  .project-tile.t2 { grid-column: span 5;
+    background:
+      linear-gradient(45deg, #0f2942 0%, #1a4d7a 60%, #2d7ab5 100%);
+  }
+  .project-tile.t3 { grid-column: span 5;
+    background:
+      linear-gradient(160deg, #2d7ab5 0%, #1a4d7a 40%, #0a2540 100%);
+  }
+  .project-tile.t4 { grid-column: span 4;
+    background:
+      linear-gradient(120deg, #78350f 0%, #b45309 50%, #d97706 100%);
+  }
+  .project-tile.t5 { grid-column: span 4;
+    background:
+      linear-gradient(200deg, #1e4d6b 0%, #0a2540 70%, #050d18 100%);
+  }
+  .project-tile.t6 { grid-column: span 4;
+    background:
+      linear-gradient(45deg, #92400e 0%, #b45309 50%, #d97706 100%);
+  }
+  .project-tile.t7 { grid-column: span 8;
+    background:
+      linear-gradient(135deg, #0a2540 0%, #1a3d5c 40%, #2d7ab5 100%);
+  }
+
+  /* Subtle architectural line pattern overlay */
+  .project-tile::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .project-meta {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 24px 26px;
+    z-index: 1;
+  }
+  .project-cat {
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--terra-light);
+    margin-bottom: 8px;
+  }
+  .project-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+  .project-location { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+  .projects-cta-row {
+    display: flex; justify-content: space-between; align-items: end;
+    margin-bottom: 56px; flex-wrap: wrap; gap: 28px;
+  }
+
+  /* ─────────────── TEAM ─────────────── */
+  section.team {
+    background:
+      radial-gradient(ellipse at 80% 50%, rgba(26,77,122,0.18) 0%, transparent 55%),
+      var(--earth);
+  }
+  .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+  .team-card {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(217,119,6,0.18);
+    border-radius: 22px;
+    padding: 40px;
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 32px;
+    align-items: start;
+    transition: border-color 0.25s;
+  }
+  .team-card:hover { border-color: rgba(217,119,6,0.45); }
+  .team-portrait {
+    width: 140px; height: 140px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--bark-light) 0%, var(--bark) 100%);
+    border: 1px solid rgba(217,119,6,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 56px; font-weight: 700;
+    color: var(--terra-light);
+    box-shadow: inset 0 0 40px rgba(217,119,6,0.08);
+  }
+  .team-name { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--white); line-height: 1.1; margin-bottom: 4px; }
+  .team-role { font-size: 12px; font-weight: 700; color: var(--terra-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+  .team-bio { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 22px; }
+  .team-contact { display: flex; flex-direction: column; gap: 8px; }
+  .team-contact a {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    transition: color 0.2s;
+  }
+  .team-contact a:hover { color: var(--terra-light); }
+  .team-contact span.tc-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba(217,119,6,0.12);
+    border: 1px solid rgba(217,119,6,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .team-contact .tc-mono { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--terra-light); }
+
+  /* ─────────────── TESTIMONIALS ─────────────── */
+  .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .testi-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 32px;
+    position: relative;
+    transition: all 0.25s;
+  }
+  .testi-card:hover { border-color: rgba(217,119,6,0.35); background: rgba(255,255,255,0.04); }
+  .testi-quote-mark {
+    font-family: 'Playfair Display', serif;
+    font-size: 72px;
+    color: var(--terracotta);
+    line-height: 0.7;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+  .testi-body { font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1.7; margin-bottom: 22px; font-weight: 300; }
+  .testi-author { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .testi-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--terracotta), var(--terra-light));
+    color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px;
+  }
+  .testi-name { font-size: 14px; font-weight: 600; color: var(--white); }
+  .testi-project { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .testi-stars {
+    display: inline-flex; gap: 2px;
+    margin-bottom: 12px;
+    color: var(--terra-light); font-size: 14px; letter-spacing: 1px;
+  }
+
+  /* ─────────────── SERVICE AREA ─────────────── */
+  section.area {
+    background: linear-gradient(180deg, var(--earth) 0%, #060f1e 100%);
+  }
+  .area-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+  }
+  .county-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(217,119,6,0.15);
+    border-radius: 16px;
+    padding: 30px 26px;
+    position: relative; overflow: hidden;
+    transition: all 0.25s;
+  }
+  .county-card:hover { transform: translateY(-3px); border-color: rgba(217,119,6,0.45); }
+  .county-card::before {
+    content: '';
+    position: absolute; top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(217,119,6,0.12), transparent 70%);
+  }
+  .county-pin {
+    width: 44px; height: 44px;
+    background: rgba(217,119,6,0.14);
+    border: 1px solid rgba(217,119,6,0.4);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 18px;
+    position: relative; z-index: 1;
+  }
+  .county-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px; font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .county-state { font-size: 11px; font-weight: 700; color: var(--terra-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+  .county-cities { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+
+  /* ─────────────── BIG CTA ─────────────── */
+  section.big-cta {
+    padding: 130px 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(217,119,6,0.18) 0%, transparent 60%),
+      linear-gradient(135deg, var(--bark) 0%, #050d18 100%);
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  section.big-cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(217,119,6,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(217,119,6,0.05) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+  section.big-cta > .container { position: relative; z-index: 2; }
+  .big-cta-eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(217,119,6,0.18);
+    border: 1px solid rgba(217,119,6,0.45);
+    border-radius: 100px;
+    padding: 8px 22px;
+    font-size: 11px; font-weight: 700;
+    color: var(--terra-light);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+  .big-cta-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: clamp(44px, 5.4vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -1.2px;
+    margin-bottom: 24px;
+  }
+  .big-cta-title em { font-style: italic; font-weight: 400; color: var(--terra-light); }
+  .big-cta-lede {
+    font-size: 18px; color: rgba(255,255,255,0.75);
+    max-width: 620px; margin: 0 auto 40px;
+    line-height: 1.65;
+  }
+  .big-cta-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .big-cta-phones {
+    display: flex; justify-content: center; gap: 40px;
+    margin-top: 48px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    flex-wrap: wrap;
+  }
+  .phone-card { text-align: left; }
+  .phone-name { font-size: 12px; font-weight: 700; color: var(--terra-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+  .phone-num { font-family: 'DM Mono', monospace; font-size: 22px; color: var(--white); font-weight: 500; }
+  .phone-num a { transition: color 0.2s; }
+  .phone-num a:hover { color: var(--terra-light); }
+
+  /* ─────────────── FOOTER ─────────────── */
+  footer.site-footer {
+    background: #02060c;
+    padding: 70px 0 36px;
+    border-top: 1px solid rgba(217,119,6,0.18);
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 50px;
+    margin-bottom: 44px;
+  }
+  .footer-col h4 { font-size: 12px; font-weight: 700; color: var(--terra-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col a { font-size: 14px; color: rgba(255,255,255,0.65); transition: color 0.2s; }
+  .footer-col a:hover { color: var(--terra-light); }
+  .footer-tag { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 14px; line-height: 1.7; max-width: 320px; }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 12px; color: var(--gray-500);
+    flex-wrap: wrap; gap: 14px;
+  }
+  .footer-bottom em { font-style: italic; color: var(--terra-light); }
+
+  /* ─────────────── RESPONSIVE ─────────────── */
+  @media (max-width: 1100px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 56px; }
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .planner-grid { grid-template-columns: 1fr; }
+    .process-timeline { grid-template-columns: repeat(2, 1fr); }
+    .process-timeline::before { display: none; }
+    .projects-grid { grid-template-columns: repeat(6, 1fr); }
+    .project-tile.t1 { grid-column: span 6; }
+    .project-tile.t2, .project-tile.t3 { grid-column: span 3; }
+    .project-tile.t4, .project-tile.t5, .project-tile.t6 { grid-column: span 2; }
+    .project-tile.t7 { grid-column: span 6; }
+    .team-grid { grid-template-columns: 1fr; }
+    .testi-grid { grid-template-columns: 1fr; }
+    .area-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 22px; }
+    .nav-links a { display: none; }
+    .nav-links .nav-cta { display: inline-flex; }
+    header.hero { padding: 130px 0 80px; }
+    h1.hero-title { font-size: 42px; }
+    .trust-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .trust-cell { border-right: none; padding: 0; }
+    .services-grid { grid-template-columns: 1fr; }
+    .process-timeline { grid-template-columns: 1fr; }
+    .team-card { grid-template-columns: 1fr; text-align: center; }
+    .team-portrait { margin: 0 auto; }
+    .team-contact { align-items: center; }
+    .area-grid { grid-template-columns: 1fr; }
+    section { padding: 72px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a href="#top" class="logo-mark">
+      <div class="logo-box">LC</div>
+      <div>
+        <div class="logo-name">LC's General Contracting</div>
+        <div class="logo-sub">&amp; Remodeling · Est. 1980s</div>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="#services">Services</a>
+      <a href="#process">Process</a>
+      <a href="#planners">Planners</a>
+      <a href="#projects">Projects</a>
+      <a href="#team">Team</a>
+      <a href="#contact" class="nav-cta">Free Estimate →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<header class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-left">
+        <div class="hero-eyebrow">West Georgia · 40+ Years Building Homes</div>
+        <h1 class="hero-title">Custom homes,<br><em>built beautifully</em><br>from the ground up.</h1>
+        <p class="hero-lede">From new builds to whole-home remodels, sunrooms, decks, and additions — <strong>Len Covington and Jeremy Fields</strong> have spent four decades turning West Georgia families' visions into the homes they live in. If you can dream it, we can build it.</p>
+        <div class="hero-ctas">
+          <a href="#contact" class="btn-primary">Schedule a Free In-Home Estimate <span>→</span></a>
+          <a href="#planners" class="btn-secondary">Explore Our Planners <span>↓</span></a>
+        </div>
+        <div class="hero-trust-strip">
+          <span>Licensed &amp; Insured</span>
+          <span>Coweta · Carroll · Haralson · Paulding</span>
+          <span>Free Estimates</span>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-stat-card">
+          <div class="stat-num">40<small>+</small></div>
+          <div class="stat-label">Years in West Georgia</div>
+          <div class="stat-detail">Custom builds, additions, and full remodels since the 1980s — Len has seen every soil type in the region and built on most of them.</div>
+        </div>
+        <div class="hero-stat-card">
+          <div class="stat-num">4</div>
+          <div class="stat-label">Counties Served</div>
+          <div class="stat-detail">Coweta, Carroll, Haralson, Paulding — and we travel for the right project.</div>
+        </div>
+        <div class="hero-stat-card">
+          <div class="stat-num">$0</div>
+          <div class="stat-label">In-Home Estimate</div>
+          <div class="stat-detail">We come out, we walk the site, we listen — no obligation, no high-pressure sales pitch.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════ TRUST BAND ═══════════════ -->
+<section class="trust-band" style="padding: 56px 0;">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-cell">
+        <div class="trust-num">1980<small>s</small></div>
+        <div class="trust-lbl">Founded</div>
+        <div class="trust-sub">Len Covington started swinging a hammer in West Georgia four decades ago.</div>
+      </div>
+      <div class="trust-cell">
+        <div class="trust-num">100<small>%</small></div>
+        <div class="trust-lbl">Owner-Operated</div>
+        <div class="trust-sub">The man who answers the phone is the man on your jobsite — no project managers, no middlemen.</div>
+      </div>
+      <div class="trust-cell">
+        <div class="trust-num">7</div>
+        <div class="trust-lbl">Service Lines</div>
+        <div class="trust-sub">From custom builds to backup generator installs — one team, one accountability.</div>
+      </div>
+      <div class="trust-cell">
+        <div class="trust-num">~14<small>d</small></div>
+        <div class="trust-lbl">Avg. Estimate Turnaround</div>
+        <div class="trust-sub">Site visit to written proposal in under two weeks — most weeks, much faster.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SERVICES ═══════════════ -->
+<section id="services">
+  <div class="container">
+    <div class="section-eyebrow">What We Build</div>
+    <h2 class="section-title">Seven specialties.<br><em>One craftsman's standard.</em></h2>
+    <p class="section-lede">Whether you're building from a bare lot, adding the room your family outgrew, or finally putting in the sunroom you've talked about for years — we treat every project like it's our own house.</p>
+
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">🏡</div>
+        <div class="service-name">Custom Home Builds</div>
+        <div class="service-desc">From your land and your floor plan — or one we draft with you — to the day we hand you the keys. Built once, built right, built to last in West Georgia weather.</div>
+        <div class="service-tags">
+          <span class="service-tag">New construction</span>
+          <span class="service-tag">Lot to keys</span>
+          <span class="service-tag">Owner financing OK</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">🔨</div>
+        <div class="service-name">Whole-Home Remodeling</div>
+        <div class="service-desc">Gut renovations, kitchen and bath transformations, primary suite redesigns — we modernize older homes without erasing the character that made you want them in the first place.</div>
+        <div class="service-tags">
+          <span class="service-tag">Kitchen &amp; bath</span>
+          <span class="service-tag">Open-concept</span>
+          <span class="service-tag">Full gut</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">📐</div>
+        <div class="service-name">Room Additions</div>
+        <div class="service-desc">Master suites, in-law apartments, second-story add-ons, garage-to-living conversions. We tie new construction into your existing home so cleanly nobody can tell where the seam is.</div>
+        <div class="service-tags">
+          <span class="service-tag">Bump-outs</span>
+          <span class="service-tag">Second story</span>
+          <span class="service-tag">In-law suites</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">🌿</div>
+        <div class="service-name">Sunrooms &amp; Screened Porches</div>
+        <div class="service-desc">Three-season and four-season rooms designed for the Georgia heat and the surprise February cold snap. Glass, screens, climate control, the works.</div>
+        <div class="service-tags">
+          <span class="service-tag">Four-season</span>
+          <span class="service-tag">Screened porch</span>
+          <span class="service-tag">EZE-Breeze</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">🪵</div>
+        <div class="service-name">Decks &amp; Outdoor Living</div>
+        <div class="service-desc">Pressure-treated, composite, or hardwood decks. Covered patios, pergolas, outdoor kitchens, fire features. Spaces your family will actually use, not just admire.</div>
+        <div class="service-tags">
+          <span class="service-tag">Composite</span>
+          <span class="service-tag">Covered</span>
+          <span class="service-tag">Multi-level</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">⚡</div>
+        <div class="service-name">Whole-Home Generators</div>
+        <div class="service-desc">Full installation of Generac, Kohler, and Briggs &amp; Stratton standby systems — sized to your home, transfer-switched, permitted, and tested. Power outages stop being a problem.</div>
+        <div class="service-tags">
+          <span class="service-tag">Generac</span>
+          <span class="service-tag">Kohler</span>
+          <span class="service-tag">Transfer switch</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PROCESS ═══════════════ -->
+<section class="process" id="process">
+  <div class="container">
+    <div class="section-eyebrow">How We Work Together</div>
+    <h2 class="section-title">Five steps from <em>"what if"</em><br>to handing you the keys.</h2>
+    <p class="section-lede">Building a home is the biggest project most families ever undertake. Our process is built to keep you informed, in control, and never wondering what happens next.</p>
+
+    <div class="process-timeline">
+      <div class="process-step">
+        <div class="step-num">1</div>
+        <div class="step-tag">Step One</div>
+        <div class="step-name">Discovery</div>
+        <div class="step-desc">A no-pressure conversation. We come to your home, walk the property, listen to what you actually want, and answer every question.</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">2</div>
+        <div class="step-tag">Step Two</div>
+        <div class="step-name">Design</div>
+        <div class="step-desc">We sketch, model, and refine the plan with you. Floor plans, finish selections, structural calls — all locked in before the first nail.</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">3</div>
+        <div class="step-tag">Step Three</div>
+        <div class="step-name">Estimate</div>
+        <div class="step-desc">A written, itemized proposal. Materials, labor, fees, timeline, contingencies — no surprises, no hidden line items.</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">4</div>
+        <div class="step-tag">Step Four</div>
+        <div class="step-name">Build</div>
+        <div class="step-desc">Our crew, our subs, our standards. Weekly walkthroughs, photo updates, change orders documented in writing before any work begins.</div>
+      </div>
+      <div class="process-step">
+        <div class="step-num">5</div>
+        <div class="step-tag">Step Five</div>
+        <div class="step-name">Handoff</div>
+        <div class="step-desc">Final walkthrough, punch list, manuals, warranties. We don't disappear after the check clears — we stand behind every home we build.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PLANNERS ═══════════════ -->
+<section class="planners" id="planners">
+  <div class="container">
+    <div class="section-eyebrow">Interactive Planning Tools</div>
+    <h2 class="section-title">Walk into your estimate <em>already knowing</em> your numbers.</h2>
+    <p class="section-lede">Most contractors hand you a single-page quote and hope you don't ask questions. We do the opposite — these live planners let you model your project, see the math, and walk in with a real number before we ever sit down. Free to use, no email required.</p>
+
+    <div class="planner-grid">
+      <div class="planner-card" onclick="openPlanner('drawschedule')">
+        <div class="planner-badge live">Live Estimator</div>
+        <div class="planner-title">Construction Budget &amp; Draw Schedule</div>
+        <div class="planner-desc">Plug in your build budget and overhead &amp; profit. Every phase of construction — from footings to final clean-up — sized to the dollar. Adjust any line live as actuals shift.</div>
+        <div class="planner-preview">
+          <div class="preview-row"><span>Build Budget</span><span>$285,000</span></div>
+          <div class="preview-row"><span>Framing · 18%</span><span>$51,300</span></div>
+          <div class="preview-row"><span>O&amp;P · 20%</span><span>$57,000</span></div>
+          <div class="preview-row total"><span>Total Project Budget</span><span>$342,000</span></div>
+        </div>
+        <span class="planner-cta">Launch the Draw Schedule <span>→</span></span>
+      </div>
+
+      <div class="planner-card" onclick="openPlanner('outdoor')">
+        <div class="planner-badge live">Live Estimator</div>
+        <div class="planner-title">Outdoor Living Planner</div>
+        <div class="planner-desc">Toggle covered patios, decks, pergolas, outdoor kitchens, fire features. Set the finish level. Watch the total move as you design your space.</div>
+        <div class="planner-preview">
+          <div class="preview-row"><span>Covered Patio · 400 sqft</span><span>$22,000</span></div>
+          <div class="preview-row"><span>Deck Extension · 280 sqft</span><span>$11,200</span></div>
+          <div class="preview-row"><span>Outdoor Kitchen</span><span>$18,500</span></div>
+          <div class="preview-row total"><span>Project Investment</span><span>$51,700</span></div>
+        </div>
+        <span class="planner-cta">Launch the Outdoor Planner <span>→</span></span>
+      </div>
+
+      <div class="planner-card" onclick="openPlanner('budget')">
+        <div class="planner-badge live">Live Estimator</div>
+        <div class="planner-title">Custom Home Budget Planner</div>
+        <div class="planner-desc">Work backwards from total budget to square footage, or forwards from a target home size. Includes builder fee modeling and West Georgia per-sqft benchmarks.</div>
+        <div class="planner-preview">
+          <div class="preview-row"><span>Total Budget</span><span>$420,000</span></div>
+          <div class="preview-row"><span>Builder Fee · 25%</span><span>$84,000</span></div>
+          <div class="preview-row"><span>$180 / sqft</span><span>1,867 sqft</span></div>
+          <div class="preview-row total"><span>Build Cost Envelope</span><span>$336,000</span></div>
+        </div>
+        <span class="planner-cta">Launch the Budget Planner <span>→</span></span>
+      </div>
+
+      <div class="planner-card" onclick="openPlanner('pool')">
+        <div class="planner-badge live">Live Estimator</div>
+        <div class="planner-title">Pool Build Planner</div>
+        <div class="planner-desc">Size, shape, decking, water features, heating. Model an in-ground project end-to-end and see what each premium choice costs before you commit.</div>
+        <div class="planner-preview">
+          <div class="preview-row"><span>Gunite Pool · 16x32</span><span>$58,000</span></div>
+          <div class="preview-row"><span>Travertine Deck · 800 sqft</span><span>$19,200</span></div>
+          <div class="preview-row"><span>Heater + Salt System</span><span>$8,400</span></div>
+          <div class="preview-row total"><span>Project Investment</span><span>$85,600</span></div>
+        </div>
+        <span class="planner-cta">Launch the Pool Planner <span>→</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PROJECTS ═══════════════ -->
+<section id="projects">
+  <div class="container">
+    <div class="projects-cta-row">
+      <div>
+        <div class="section-eyebrow">Recent Work</div>
+        <h2 class="section-title">A few homes <em>we've been proud</em> to build.</h2>
+      </div>
+      <a href="#contact" class="btn-secondary">Discuss Your Project <span>→</span></a>
+    </div>
+
+    <div class="projects-grid">
+      <div class="project-tile t1">
+        <div class="project-meta">
+          <div class="project-cat">Custom Home · 3,200 sqft</div>
+          <div class="project-name">The Henderson Build</div>
+          <div class="project-location">Coweta County · 2024</div>
+        </div>
+      </div>
+      <div class="project-tile t2">
+        <div class="project-meta">
+          <div class="project-cat">Outdoor Living</div>
+          <div class="project-name">Covered Pavilion &amp; Kitchen</div>
+          <div class="project-location">Newnan · 2024</div>
+        </div>
+      </div>
+      <div class="project-tile t3">
+        <div class="project-meta">
+          <div class="project-cat">Whole-Home Remodel</div>
+          <div class="project-name">1950s Farmhouse, Reborn</div>
+          <div class="project-location">Carrollton · 2023</div>
+        </div>
+      </div>
+      <div class="project-tile t4">
+        <div class="project-meta">
+          <div class="project-cat">Sunroom Addition</div>
+          <div class="project-name">Four-Season Glass Room</div>
+          <div class="project-location">Dallas · 2024</div>
+        </div>
+      </div>
+      <div class="project-tile t5">
+        <div class="project-meta">
+          <div class="project-cat">Generator Install</div>
+          <div class="project-name">22kW Whole-Home Standby</div>
+          <div class="project-location">Bremen · 2024</div>
+        </div>
+      </div>
+      <div class="project-tile t6">
+        <div class="project-meta">
+          <div class="project-cat">Master Addition</div>
+          <div class="project-name">Owner's Suite &amp; Spa Bath</div>
+          <div class="project-location">Hiram · 2023</div>
+        </div>
+      </div>
+      <div class="project-tile t7">
+        <div class="project-meta">
+          <div class="project-cat">Custom Home · 4,100 sqft</div>
+          <div class="project-name">The Ridgeline House</div>
+          <div class="project-location">Haralson County · 2023</div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:28px;font-size:13px;color:var(--gray-500);font-style:italic">↑ Project tiles ready to be replaced with real before/after photography from your portfolio.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ TEAM ═══════════════ -->
+<section class="team" id="team">
+  <div class="container">
+    <div class="section-eyebrow">The People on Your Jobsite</div>
+    <h2 class="section-title">You'll know who built<br><em>every inch of your home.</em></h2>
+    <p class="section-lede">No call center, no field manager you've never met. When you hire LC's, you hire Len and Jeremy directly — and the relationship lasts long after the keys are handed over.</p>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-portrait">LC</div>
+        <div>
+          <div class="team-name">Len Covington</div>
+          <div class="team-role">Founder · Lead Builder</div>
+          <p class="team-bio">Forty years in West Georgia residential construction. Started in framing crews, learned every trade by doing it, and built LC's General Contracting around the belief that the man putting his name on the door ought to be the man on your jobsite. Has built homes for three generations of some local families.</p>
+          <div class="team-contact">
+            <a href="tel:7702941635"><span class="tc-icon">📞</span><span class="tc-mono">770-294-1635</span></a>
+            <a href="mailto:LCovington@lcgeneralcontracting.com"><span class="tc-icon">✉</span>LCovington@lcgeneralcontracting.com</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-portrait">JF</div>
+        <div>
+          <div class="team-name">Jeremy Fields</div>
+          <div class="team-role">Partner · Project Lead</div>
+          <p class="team-bio">Runs day-to-day project execution — scheduling, subs, sequencing, and walking jobsites every morning. The kind of project lead who notices a half-inch out of plumb on a stud wall and stops the framer before the drywall goes on. Your single point of contact once the work begins.</p>
+          <div class="team-contact">
+            <a href="tel:4042711840"><span class="tc-icon">📞</span><span class="tc-mono">404-271-1840</span></a>
+            <a href="mailto:JFields@lcgeneralcontracting.com"><span class="tc-icon">✉</span>JFields@lcgeneralcontracting.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TESTIMONIALS ═══════════════ -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-eyebrow">What Clients Say</div>
+    <h2 class="section-title">Forty years of <em>word-of-mouth.</em></h2>
+    <p class="section-lede">We've never spent a dollar on traditional advertising. Every project we build comes from a referral, a returning client, or a family member of someone we've built for before.</p>
+
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-quote-mark">"</div>
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-body">Len built our home in 1998 and we just had him back to build the addition. Same crew quality, same direct phone number, same handshake. You can't fake that kind of consistency.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">MR</div>
+          <div>
+            <div class="testi-name">Michael &amp; Rebecca H.</div>
+            <div class="testi-project">Custom Home + Addition · Coweta County</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-quote-mark">"</div>
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-body">Three contractors estimated our sunroom. Two of them were cheaper. Jeremy walked us through every line item, showed us exactly where the value was, and the finished room is the favorite part of our house.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">TS</div>
+          <div>
+            <div class="testi-name">Thomas &amp; Sarah K.</div>
+            <div class="testi-project">Four-Season Sunroom · Paulding County</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-quote-mark">"</div>
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-body">Power went out four times during the last ice storm. LC's installed our 22kW Generac last spring and we didn't notice any of them. Best money we've ever spent on the house.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">DB</div>
+          <div>
+            <div class="testi-name">David &amp; Brenda L.</div>
+            <div class="testi-project">Generator Install · Carroll County</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:28px;font-size:13px;color:var(--gray-500);font-style:italic">↑ Placeholder testimonials in the brand voice — easy to swap in real Google / Facebook reviews once collected.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ SERVICE AREA ═══════════════ -->
+<section class="area" id="area">
+  <div class="container">
+    <div class="section-eyebrow">Where We Build</div>
+    <h2 class="section-title">Four counties.<br><em>One zip code at a time.</em></h2>
+    <p class="section-lede">LC's serves the West Georgia communities we've spent four decades building in. We know the soil, the code officials, the sub-trades worth working with, and the weather patterns that decide a roofline.</p>
+
+    <div class="area-grid">
+      <div class="county-card">
+        <div class="county-pin">📍</div>
+        <div class="county-name">Coweta</div>
+        <div class="county-state">County · Georgia</div>
+        <div class="county-cities">Newnan · Senoia · Sharpsburg · Grantville · Moreland</div>
+      </div>
+      <div class="county-card">
+        <div class="county-pin">📍</div>
+        <div class="county-name">Carroll</div>
+        <div class="county-state">County · Georgia</div>
+        <div class="county-cities">Carrollton · Villa Rica · Temple · Bowdon · Whitesburg</div>
+      </div>
+      <div class="county-card">
+        <div class="county-pin">📍</div>
+        <div class="county-name">Haralson</div>
+        <div class="county-state">County · Georgia</div>
+        <div class="county-cities">Bremen · Buchanan · Tallapoosa · Waco</div>
+      </div>
+      <div class="county-card">
+        <div class="county-pin">📍</div>
+        <div class="county-name">Paulding</div>
+        <div class="county-state">County · Georgia</div>
+        <div class="county-cities">Dallas · Hiram · Acworth · New Hope</div>
+      </div>
+    </div>
+    <p style="margin-top:36px;font-size:14px;color:rgba(255,255,255,0.65)">Project just outside this footprint? Call Len — we travel for the right build.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ BIG CTA ═══════════════ -->
+<section class="big-cta" id="contact">
+  <div class="container">
+    <div class="big-cta-eyebrow">◆ Free In-Home Estimate · No Pressure</div>
+    <h1 class="big-cta-title">Let's walk your property<br>and talk about <em>what's possible.</em></h1>
+    <p class="big-cta-lede">Tell us what you're thinking — a new home, an addition, a remodel, a deck, a generator. We'll come out, listen, and put together a written proposal you can actually compare apples-to-apples.</p>
+    <div class="big-cta-ctas">
+      <a href="tel:7702941635" class="btn-primary">Call Len: 770-294-1635 <span>→</span></a>
+      <a href="mailto:LCovington@lcgeneralcontracting.com?subject=Free%20In-Home%20Estimate%20Request" class="btn-secondary">Email Us <span>→</span></a>
+    </div>
+    <div class="big-cta-phones">
+      <div class="phone-card">
+        <div class="phone-name">Len Covington</div>
+        <div class="phone-num"><a href="tel:7702941635">770-294-1635</a></div>
+      </div>
+      <div class="phone-card">
+        <div class="phone-name">Jeremy Fields</div>
+        <div class="phone-num"><a href="tel:4042711840">404-271-1840</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a href="#top" class="logo-mark" style="margin-bottom: 16px">
+          <div class="logo-box">LC</div>
+          <div>
+            <div class="logo-name">LC's General Contracting</div>
+            <div class="logo-sub">&amp; Remodeling</div>
+          </div>
+        </a>
+        <p class="footer-tag">Custom homes, additions, sunrooms, decks, remodels, and generator installation across West Georgia. Built beautifully from the ground up, since the 1980s.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#services">Custom Home Builds</a></li>
+          <li><a href="#services">Whole-Home Remodeling</a></li>
+          <li><a href="#services">Room Additions</a></li>
+          <li><a href="#services">Sunrooms &amp; Porches</a></li>
+          <li><a href="#services">Decks &amp; Outdoor Living</a></li>
+          <li><a href="#services">Whole-Home Generators</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Planners</h4>
+        <ul>
+          <li><a href="#planners">Construction Budget &amp; Draw Schedule</a></li>
+          <li><a href="#planners">Outdoor Living Planner</a></li>
+          <li><a href="#planners">Custom Home Budget</a></li>
+          <li><a href="#planners">Pool Build Planner</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="tel:7702941635">Len · 770-294-1635</a></li>
+          <li><a href="tel:4042711840">Jeremy · 404-271-1840</a></li>
+          <li><a href="mailto:LCovington@lcgeneralcontracting.com">LCovington@lcgeneralcontracting.com</a></li>
+          <li><a href="mailto:JFields@lcgeneralcontracting.com">JFields@lcgeneralcontracting.com</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 LC's General Contracting &amp; Remodeling · Licensed &amp; Insured in the State of Georgia</div>
+      <div>Built beautifully, <em>from the ground up.</em></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Nav background on scroll
+  const nav = document.getElementById('siteNav');
+  const onScroll = () => {
+    if (window.scrollY > 40) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Planner launcher — links to the sample HTML files if they're co-located
+  function openPlanner(which) {
+    const map = {
+      drawschedule: 'LC_Construction_Budget_Planner.html',
+      outdoor:      'LC_Outdoor_Living_Planner.html',
+      budget:       'atScale_Home_Budget_Planner.html',
+      pool:         'atScale_Pool_Build_Planner.html'
+    };
+    const f = map[which];
+    if (!f) return;
+    // Try same-folder first, then ../samples (so it works both deployed and from disk)
+    window.open(f, '_blank');
+  }
+
+  // Gentle reveal on scroll for hero stat cards + service cards
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.hero-stat-card, .service-card, .planner-card, .project-tile, .testi-card, .county-card, .team-card, .process-step').forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(24px)';
+      el.style.transition = `opacity 0.6s ease ${i * 0.04}s, transform 0.6s ease ${i * 0.04}s`;
+      io.observe(el);
+    });
+  }
+</script>
+</body>
+</html>
