@@ -269,6 +269,8 @@
     .field.row { grid-template-columns: 1fr; }
     .foot-grid { grid-template-columns: 1fr 1fr; }
     .hero-trust { gap: 20px; }
+    /* full-width hero text on phones needs an even dark wash, not the desktop side-fade */
+    .hero-bg::after { background: linear-gradient(180deg, rgba(20,26,42,.82) 0%, rgba(20,26,42,.9) 100%); }
   }
 </style>
 </head>
