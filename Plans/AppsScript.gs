@@ -27,10 +27,12 @@ const NUM_LINES = 44;
 const CUST_HEADERS = [
   'id', 'description', 'created_at', 'updated_at',
   'sqft', 'cost_per_sqft', 'base_build_budget', 'oop_pct', 'total_project_budget',
-  'archived', 'template',
+  'archived', 'template', 'last_billed_at',
 ];
 
-const LINE_HEADERS = ['customer_id', 'line_id', 'budget_dollars', 'paid_dollars'];
+// billed_oop = cumulative O&P billed on the line (durable, decrements Balance).
+// oop_due = current-cycle O&P entered but not yet billed (cleared on Bill).
+const LINE_HEADERS = ['customer_id', 'line_id', 'budget_dollars', 'paid_dollars', 'billed_oop', 'oop_due'];
 
 // ─────────────────────────────────────────────────────────────────
 // ONE-TIME SETUP
@@ -55,6 +57,10 @@ function setupSheet() {
     lines.appendRow(LINE_HEADERS);
     lines.getRange(1, 1, 1, LINE_HEADERS.length).setFontWeight('bold');
     lines.setFrozenRows(1);
+  } else {
+    // Idempotent header repair — backfills new columns (billed_oop, oop_due)
+    // when setup is re-run after a schema change, without touching data rows.
+    lines.getRange(1, 1, 1, LINE_HEADERS.length).setValues([LINE_HEADERS]).setFontWeight('bold');
   }
   // Force ID columns to plain text so zero-padded ids ('0001') survive appendRow.
   // Without '@' format, Sheets coerces '0001' → number 1 and findCustomerRow_ fails on read.
@@ -168,8 +174,11 @@ function loadCustomer(id) {
     // Legacy rows (saved before the template column existed) read as '' → the
     // frontend's applyRecord falls back to 'conventional' for any unknown key.
     template: String(row[10] || ''),
+    last_billed_at: row[11] ? String(row[11]) : '',
     line_budgets: new Array(NUM_LINES + 1).fill(0),  // 1-indexed
     line_paid: new Array(NUM_LINES + 1).fill(0),
+    line_billed_oop: new Array(NUM_LINES + 1).fill(0),
+    line_oop_due: new Array(NUM_LINES + 1).fill(0),
   };
   // pull line items for this customer
   const lineSheet = getLineItemsSheet_();
@@ -183,6 +192,8 @@ function loadCustomer(id) {
         if (lid >= 1 && lid <= NUM_LINES) {
           summary.line_budgets[lid] = Number(lr[2] || 0);
           summary.line_paid[lid] = Number(lr[3] || 0);
+          summary.line_billed_oop[lid] = Number(lr[4] || 0);
+          summary.line_oop_due[lid] = Number(lr[5] || 0);
         }
       }
     }
@@ -219,6 +230,7 @@ function saveCustomer(body) {
         Number(body.total_project_budget || 0),
         false,                                  // archived
         String(body.template || ''),            // template (build type)
+        String(body.last_billed_at || ''),      // last_billed_at
       ];
       custSheet.appendRow(newRow);
       rowIdx = custSheet.getLastRow();
@@ -237,6 +249,7 @@ function saveCustomer(body) {
         Number(body.total_project_budget != null ? body.total_project_budget : existing[8]),
         body.archived != null ? !!body.archived : !!existing[9],
         String(body.template != null ? body.template : (existing[10] || '')),
+        String(body.last_billed_at != null ? body.last_billed_at : (existing[11] || '')),
       ];
       custSheet.getRange(rowIdx, 1, 1, CUST_HEADERS.length).setValues([updatedRow]);
     }
@@ -255,6 +268,8 @@ function saveCustomer(body) {
         }
       }
       // append new rows for this customer
+      const billedArr = Array.isArray(body.line_billed_oop) ? body.line_billed_oop : [];
+      const dueArr = Array.isArray(body.line_oop_due) ? body.line_oop_due : [];
       const newLines = [];
       for (let i = 1; i <= NUM_LINES; i++) {
         newLines.push([
@@ -262,6 +277,8 @@ function saveCustomer(body) {
           i,
           Number(body.line_budgets[i] || 0),
           Number(body.line_paid[i] || 0),
+          Number(billedArr[i] || 0),
+          Number(dueArr[i] || 0),
         ]);
       }
       lineSheet.getRange(lineSheet.getLastRow() + 1, 1, NUM_LINES, LINE_HEADERS.length).setValues(newLines);
