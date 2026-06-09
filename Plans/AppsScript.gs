@@ -27,7 +27,7 @@ const NUM_LINES = 44;
 const CUST_HEADERS = [
   'id', 'description', 'created_at', 'updated_at',
   'sqft', 'cost_per_sqft', 'base_build_budget', 'oop_pct', 'total_project_budget',
-  'archived', 'template', 'last_billed_at',
+  'archived', 'template', 'last_billed_at', 'managed_by',
 ];
 
 // billed_oop = cumulative O&P billed on the line (durable, decrements Balance).
@@ -175,6 +175,7 @@ function loadCustomer(id) {
     // frontend's applyRecord falls back to 'conventional' for any unknown key.
     template: String(row[10] || ''),
     last_billed_at: row[11] ? String(row[11]) : '',
+    managed_by: String(row[12] || ''),
     line_budgets: new Array(NUM_LINES + 1).fill(0),  // 1-indexed
     line_paid: new Array(NUM_LINES + 1).fill(0),
     line_billed_oop: new Array(NUM_LINES + 1).fill(0),
@@ -231,6 +232,7 @@ function saveCustomer(body) {
         false,                                  // archived
         String(body.template || ''),            // template (build type)
         String(body.last_billed_at || ''),      // last_billed_at
+        String(body.managed_by || ''),          // managed_by
       ];
       custSheet.appendRow(newRow);
       rowIdx = custSheet.getLastRow();
@@ -250,6 +252,7 @@ function saveCustomer(body) {
         body.archived != null ? !!body.archived : !!existing[9],
         String(body.template != null ? body.template : (existing[10] || '')),
         String(body.last_billed_at != null ? body.last_billed_at : (existing[11] || '')),
+        String(body.managed_by != null ? body.managed_by : (existing[12] || '')),
       ];
       custSheet.getRange(rowIdx, 1, 1, CUST_HEADERS.length).setValues([updatedRow]);
     }
