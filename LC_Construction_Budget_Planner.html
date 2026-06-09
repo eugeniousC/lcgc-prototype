@@ -962,54 +962,6 @@
   .totals-row .col-pct { color: var(--green-light); transition: color 0.2s; }
   .totals-row .col-pct.off-100 { color: var(--amber-light); }
 
-  /* ── O&P DUE / O&P BALANCE columns ── */
-  .table-head-row .col-oopdue,
-  .table-head-row .col-oopbal { text-align: right; }
-  .table-head-row .col-oopdue { color: var(--amber-light); }
-
-  .line-oopbal {
-    display: flex; justify-content: flex-end; align-items: center;
-    font-family: 'DM Mono', monospace;
-    font-size: 14px; font-weight: 500;
-    color: var(--white);
-    padding-right: 12px;
-    transition: color 0.18s;
-  }
-  .line-oopbal.empty { color: var(--gray-600); font-weight: 400; }
-  .line-oopbal.zero  { color: var(--green-light); }
-
-  .cell-input.oopdue-input {
-    border-color: rgba(217,119,6,0.28);
-    background: rgba(217,119,6,0.05);
-  }
-  .cell-input.oopdue-input:focus { border-color: var(--amber-light); background: rgba(217,119,6,0.12); }
-  .cell-input.oopdue-input.empty { color: var(--gray-600); }
-  .cell-input.oopdue-input:disabled {
-    opacity: 0.4; cursor: not-allowed;
-    background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06);
-  }
-  .col-oopdue .cell-prefix { color: var(--amber); }
-
-  .bill-btn {
-    width: 100%;
-    padding: 9px 8px;
-    border: none; border-radius: 10px;
-    background: var(--amber); color: #1a1205;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px; font-weight: 700; letter-spacing: 0.4px;
-    cursor: pointer; white-space: nowrap;
-    transition: all 0.18s;
-  }
-  .bill-btn:hover:not(:disabled) { background: var(--amber-light); }
-  .bill-btn:disabled { background: rgba(255,255,255,0.08); color: var(--gray-600); cursor: not-allowed; }
-  .bill-btn.confirm-armed { background: #b91c1c; color: #fff; }
-
-  .totals-row .col-oopdue { display: flex; align-items: center; }
-  .totals-row .col-oopbal {
-    text-align: right; justify-content: flex-end; display: flex;
-    color: var(--white); padding-right: 12px;
-  }
-
   /* ── INVOICE VIEW — 6-column layout (scoped so it doesn't touch Bank Draw) ── */
   .invoice-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
   .invoice-pane .table-head-row,
@@ -1031,6 +983,10 @@
   .invoice-pane .inv-oop-row .col-name,
   .invoice-pane .inv-oop-row .col-paid { color: var(--amber-light); }
   .invoice-pane .inv-oop-row .col-paid { font-weight: 700; }
+
+  /* History line = Amount Paid but no Check this cycle: shown, shaded, not counted. */
+  .invoice-pane .line-row.inv-history { background: rgba(125,130,140,0.12); }
+  .invoice-pane .line-row.inv-history .col-name { color: var(--gray-400); font-style: italic; }
 
   .vendor-select {
     width: 100%;
@@ -1619,6 +1575,9 @@
     .pr-table td.pr-actual.pr-blank { color: #c0c4cc !important; font-weight: 400 !important; }
     .pr-table td.pr-oop.pr-blank { color: #c0c4cc !important; }
     .pr-table tr.pr-paid { background: #f6fdfa !important; }
+    /* Invoice history rows — prior payments, shaded, not part of this invoice's totals. */
+    .pr-table tr.pr-history td { background: #eef0f3 !important; color: #8a9099 !important; }
+    .pr-prior { font-style: italic !important; color: #aab0b8 !important; }
     .pr-table tfoot td {
       border-top: 1.25pt solid var(--navy) !important;
       font-weight: 700 !important; color: var(--navy) !important;
@@ -1639,9 +1598,6 @@
     .pr-foot strong { color: var(--amber) !important; }
 
     /* O&P Due This Cycle — billing statement section (reuses .pr-table styles) */
-    .pr-oop-cycle { margin-top: 12pt !important; page-break-inside: avoid !important; }
-    .pr-oop-cycle[hidden] { display: none !important; }
-    .pr-cycle-table { margin-top: 4pt !important; }
   }
 
   /* Mobile responsiveness for tabs + phase cards + quickstart */
@@ -1996,18 +1952,6 @@
     <tfoot id="pr-tfoot"><!-- totals injected --></tfoot>
   </table>
 
-  <!-- O&P Due This Cycle — only shown on the Bill statement, not the plain PDF -->
-  <div class="pr-oop-cycle" id="pr-oop-cycle" hidden>
-    <div class="pr-block-head pr-cycle-head">O&amp;P Due This Cycle <span id="pr-cycle-date"></span></div>
-    <table class="pr-table pr-cycle-table">
-      <thead>
-        <tr><th class="pr-l">Line Item</th><th class="pr-r">O&amp;P Due</th></tr>
-      </thead>
-      <tbody id="pr-cycle-tbody"><!-- cycle rows injected --></tbody>
-      <tfoot id="pr-cycle-tfoot"><!-- cycle total injected --></tfoot>
-    </table>
-  </div>
-
   <p class="pr-foot">
     <strong>How it works:</strong> Total Budget ÷ (1 + O&amp;P%) = Hard Build Cost; ÷ Build Rate = Buildable Home Size. Each line is its % of Hard Build Cost; the <strong>Actual</strong> column is what's been paid, <strong>O&amp;P</strong> is the Overhead &amp; Profit on each paid line, and blank lines are work still to come. For planning and job tracking — not a binding quote, contract, or loan disclosure.
   </p>
@@ -2060,7 +2004,7 @@
   </table>
 
   <p class="pr-foot">
-    <strong>Invoice</strong> shows only the line items paid this cycle (Amount Paid entered). <strong>Check</strong> and <strong>Cash</strong> record how each was tendered; <strong>O&amp;P</strong> is the total overhead &amp; profit on the amount paid. For job billing — not a binding quote, contract, or loan disclosure.
+    <strong>This invoice</strong> covers the lines with a <strong>Check Amount</strong> entered this cycle; <strong>O&amp;P</strong> is the overhead &amp; profit on those amounts. <strong>Shaded "(prior)" rows</strong> are earlier payments shown for history only — they are not included in this invoice's totals. For job billing — not a binding quote, contract, or loan disclosure.
   </p>
 </section>
 
@@ -2196,9 +2140,6 @@ const state = {
   costPerSqft: 180,      // quickstart input
   lineDollars: {},       // budget per line — canonical
   linePaid: {},          // actual paid per line — defaults to 0
-  lineBilledOop: {},     // cumulative O&P billed per line (durable; decrements Balance)
-  lineOopDue: {},        // current-cycle O&P due entered, not yet billed (cleared on Bill)
-  lastBilledAt: '',      // ISO timestamp of the most recent Bill action
   // Invoice View — session-only (NOT persisted to the backend, by design):
   lineCheck: {},         // Check Amount per line
   lineCash: {},          // Cash Amount per line
@@ -2236,21 +2177,28 @@ function lineName(id) {
 }
 function sumLineCheck() { return PHASES.reduce((s, p) => s + (state.lineCheck[p.id] || 0), 0); }
 
+// Invoice "active" line = has a Check Amount entered (this invoice cycle). Lines with
+// an Amount Paid but NO Check are prior payments (history) — shown but not counted.
+function invoiceLineActive(id) { return (state.lineCheck[id] || 0) > 0; }
+function invoiceLineHistory(id) { return (state.linePaid[id] || 0) > 0 && (state.lineCheck[id] || 0) === 0; }
+function sumActivePaid() {
+  return PHASES.reduce((s, p) => s + (invoiceLineActive(p.id) ? (state.linePaid[p.id] || 0) : 0), 0);
+}
+function updateInvoiceRowStates() {
+  document.querySelectorAll('#invoice-rows .line-row').forEach(row => {
+    row.classList.toggle('inv-history', invoiceLineHistory(+row.dataset.id));
+  });
+}
+
 function applyDefaults() {
   for (const p of PHASES) {
     state.lineDollars[p.id] = state.baseBudget * p.pct / 100;
   }
 }
 function clearPaid() {
-  // Full actuals reset: wipes paid AND the O&P billing workspace (billed + due)
-  // for every line, so balances start fresh. Billed O&P is derived from paid —
-  // keeping it after a paid wipe would orphan it, so it clears together.
   for (const p of PHASES) {
     state.linePaid[p.id] = 0;
-    state.lineBilledOop[p.id] = 0;
-    state.lineOopDue[p.id] = 0;
   }
-  state.lastBilledAt = '';
 }
 applyDefaults();
 clearPaid();
@@ -2358,7 +2306,6 @@ function renderRows() {
   if (invoiceRowsEl) renderInvoiceRows();
   wireRowInputs();
   updateTotals();
-  refreshBillButton();
 }
 
 // Invoice View rows: # · Phase/Line Item · Vendor (dropdown) · Check · Cash · Amount Paid.
@@ -2383,7 +2330,7 @@ function renderInvoiceRows() {
     const paid = state.linePaid[id] || 0;
 
     const row = document.createElement('div');
-    row.className = 'line-row';
+    row.className = 'line-row' + (invoiceLineHistory(id) ? ' inv-history' : '');
     row.dataset.id = id;
     row.innerHTML = `
       <div class="col-id">${id}</div>
@@ -2446,35 +2393,6 @@ function computeLineOop(paid) {
   return { cls: '', text: formatMoney(paid * state.oop / 100) };
 }
 
-// Total O&P owed on a line = O&P earned on the amount paid at the current rate.
-// Rounded to whole dollars (the planner is whole-dollar throughout) so balances,
-// clamps, and cycle totals stay exact — no floating-cent residue on a bill doc.
-function lineOopOwed(id) {
-  return Math.round((state.linePaid[id] || 0) * state.oop / 100);
-}
-
-// O&P Balance = owed − cumulative billed, never negative. `locked` means the
-// O&P Due input is disabled: nothing paid yet (nothing to bill) or fully billed.
-function computeLineBalance(id) {
-  const owed = lineOopOwed(id);
-  if (owed <= 0) return { value: 0, text: '—', cls: 'empty', locked: true };
-  const bal = Math.max(0, owed - (state.lineBilledOop[id] || 0));
-  return {
-    value: bal,
-    text: formatMoney(bal),
-    cls: bal <= 0 ? 'zero' : '',
-    locked: bal <= 0,
-  };
-}
-
-// Sum of O&P Due currently entered across all active lines — the cycle total.
-function sumOopDue() {
-  return PHASES.reduce((s, p) => s + (state.lineOopDue[p.id] || 0), 0);
-}
-function sumOopBalance() {
-  return PHASES.reduce((s, p) => s + computeLineBalance(p.id).value, 0);
-}
-
 function computeOverage(budget, paid) {
   if (paid === 0) return { cls: '', text: '—' };
   if (budget === 0) return { cls: 'over', text: 'n/a' };
@@ -2524,18 +2442,6 @@ function onCellInput(e) {
     input.classList.toggle('empty', safe === 0);
     updateRowActualPct(row);
     updateRowOop(row);
-    updateRowOopCells(row);   // owed changed → refresh balance + due lock
-  } else if (kind === 'oopdue') {
-    // O&P due this cycle → clamp to the line's current balance (can't bill more
-    // than is owed). Balance itself does NOT move until Bill commits.
-    const maxDue = computeLineBalance(id).value;
-    const clamped = Math.min(safe, maxDue);
-    state.lineOopDue[id] = clamped;
-    if (clamped !== safe) input.value = formatMoneyPlain(clamped);
-    input.classList.toggle('empty', clamped === 0);
-    // Editing a Due amount must cancel any armed Bill confirm — otherwise the
-    // confirmed amount wouldn't match what Len saw when he armed it (money action).
-    disarmBill();
   } else if (kind === 'check') {
     // Invoice View — Check Amount (independent figure, session-only).
     state.lineCheck[id] = safe;
@@ -2549,6 +2455,7 @@ function onCellInput(e) {
   recalcDerived();
   updateRowOverage(row);
   updateCategoryTotals();
+  updateInvoiceRowStates();   // check/paid changes flip a line between active and history
 }
 
 function updateRowActualPct(row) {
@@ -2573,9 +2480,6 @@ function onCellBlur(e) {
   } else if (input.dataset.kind === 'paid') {
     input.value = formatMoneyPlain(state.linePaid[id]);
     input.classList.toggle('empty', state.linePaid[id] === 0);
-  } else if (input.dataset.kind === 'oopdue') {
-    input.value = formatMoneyPlain(state.lineOopDue[id] || 0);
-    input.classList.toggle('empty', (state.lineOopDue[id] || 0) === 0);
   } else if (input.dataset.kind === 'check') {
     input.value = formatMoneyPlain(state.lineCheck[id] || 0);
     input.classList.toggle('empty', (state.lineCheck[id] || 0) === 0);
@@ -2622,26 +2526,6 @@ function updateAllRowOop() {
   document.querySelectorAll('.line-row').forEach(updateRowOop);
 }
 
-// Refresh the O&P Balance cell + O&P Due input lock for one row. Re-clamps any
-// pending due down to the (possibly reduced) balance after paid/rate changes.
-function updateRowOopCells(row) {
-  const id = +row.dataset.id;
-  const bal = computeLineBalance(id);
-  if ((state.lineOopDue[id] || 0) > bal.value) state.lineOopDue[id] = bal.value;
-  const balEl = row.querySelector('.line-oopbal');
-  if (balEl) { balEl.className = 'col-oopbal line-oopbal ' + bal.cls; balEl.textContent = bal.text; }
-  const dueEl = row.querySelector('.oopdue-input');
-  if (dueEl) {
-    dueEl.disabled = bal.locked;
-    dueEl.value = formatMoneyPlain(state.lineOopDue[id] || 0);
-    dueEl.classList.toggle('empty', (state.lineOopDue[id] || 0) === 0);
-  }
-  refreshBillButton();
-}
-function updateAllRowOopCells() {
-  document.querySelectorAll('.line-row').forEach(updateRowOopCells);
-}
-
 // Paint one totals row (by id prefix: '' = Bank Draw, 'inv-' = Invoice View).
 function paintTotalsRow(prefix, v) {
   const set = (suffix, txt) => { const el = document.getElementById(prefix + suffix); if (el) el.textContent = txt; };
@@ -2653,8 +2537,6 @@ function paintTotalsRow(prefix, v) {
   set('total-budget', v.budget);
   set('total-paid', v.paid);
   set('total-oop', v.oop);
-  set('total-oopdue', v.due);
-  set('total-oopbal', v.bal);
 }
 
 // Grand totals — paints both the Bank Draw and Invoice View totals rows.
@@ -2669,8 +2551,6 @@ function updateTotals() {
     budget: formatMoney(totalBudget),
     paid: formatMoney(totalPaid),
     oop: formatMoney(totalOop),
-    due: formatMoney(sumOopDue()),
-    bal: formatMoney(sumOopBalance()),
   };
   paintTotalsRow('', v);
   updateInvoiceTotals();
@@ -2680,9 +2560,10 @@ function updateTotals() {
 // O&P line (line 25 barndo / 45 conventional), below Total Amount Paid.
 function updateInvoiceTotals() {
   const setT = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  const activePaid = sumActivePaid();   // only lines with a Check Amount this cycle
   setT('inv-total-check', formatMoney(sumLineCheck()));
-  setT('inv-total-paid', formatMoney(sumLinePaid()));
-  setT('inv-oop-total', formatMoney(sumLinePaid() * state.oop / 100));
+  setT('inv-total-paid', formatMoney(activePaid));
+  setT('inv-oop-total', formatMoney(activePaid * state.oop / 100));
   setT('inv-oop-num', String(PHASES.length + 1));
 }
 
@@ -2726,7 +2607,6 @@ const progressRemainingEl = document.getElementById('progress-remaining');
 const progressTotalEl = document.getElementById('progress-total');
 const resetBtn = document.getElementById('reset-btn');
 const clearPaidBtn = document.getElementById('clear-paid-btn');
-const billBtn = document.getElementById('bill-btn');
 
 function paintSliderFill() {
   const v = parseFloat(oopSlider.value);
@@ -2756,7 +2636,6 @@ oopSlider.addEventListener('input', e => {
   paintSliderFill();
   recalcDerived();
   updateAllRowOop();        // O&P column tracks the rate
-  updateAllRowOopCells();   // balances + due locks track the rate
 });
 
 function armOnce(btn, label, confirmLabel, action) {
@@ -2791,79 +2670,6 @@ armOnce(clearPaidBtn, 'Clear Paid', 'Clear Paid?', () => {
   renderRows();
   recalcDerived();
 });
-
-// ── O&P BILLING CYCLE ──
-// Snapshot of the cycle being printed (this cycle's due only). Set during Bill,
-// cleared after print, so the statement shows the cycle even after due is cleared.
-let billingSnapshot = null;
-
-// The Bill button was removed from Bank Draw (billing will live on Invoice View).
-// This now just keeps the O&P Due + O&P Balance grand totals synced on both tabs.
-// (Kept the name + the dormant runBill/arm code below for reuse on Invoice View.)
-function refreshBillButton() {
-  const d = document.getElementById('total-oopdue'); if (d) d.textContent = formatMoney(sumOopDue());
-  const b = document.getElementById('total-oopbal'); if (b) b.textContent = formatMoney(sumOopBalance());
-}
-
-// Two-click confirm (matches the Reset / Clear Paid safety pattern). The label
-// carries the live cycle amount, so this is hand-rolled rather than via armOnce.
-let billArmed = false, billArmTimer = null;
-function disarmBill() {
-  billArmed = false;
-  if (billBtn) billBtn.classList.remove('confirm-armed');
-  if (billArmTimer) { clearTimeout(billArmTimer); billArmTimer = null; }
-  refreshBillButton();
-}
-if (billBtn) {
-  billBtn.addEventListener('click', () => {
-    const total = sumOopDue();
-    if (total <= 0) return;
-    if (!billArmed) {
-      billArmed = true;
-      billBtn.classList.add('confirm-armed');
-      billBtn.textContent = 'Confirm Bill ' + formatMoney(total) + '?';
-      billArmTimer = setTimeout(disarmBill, 4000);
-    } else {
-      disarmBill();
-      runBill();
-    }
-  });
-}
-
-function runBill() {
-  // 1) Snapshot THIS cycle's entries BEFORE committing — the printed statement
-  //    shows only this cycle, never the cumulative billed total.
-  const cycleLines = [];
-  let cycleTotal = 0;
-  for (const p of PHASES) {
-    const due = state.lineOopDue[p.id] || 0;
-    if (due > 0) { cycleLines.push({ id: p.id, name: p.name, amount: due }); cycleTotal += due; }
-  }
-  if (cycleTotal <= 0) return;
-  const billDate = new Date();
-
-  // 2) Commit: roll each line's due into cumulative billed, clear due, stamp time.
-  for (const p of PHASES) {
-    const due = state.lineOopDue[p.id] || 0;
-    if (due > 0) {
-      state.lineBilledOop[p.id] = (state.lineBilledOop[p.id] || 0) + due;
-      state.lineOopDue[p.id] = 0;
-    }
-  }
-  state.lastBilledAt = billDate.toISOString();
-
-  // 3) Re-render (balances drop, due cells clear/lock) + persist.
-  renderRows();
-  recalcDerived();
-  markDirty();
-
-  // 4) Print the combined statement from the captured snapshot.
-  billingSnapshot = { lines: cycleLines, total: cycleTotal, date: billDate };
-  setPrintDate();
-  populateProgressReport();
-  window.print();
-}
-window.addEventListener('afterprint', () => { billingSnapshot = null; });
 
 // Sum over the ACTIVE template's lines only. Switching templates leaves stale
 // keys in state.lineDollars/linePaid (e.g. conventional lines 25-44 after a
@@ -3490,28 +3296,6 @@ setPrintDate();
 function populateProgressReport() {
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
-  // Title + O&P-Due-This-Cycle section — only when printing a Bill statement.
-  const titleEl = document.getElementById('pr-report-title');
-  const cycleWrap = document.getElementById('pr-oop-cycle');
-  if (billingSnapshot) {
-    if (titleEl) titleEl.textContent = 'Progress Report and O&P Due This Cycle';
-    if (cycleWrap) {
-      cycleWrap.hidden = false;
-      setText('pr-cycle-date', '· ' + billingSnapshot.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
-      const ctb = document.getElementById('pr-cycle-tbody');
-      if (ctb) ctb.innerHTML = billingSnapshot.lines.map(l =>
-        '<tr><td class="pr-l">' + (l.name || ('Line ' + l.id)) + '</td>' +
-        '<td class="pr-r">' + formatMoney(l.amount) + '</td></tr>').join('');
-      const ctf = document.getElementById('pr-cycle-tfoot');
-      if (ctf) ctf.innerHTML =
-        '<tr class="pr-allin"><td class="pr-l">TOTAL O&amp;P DUE THIS CYCLE</td>' +
-        '<td class="pr-r">' + formatMoney(billingSnapshot.total) + '</td></tr>';
-    }
-  } else {
-    if (titleEl) titleEl.textContent = 'Construction Progress Report';
-    if (cycleWrap) cycleWrap.hidden = true;
-  }
-
   // Header: customer + date
   const custName = (customerDescInput.value || '').trim() || 'New Estimate';
   setText('pr-customer', custName);
@@ -3640,25 +3424,29 @@ function populateInvoicePrint() {
   setText('inv-print-pct', pct.toFixed(1) + '%');
   setText('inv-print-remaining', formatMoney(Math.max(0, totalProject - paidWithOop)));
 
-  // Line items — ONLY rows with Amount Paid > 0.
+  // Line items — all rows with Amount Paid > 0. Active = has a Check (counted);
+  // history = paid but no Check (printed, shaded, NOT counted).
   const tbody = document.getElementById('inv-print-tbody');
   tbody.innerHTML = '';
-  let totalCheck = 0, totalPaid = 0;
+  let totalCheck = 0, totalActivePaid = 0;
   for (const p of PHASES) {
     const pd = state.linePaid[p.id] || 0;
     if (pd <= 0) continue;
     const ck = state.lineCheck[p.id] || 0;
     const csh = state.lineCash[p.id] || 0;
-    totalCheck += ck; totalPaid += pd;
+    const active = ck > 0;
+    if (active) { totalCheck += ck; totalActivePaid += pd; }
     const tr = document.createElement('tr');
+    if (!active) tr.className = 'pr-history';
     tr.innerHTML =
-      '<td class="pr-l">' + escapeHtml(p.name || ('Line ' + p.id)) + '</td>' +
+      '<td class="pr-l">' + escapeHtml(p.name || ('Line ' + p.id)) + (active ? '' : ' <span class="pr-prior">(prior)</span>') + '</td>' +
       '<td class="pr-l">' + escapeHtml(state.lineVendor[p.id] || '—') + '</td>' +
       '<td class="pr-r">' + (ck > 0 ? formatMoney(ck) : '–') + '</td>' +
       '<td class="pr-r">' + (csh > 0 ? formatMoney(csh) : '–') + '</td>' +
-      '<td class="pr-r pr-actual">' + formatMoney(pd) + '</td>';
+      '<td class="pr-r ' + (active ? 'pr-actual' : '') + '">' + formatMoney(pd) + '</td>';
     tbody.appendChild(tr);
   }
+  const totalPaid = totalActivePaid;
   const tfoot = document.getElementById('inv-print-tfoot');
   tfoot.innerHTML =
     '<tr>' +
@@ -3895,13 +3683,9 @@ async function refreshCustomerList() {
 function captureState() {
   const lineBudgets = new Array(NUM_LINES_PLUS + 1).fill(0);
   const linePaid = new Array(NUM_LINES_PLUS + 1).fill(0);
-  const lineBilledOop = new Array(NUM_LINES_PLUS + 1).fill(0);
-  const lineOopDue = new Array(NUM_LINES_PLUS + 1).fill(0);
   for (const p of PHASES) {
     lineBudgets[p.id] = state.lineDollars[p.id] || 0;
     linePaid[p.id] = state.linePaid[p.id] || 0;
-    lineBilledOop[p.id] = state.lineBilledOop[p.id] || 0;
-    lineOopDue[p.id] = state.lineOopDue[p.id] || 0;
   }
   return {
     id: persistence.currentId || '',
@@ -3914,9 +3698,6 @@ function captureState() {
     total_project_budget: Math.round(sumLineEffective() * (1 + state.oop / 100)),
     line_budgets: lineBudgets,
     line_paid: linePaid,
-    line_billed_oop: lineBilledOop,
-    line_oop_due: lineOopDue,
-    last_billed_at: state.lastBilledAt || '',
   };
 }
 const NUM_LINES_PLUS = 44;  // max line count across templates (conventional); array is sized to this
@@ -3940,10 +3721,7 @@ function applyRecord(record) {
   for (const p of PHASES) {
     state.lineDollars[p.id] = Number((record.line_budgets || [])[p.id] || 0);
     state.linePaid[p.id] = Number((record.line_paid || [])[p.id] || 0);
-    state.lineBilledOop[p.id] = Number((record.line_billed_oop || [])[p.id] || 0);
-    state.lineOopDue[p.id] = Number((record.line_oop_due || [])[p.id] || 0);
   }
-  state.lastBilledAt = record.last_billed_at || '';
   resetInvoiceFields();   // Invoice fields are session-only — reset for the loaded customer
   // refresh inputs
   sqftInput.value = formatMoneyPlain(state.sqft);
