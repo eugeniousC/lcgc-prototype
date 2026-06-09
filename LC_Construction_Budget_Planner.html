@@ -1575,9 +1575,6 @@
     .pr-table td.pr-actual.pr-blank { color: #c0c4cc !important; font-weight: 400 !important; }
     .pr-table td.pr-oop.pr-blank { color: #c0c4cc !important; }
     .pr-table tr.pr-paid { background: #f6fdfa !important; }
-    /* Invoice history rows — prior payments, shaded, not part of this invoice's totals. */
-    .pr-table tr.pr-history td { background: #eef0f3 !important; color: #8a9099 !important; }
-    .pr-prior { font-style: italic !important; color: #aab0b8 !important; }
     .pr-table tfoot td {
       border-top: 1.25pt solid var(--navy) !important;
       font-weight: 700 !important; color: var(--navy) !important;
@@ -2004,7 +2001,7 @@
   </table>
 
   <p class="pr-foot">
-    <strong>This invoice</strong> covers the lines with a <strong>Check Amount</strong> entered this cycle; <strong>O&amp;P</strong> is the overhead &amp; profit on those amounts. <strong>Shaded "(prior)" rows</strong> are earlier payments shown for history only — they are not included in this invoice's totals. For job billing — not a binding quote, contract, or loan disclosure.
+    <strong>This invoice</strong> covers the lines with a <strong>Check Amount</strong> entered this cycle; <strong>O&amp;P</strong> is the overhead &amp; profit on those amounts. For job billing — not a binding quote, contract, or loan disclosure.
   </p>
 </section>
 
@@ -3424,26 +3421,24 @@ function populateInvoicePrint() {
   setText('inv-print-pct', pct.toFixed(1) + '%');
   setText('inv-print-remaining', formatMoney(Math.max(0, totalProject - paidWithOop)));
 
-  // Line items — all rows with Amount Paid > 0. Active = has a Check (counted);
-  // history = paid but no Check (printed, shaded, NOT counted).
+  // Line items — ONLY active lines (a Check Amount entered this cycle). Prior
+  // payments (paid but no Check) are excluded from the print entirely.
   const tbody = document.getElementById('inv-print-tbody');
   tbody.innerHTML = '';
   let totalCheck = 0, totalActivePaid = 0;
   for (const p of PHASES) {
-    const pd = state.linePaid[p.id] || 0;
-    if (pd <= 0) continue;
     const ck = state.lineCheck[p.id] || 0;
+    if (ck <= 0) continue;
+    const pd = state.linePaid[p.id] || 0;
     const csh = state.lineCash[p.id] || 0;
-    const active = ck > 0;
-    if (active) { totalCheck += ck; totalActivePaid += pd; }
+    totalCheck += ck; totalActivePaid += pd;
     const tr = document.createElement('tr');
-    if (!active) tr.className = 'pr-history';
     tr.innerHTML =
-      '<td class="pr-l">' + escapeHtml(p.name || ('Line ' + p.id)) + (active ? '' : ' <span class="pr-prior">(prior)</span>') + '</td>' +
+      '<td class="pr-l">' + escapeHtml(p.name || ('Line ' + p.id)) + '</td>' +
       '<td class="pr-l">' + escapeHtml(state.lineVendor[p.id] || '—') + '</td>' +
-      '<td class="pr-r">' + (ck > 0 ? formatMoney(ck) : '–') + '</td>' +
+      '<td class="pr-r">' + formatMoney(ck) + '</td>' +
       '<td class="pr-r">' + (csh > 0 ? formatMoney(csh) : '–') + '</td>' +
-      '<td class="pr-r ' + (active ? 'pr-actual' : '') + '">' + formatMoney(pd) + '</td>';
+      '<td class="pr-r pr-actual">' + formatMoney(pd) + '</td>';
     tbody.appendChild(tr);
   }
   const totalPaid = totalActivePaid;
