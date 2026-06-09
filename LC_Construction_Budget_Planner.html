@@ -750,7 +750,7 @@
 
   .table-head-row {
     display: grid;
-    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px 130px 120px;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px;
     gap: 12px;
     padding: 18px 24px;
     background: rgba(217,119,6,0.06);
@@ -808,7 +808,7 @@
 
   .line-row {
     display: grid;
-    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px 130px 120px;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px;
     gap: 12px;
     padding: 10px 24px;
     align-items: center;
@@ -935,7 +935,7 @@
   /* grand totals row — bottom of the ledger */
   .totals-row {
     display: grid;
-    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px 130px 120px;
+    grid-template-columns: 40px 1fr 80px 130px 100px 130px 100px 110px;
     gap: 12px;
     padding: 16px 24px;
     align-items: center;
@@ -1010,6 +1010,71 @@
     color: var(--white); padding-right: 12px;
   }
 
+  /* ── INVOICE VIEW — 6-column layout (scoped so it doesn't touch Bank Draw) ── */
+  .invoice-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .invoice-pane .table-head-row,
+  .invoice-pane .line-row,
+  .invoice-pane .totals-row {
+    grid-template-columns: 40px 1fr 1.5fr 130px 130px 130px;
+  }
+  .invoice-pane .table-head-row .col-check,
+  .invoice-pane .table-head-row .col-cash,
+  .invoice-pane .table-head-row .col-paid { text-align: right; }
+  .invoice-pane .table-head-row .col-check,
+  .invoice-pane .table-head-row .col-cash { color: var(--green-light); }
+  .invoice-pane .col-vendor { display: flex; align-items: center; }
+  .invoice-pane .totals-row .col-check,
+  .invoice-pane .totals-row .col-paid {
+    text-align: right; justify-content: flex-end; display: flex;
+    color: var(--white); padding-right: 12px;
+  }
+  .invoice-pane .inv-oop-row .col-name,
+  .invoice-pane .inv-oop-row .col-paid { color: var(--amber-light); }
+  .invoice-pane .inv-oop-row .col-paid { font-weight: 700; }
+
+  .vendor-select {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--white);
+    outline: none;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .vendor-select:hover { border-color: rgba(255,255,255,0.22); }
+  .vendor-select:focus { border-color: var(--amber); background: rgba(217,119,6,0.10); }
+  .vendor-select option { background: #1a1a1a; color: var(--white); }
+
+  @media (max-width: 1200px) {
+    .invoice-pane .table-head-row,
+    .invoice-pane .line-row,
+    .invoice-pane .totals-row {
+      grid-template-columns: 32px 1fr 1.3fr 100px 100px 100px;
+    }
+  }
+  @media (max-width: 720px) {
+    .invoice-pane .table-head-row { display: none; }
+    .invoice-pane .line-row {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "name name"
+        "vendor vendor"
+        "check cash"
+        "paid paid";
+    }
+    .invoice-pane .col-id { display: none; }
+    .invoice-pane .col-name   { grid-area: name; font-weight: 500; }
+    .invoice-pane .col-vendor { grid-area: vendor; }
+    .invoice-pane .col-check  { grid-area: check; }
+    .invoice-pane .col-cash   { grid-area: cash; }
+    .invoice-pane .col-paid   { grid-area: paid; }
+    .invoice-pane .totals-row { grid-template-columns: 1fr 1fr; }
+  }
+
   /* Footer */
   footer {
     margin-top: 56px;
@@ -1040,7 +1105,7 @@
     }
     .summary-strip { grid-template-columns: repeat(3, 1fr); }
     .table-head-row, .line-row, .totals-row {
-      grid-template-columns: 36px 1fr 70px 110px 80px 110px 80px 90px 110px 100px;
+      grid-template-columns: 36px 1fr 70px 110px 80px 110px 80px 90px;
       gap: 8px;
       padding: 12px 16px;
     }
@@ -1082,8 +1147,7 @@
         "id name name"
         "id pct apct"
         "id budget paid"
-        "id overage oop"
-        "id oopdue oopbal";
+        "id overage oop";
       gap: 6px 12px;
       padding: 14px 16px;
       border-top: 1px solid rgba(255,255,255,0.05);
@@ -1096,8 +1160,6 @@
     .line-row .col-paid      { grid-area: paid; }
     .line-row .col-overage   { grid-area: overage; justify-content: flex-end; }
     .line-row .col-oop       { grid-area: oop; justify-content: flex-end; }
-    .line-row .col-oopdue    { grid-area: oopdue; }
-    .line-row .col-oopbal    { grid-area: oopbal; justify-content: flex-end; }
 
     /* totals row stacks to a labeled chip bar on narrow screens */
     .totals-row {
@@ -1108,7 +1170,6 @@
     .totals-row .col-id { display: none; }
     .totals-row .col-name { grid-column: 1 / -1; }
     .totals-row .col-actualpct, .totals-row .col-overage { display: none; }
-    .totals-row .col-oopdue { grid-column: 1 / -1; }
     .cell-input { font-size: 14px; padding: 8px 12px; }
     .cell-input.pct-input { padding-right: 28px; }
     .hero h1 { font-size: 32px; }
@@ -1442,7 +1503,7 @@
 
   /* ── PROGRESS REPORT — print-only customer handout ── */
   /* Hidden on screen. */
-  #progress-report { display: none; }
+  #progress-report, #invoice-print { display: none; }
 
   @media print {
     @page { size: letter; margin: 0.5in; }
@@ -1454,9 +1515,13 @@
       transition: none !important;
     }
 
-    /* Hide the ENTIRE interactive app — the report is the only thing that prints. */
-    body > *:not(#progress-report) { display: none !important; }
+    /* Hide the ENTIRE interactive app — only a print doc shows. */
+    body > *:not(#progress-report):not(#invoice-print) { display: none !important; }
     header, .setup-banner, .customer-bar, main { display: none !important; }
+    /* Choose the doc: progress report by default, invoice when body is flagged. */
+    body:not(.printing-invoice) #invoice-print { display: none !important; }
+    body.printing-invoice #progress-report { display: none !important; }
+    body.printing-invoice #invoice-print { display: block !important; }
 
     html, body {
       background: white !important;
@@ -1464,7 +1529,8 @@
       font-family: 'DM Sans', sans-serif !important;
     }
 
-    #progress-report {
+    #progress-report,
+    #invoice-print {
       display: block !important;
       max-width: 100% !important;
       color: #1a2438 !important;
@@ -1797,6 +1863,9 @@
     <button class="tab-btn active" type="button" data-tab="bank">
       <span class="tab-icon">🏦</span> Bank Draw Schedule
     </button>
+    <button class="tab-btn" type="button" data-tab="invoice">
+      <span class="tab-icon">🧾</span> Invoice View
+    </button>
   </div>
 
   <!-- ── CUSTOMER VIEW — phase rollup ── -->
@@ -1816,8 +1885,6 @@
         <div class="col-paid">Amount Paid</div>
         <div class="col-overage">Overage %</div>
         <div class="col-oop">O&amp;P</div>
-        <div class="col-oopdue">O&amp;P Due</div>
-        <div class="col-oopbal">O&amp;P Balance</div>
       </div>
       <div id="rows"></div>
       <div class="totals-row" id="totals-row">
@@ -1829,10 +1896,43 @@
         <div class="col-paid" id="total-paid">$0</div>
         <div class="col-overage"></div>
         <div class="col-oop" id="total-oop">$0</div>
-        <div class="col-oopdue">
-          <button id="bill-btn" class="bill-btn" type="button" disabled>Bill $0</button>
-        </div>
-        <div class="col-oopbal" id="total-oopbal">$0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INVOICE VIEW — clean invoice page: vendor + check/cash/paid; O&P as one bottom line ── -->
+  <div class="tab-pane invoice-pane" data-tab="invoice">
+    <div class="invoice-toolbar">
+      <button class="download-btn" type="button" id="print-invoice-btn" aria-label="Print this invoice">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg>
+        Print Invoice
+      </button>
+    </div>
+    <div class="table-card">
+      <div class="table-head-row">
+        <div class="col-id">#</div>
+        <div class="col-name">Phase / Line Item</div>
+        <div class="col-vendor">Vendor</div>
+        <div class="col-check">Check Amount</div>
+        <div class="col-cash">Cash Amount</div>
+        <div class="col-paid">Amount Paid</div>
+      </div>
+      <div id="invoice-rows"></div>
+      <div class="totals-row" id="invoice-totals-row">
+        <div class="col-id"></div>
+        <div class="col-name">Totals</div>
+        <div class="col-vendor"></div>
+        <div class="col-check" id="inv-total-check">$0</div>
+        <div class="col-cash"></div>
+        <div class="col-paid" id="inv-total-paid">$0</div>
+      </div>
+      <div class="totals-row inv-oop-row">
+        <div class="col-id" id="inv-oop-num">25</div>
+        <div class="col-name">O&amp;P (Amount Paid × O&amp;P %)</div>
+        <div class="col-vendor"></div>
+        <div class="col-check"></div>
+        <div class="col-cash"></div>
+        <div class="col-paid" id="inv-oop-total">$0</div>
       </div>
     </div>
   </div>
@@ -1910,6 +2010,57 @@
 
   <p class="pr-foot">
     <strong>How it works:</strong> Total Budget ÷ (1 + O&amp;P%) = Hard Build Cost; ÷ Build Rate = Buildable Home Size. Each line is its % of Hard Build Cost; the <strong>Actual</strong> column is what's been paid, <strong>O&amp;P</strong> is the Overhead &amp; Profit on each paid line, and blank lines are work still to come. For planning and job tracking — not a binding quote, contract, or loan disclosure.
+  </p>
+</section>
+
+<!-- ══ CONSTRUCTION INVOICE — print-only; only lines with Amount Paid > 0 ══ -->
+<!-- Direct <body> child (same reason as #progress-report — print hides main). -->
+<section id="invoice-print" aria-hidden="true">
+  <div class="pr-head">
+    <div class="pr-brand">
+      <div class="pr-logo">LC</div>
+      <div>
+        <div class="pr-co">LC General Contracting</div>
+        <div class="pr-sub">Construction Invoice</div>
+      </div>
+    </div>
+    <div class="pr-meta">
+      <div class="pr-customer" id="inv-print-customer">—</div>
+      <div class="pr-date" id="inv-print-date">—</div>
+    </div>
+  </div>
+
+  <div class="pr-two-col">
+    <div class="pr-block">
+      <div class="pr-block-head">Total Project Budget</div>
+      <div class="pr-row"><span class="pr-lab">Total Project Budget</span><span class="pr-val pr-accent" id="inv-print-total">$0</span></div>
+      <div class="pr-row"><span class="pr-lab">Overhead &amp; Profit</span><span class="pr-val" id="inv-print-oop">0% · $0</span></div>
+      <div class="pr-row"><span class="pr-lab">Construction Only</span><span class="pr-val" id="inv-print-construction">$0</span></div>
+    </div>
+    <div class="pr-block">
+      <div class="pr-block-head">Build Progress · Dollars</div>
+      <div class="pr-row"><span class="pr-lab">Paid So Far</span><span class="pr-val pr-accent" id="inv-print-paid">$0</span></div>
+      <div class="pr-row"><span class="pr-lab">% Through Build</span><span class="pr-val" id="inv-print-pct">0%</span></div>
+      <div class="pr-row"><span class="pr-lab">Remaining</span><span class="pr-val" id="inv-print-remaining">$0</span></div>
+    </div>
+  </div>
+
+  <table class="pr-table">
+    <thead>
+      <tr>
+        <th class="pr-l">Line Item</th>
+        <th class="pr-l">Vendor</th>
+        <th class="pr-r">Check</th>
+        <th class="pr-r">Cash</th>
+        <th class="pr-r">Amount Paid</th>
+      </tr>
+    </thead>
+    <tbody id="inv-print-tbody"><!-- paid rows injected --></tbody>
+    <tfoot id="inv-print-tfoot"><!-- totals + O&P injected --></tfoot>
+  </table>
+
+  <p class="pr-foot">
+    <strong>Invoice</strong> shows only the line items paid this cycle (Amount Paid entered). <strong>Check</strong> and <strong>Cash</strong> record how each was tendered; <strong>O&amp;P</strong> is the total overhead &amp; profit on the amount paid. For job billing — not a binding quote, contract, or loan disclosure.
   </p>
 </section>
 
@@ -1997,6 +2148,37 @@ const BARNDO_LINES = [
   { id: 24, name: "Garage Doors",                  pct: 3 },
 ];
 
+// Vendor lookup for the Invoice View dropdown — barndo line id → vendors for that
+// line (primary first = default). Source: vendors.md (barndo mapping). Conventional
+// is intentionally unmapped (on hold until Len walks the first conventional job).
+const BARNDO_VENDORS = {
+  1:  ["Chris Easterwood", "Fincher Transport", "West Georgia Erosion"],
+  2:  ["OMEF Construction", "Truss Pros", "Wallace Building Supplies", "84 Lumber"],
+  3:  ["KBS Construction"],
+  4:  ["Jones & Jones Plumbing", "R&R Plumbing"],
+  5:  ["George Adams"],
+  6:  ["Moody Heating and Air", "R&R Plumbing"],
+  7:  ["S&S Excavating"],
+  8:  ["Jorje Figeroa", "Lee McCleary"],
+  9:  ["Bolens Hearth Shop"],
+  10: ["Martins Millworks"],
+  11: ["Lee McCleary", "Sandstone"],
+  12: ["APC Insulation"],
+  13: ["Langford Drywall"],
+  14: ["Martins Millworks"],
+  15: ["Robleros Cabinets", "Elegante Services"],
+  16: ["Peach State Gutter"],
+  17: ["Tile & Stone Express"],
+  18: ["SB Painting"],
+  19: ["AP Flooring"],
+  20: ["KBS Construction"],
+  21: ["Lowes"],
+  22: ["4 Seasons Lanscaping"],
+  23: ["ALA-GA Rolloff"],
+  24: ["J&J Door Works"],
+};
+const VENDORS_BY_TEMPLATE = { barndo: BARNDO_VENDORS, conventional: {} };
+
 // Active line set + phase metadata — swapped by template (see TEMPLATES registry below).
 // Declared mutable so applyTemplate() can repoint them.
 let PHASES = BARNDO_LINES;
@@ -2017,7 +2199,42 @@ const state = {
   lineBilledOop: {},     // cumulative O&P billed per line (durable; decrements Balance)
   lineOopDue: {},        // current-cycle O&P due entered, not yet billed (cleared on Bill)
   lastBilledAt: '',      // ISO timestamp of the most recent Bill action
+  // Invoice View — session-only (NOT persisted to the backend, by design):
+  lineCheck: {},         // Check Amount per line
+  lineCash: {},          // Cash Amount per line
+  lineVendor: {},        // selected vendor per line (defaults to the line's primary)
 };
+
+// Custom vendors added via the Invoice View "+ New vendor" option. Persisted to
+// localStorage (per-browser) so the dropdown remembers them; fold confirmed ones
+// into vendors.md separately. Keyed by line id → [names].
+const LS_KEY_VENDORS = 'lcgc_custom_vendors';
+let customVendors = {};
+function loadCustomVendors() {
+  try { customVendors = JSON.parse(lsRead(LS_KEY_VENDORS) || '{}') || {}; } catch (_) { customVendors = {}; }
+}
+function saveCustomVendors() { lsWrite(LS_KEY_VENDORS, JSON.stringify(customVendors)); }
+
+// Vendor options for a line: mapped vendors (primary first) + any custom additions.
+function vendorOptionsFor(id) {
+  const map = VENDORS_BY_TEMPLATE[state.template] || {};
+  const mapped = (map[id] || []).slice();
+  const custom = (customVendors[id] || []).filter(v => !mapped.includes(v));
+  return mapped.concat(custom);
+}
+
+// Reset the session-only Invoice fields (called on load / new / template switch).
+function resetInvoiceFields() {
+  state.lineCheck = {};
+  state.lineCash = {};
+  state.lineVendor = {};
+}
+
+function lineName(id) {
+  const p = PHASES.find(x => x.id === id);
+  return p ? p.name : ('Line ' + id);
+}
+function sumLineCheck() { return PHASES.reduce((s, p) => s + (state.lineCheck[p.id] || 0), 0); }
 
 function applyDefaults() {
   for (const p of PHASES) {
@@ -2062,9 +2279,10 @@ const MAX_MONEY = 9999999999; // 10-digit cap for monetary inputs ($9,999,999,99
 //  ROW RENDERING (table body)
 // ──────────────────────────────────────────────────────────────────
 const rowsEl = document.getElementById('rows');
+const invoiceRowsEl = document.getElementById('invoice-rows');
 
-function renderRows() {
-  rowsEl.innerHTML = '';
+function buildScheduleRows(targetEl) {
+  targetEl.innerHTML = '';
   let lastCategory = null;
   const showCats = !!(TEMPLATES[state.template] && TEMPLATES[state.template].showCategories);
 
@@ -2088,7 +2306,7 @@ function renderRows() {
           <span class="paid-cat">Paid <strong data-cat-paid="${p.category}">${formatMoney(catPaid[p.category])}</strong></span>
         </div>
       `;
-      rowsEl.appendChild(cat);
+      targetEl.appendChild(cat);
       lastCategory = p.category;
     }
 
@@ -2098,8 +2316,6 @@ function renderRows() {
     const overageInfo = computeOverage(budgetDollars, paidDollars);
     const actualPctInfo = computeActualPct(paidDollars);
     const oopInfo = computeLineOop(paidDollars);
-    const balInfo = computeLineBalance(p.id);
-    const dueVal = state.lineOopDue[p.id] || 0;
 
     const row = document.createElement('div');
     row.className = 'line-row';
@@ -2130,21 +2346,89 @@ function renderRows() {
       </div>
       <div class="col-overage line-overage ${overageInfo.cls}">${overageInfo.text}</div>
       <div class="col-oop line-oop ${oopInfo.cls}" aria-label="${escapeHtml(p.name)} overhead and profit">${oopInfo.text}</div>
-      <div class="col-oopdue input-cell">
-        <span class="cell-prefix">$</span>
-        <input class="cell-input oopdue-input ${dueVal === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
-               autocomplete="off" data-id="${p.id}" data-kind="oopdue"
-               value="${formatMoneyPlain(dueVal)}" aria-label="${escapeHtml(p.name)} O and P due this cycle"
-               placeholder="0" ${balInfo.locked ? 'disabled' : ''}>
-      </div>
-      <div class="col-oopbal line-oopbal ${balInfo.cls}" aria-label="${escapeHtml(p.name)} O and P balance">${balInfo.text}</div>
     `;
-    rowsEl.appendChild(row);
+    targetEl.appendChild(row);
   }
+}
 
+// Render the Bank Draw schedule + the Invoice View (different columns, shared
+// state). Amount Paid is the shared field; edits on either reflect on the other.
+function renderRows() {
+  buildScheduleRows(rowsEl);
+  if (invoiceRowsEl) renderInvoiceRows();
   wireRowInputs();
   updateTotals();
   refreshBillButton();
+}
+
+// Invoice View rows: # · Phase/Line Item · Vendor (dropdown) · Check · Cash · Amount Paid.
+function renderInvoiceRows() {
+  invoiceRowsEl.innerHTML = '';
+  for (const p of PHASES) {
+    const id = p.id;
+    const opts = vendorOptionsFor(id);
+    if (state.lineVendor[id] === undefined) state.lineVendor[id] = opts[0] || '';
+    const sel = state.lineVendor[id];
+    let optionHtml = '<option value=""' + (sel === '' ? ' selected' : '') + '>— select —</option>';
+    for (const v of opts) {
+      optionHtml += '<option value="' + escapeHtml(v) + '"' + (v === sel ? ' selected' : '') + '>' + escapeHtml(v) + '</option>';
+    }
+    if (sel && !opts.includes(sel)) {
+      optionHtml += '<option value="' + escapeHtml(sel) + '" selected>' + escapeHtml(sel) + '</option>';
+    }
+    optionHtml += '<option value="__new__">＋ New vendor…</option>';
+
+    const check = state.lineCheck[id] || 0;
+    const cash = state.lineCash[id] || 0;
+    const paid = state.linePaid[id] || 0;
+
+    const row = document.createElement('div');
+    row.className = 'line-row';
+    row.dataset.id = id;
+    row.innerHTML = `
+      <div class="col-id">${id}</div>
+      <div class="col-name">${escapeHtml(p.name)}</div>
+      <div class="col-vendor">
+        <select class="vendor-select" data-id="${id}" aria-label="${escapeHtml(p.name)} vendor">${optionHtml}</select>
+      </div>
+      <div class="col-check input-cell">
+        <span class="cell-prefix">$</span>
+        <input class="cell-input paid-input check-input ${check === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
+               autocomplete="off" data-id="${id}" data-kind="check"
+               value="${formatMoneyPlain(check)}" placeholder="0" aria-label="${escapeHtml(p.name)} check amount">
+      </div>
+      <div class="col-cash input-cell">
+        <span class="cell-prefix">$</span>
+        <input class="cell-input paid-input cash-input ${cash === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
+               autocomplete="off" data-id="${id}" data-kind="cash"
+               value="${formatMoneyPlain(cash)}" placeholder="0" aria-label="${escapeHtml(p.name)} cash amount">
+      </div>
+      <div class="col-paid input-cell">
+        <span class="cell-prefix">$</span>
+        <input class="cell-input paid-input ${paid === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
+               autocomplete="off" data-id="${id}" data-kind="paid"
+               value="${formatMoneyPlain(paid)}" placeholder="0" aria-label="${escapeHtml(p.name)} amount paid">
+      </div>
+    `;
+    invoiceRowsEl.appendChild(row);
+  }
+  invoiceRowsEl.querySelectorAll('.vendor-select').forEach(s => s.addEventListener('change', onVendorChange));
+}
+
+function onVendorChange(e) {
+  const sel = e.target;
+  const id = +sel.dataset.id;
+  if (sel.value === '__new__') {
+    const name = (window.prompt('New vendor for "' + lineName(id) + '":') || '').trim();
+    if (!name) { sel.value = state.lineVendor[id] || ''; return; }
+    customVendors[id] = customVendors[id] || [];
+    if (!customVendors[id].includes(name)) customVendors[id].push(name);
+    saveCustomVendors();
+    state.lineVendor[id] = name;
+    renderInvoiceRows();   // rebuild so the new option shows + stays selected
+  } else {
+    state.lineVendor[id] = sel.value;
+  }
 }
 
 function computeActualPct(paid) {
@@ -2252,6 +2536,14 @@ function onCellInput(e) {
     // Editing a Due amount must cancel any armed Bill confirm — otherwise the
     // confirmed amount wouldn't match what Len saw when he armed it (money action).
     disarmBill();
+  } else if (kind === 'check') {
+    // Invoice View — Check Amount (independent figure, session-only).
+    state.lineCheck[id] = safe;
+    input.classList.toggle('empty', safe === 0);
+  } else if (kind === 'cash') {
+    // Invoice View — Cash Amount (independent figure, session-only).
+    state.lineCash[id] = safe;
+    input.classList.toggle('empty', safe === 0);
   }
   flash(input);
   recalcDerived();
@@ -2284,6 +2576,12 @@ function onCellBlur(e) {
   } else if (input.dataset.kind === 'oopdue') {
     input.value = formatMoneyPlain(state.lineOopDue[id] || 0);
     input.classList.toggle('empty', (state.lineOopDue[id] || 0) === 0);
+  } else if (input.dataset.kind === 'check') {
+    input.value = formatMoneyPlain(state.lineCheck[id] || 0);
+    input.classList.toggle('empty', (state.lineCheck[id] || 0) === 0);
+  } else if (input.dataset.kind === 'cash') {
+    input.value = formatMoneyPlain(state.lineCash[id] || 0);
+    input.classList.toggle('empty', (state.lineCash[id] || 0) === 0);
   } else {
     const pct = state.baseBudget > 0 ? (state.lineDollars[id] / state.baseBudget) * 100 : 0;
     input.value = pct.toFixed(1);
@@ -2301,6 +2599,7 @@ function updateRowOverage(row) {
   const paid = state.linePaid[id];
   const info = computeOverage(budget, paid);
   const flagEl = row.querySelector('.line-overage');
+  if (!flagEl) return;   // Invoice View rows have no overage cell
   flagEl.className = 'col-overage line-overage ' + info.cls;
   flagEl.textContent = info.text;
 }
@@ -2343,27 +2642,48 @@ function updateAllRowOopCells() {
   document.querySelectorAll('.line-row').forEach(updateRowOopCells);
 }
 
-// Grand totals row — budget, paid, O&P columns + the % reconciliation flag.
+// Paint one totals row (by id prefix: '' = Bank Draw, 'inv-' = Invoice View).
+function paintTotalsRow(prefix, v) {
+  const set = (suffix, txt) => { const el = document.getElementById(prefix + suffix); if (el) el.textContent = txt; };
+  const pctEl = document.getElementById(prefix + 'total-pct');
+  if (pctEl) {
+    pctEl.textContent = v.pct;
+    pctEl.classList.toggle('off-100', v.off100);  // flag when budget %s don't reconcile to 100%
+  }
+  set('total-budget', v.budget);
+  set('total-paid', v.paid);
+  set('total-oop', v.oop);
+  set('total-oopdue', v.due);
+  set('total-oopbal', v.bal);
+}
+
+// Grand totals — paints both the Bank Draw and Invoice View totals rows.
 function updateTotals() {
   const totalBudget = sumLineDollars();
   const totalPaid = sumLinePaid();
   const totalOop = totalPaid * state.oop / 100;
   const pctTotal = state.baseBudget > 0 ? (totalBudget / state.baseBudget) * 100 : 0;
+  const v = {
+    pct: pctTotal.toFixed(1) + '%',
+    off100: Math.abs(pctTotal - 100) >= 0.05,
+    budget: formatMoney(totalBudget),
+    paid: formatMoney(totalPaid),
+    oop: formatMoney(totalOop),
+    due: formatMoney(sumOopDue()),
+    bal: formatMoney(sumOopBalance()),
+  };
+  paintTotalsRow('', v);
+  updateInvoiceTotals();
+}
 
-  const pctEl = document.getElementById('total-pct');
-  if (pctEl) {
-    pctEl.textContent = pctTotal.toFixed(1) + '%';
-    // Light color change whenever the budget %s don't reconcile to 100%.
-    pctEl.classList.toggle('off-100', Math.abs(pctTotal - 100) >= 0.05);
-  }
-  const budgetEl = document.getElementById('total-budget');
-  if (budgetEl) budgetEl.textContent = formatMoney(totalBudget);
-  const paidEl = document.getElementById('total-paid');
-  if (paidEl) paidEl.textContent = formatMoney(totalPaid);
-  const oopEl = document.getElementById('total-oop');
-  if (oopEl) oopEl.textContent = formatMoney(totalOop);
-  const balEl = document.getElementById('total-oopbal');
-  if (balEl) balEl.textContent = formatMoney(sumOopBalance());
+// Invoice View totals: Total Check + Total Amount Paid, and the O&P total on the
+// O&P line (line 25 barndo / 45 conventional), below Total Amount Paid.
+function updateInvoiceTotals() {
+  const setT = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  setT('inv-total-check', formatMoney(sumLineCheck()));
+  setT('inv-total-paid', formatMoney(sumLinePaid()));
+  setT('inv-oop-total', formatMoney(sumLinePaid() * state.oop / 100));
+  setT('inv-oop-num', String(PHASES.length + 1));
 }
 
 function updateCategoryTotals() {
@@ -2477,17 +2797,12 @@ armOnce(clearPaidBtn, 'Clear Paid', 'Clear Paid?', () => {
 // cleared after print, so the statement shows the cycle even after due is cleared.
 let billingSnapshot = null;
 
-// Live label + enabled state for the Bill button + the grand O&P Balance total.
+// The Bill button was removed from Bank Draw (billing will live on Invoice View).
+// This now just keeps the O&P Due + O&P Balance grand totals synced on both tabs.
+// (Kept the name + the dormant runBill/arm code below for reuse on Invoice View.)
 function refreshBillButton() {
-  const total = sumOopDue();
-  if (billBtn) {
-    billBtn.disabled = total <= 0;
-    if (!billBtn.classList.contains('confirm-armed')) {
-      billBtn.textContent = 'Bill ' + formatMoney(total);
-    }
-  }
-  const balEl = document.getElementById('total-oopbal');
-  if (balEl) balEl.textContent = formatMoney(sumOopBalance());
+  const d = document.getElementById('total-oopdue'); if (d) d.textContent = formatMoney(sumOopDue());
+  const b = document.getElementById('total-oopbal'); if (b) b.textContent = formatMoney(sumOopBalance());
 }
 
 // Two-click confirm (matches the Reset / Clear Paid safety pattern). The label
@@ -2584,7 +2899,7 @@ function onBudgetInput(e) {
   }
 
   // refresh row inputs (no events)
-  document.querySelectorAll('.line-row').forEach(row => {
+  document.querySelectorAll('#rows .line-row').forEach(row => {
     const id = +row.dataset.id;
     const dollars = state.lineDollars[id];
     const pct = newBase > 0 ? (dollars / newBase) * 100 : 0;
@@ -2623,7 +2938,7 @@ function onTotalInput(e) {
   budgetInput.value = formatMoneyPlain(clampedBase);
 
   // refresh row inputs
-  document.querySelectorAll('.line-row').forEach(row => {
+  document.querySelectorAll('#rows .line-row').forEach(row => {
     const id = +row.dataset.id;
     const dollars = state.lineDollars[id];
     const pct = clampedBase > 0 ? (dollars / clampedBase) * 100 : 0;
@@ -2780,7 +3095,7 @@ function rescaleLineDollarsToBase(newBase) {
 }
 
 function syncRowsFromBaseChange() {
-  document.querySelectorAll('.line-row').forEach(row => {
+  document.querySelectorAll('#rows .line-row').forEach(row => {
     const id = +row.dataset.id;
     const dollars = state.lineDollars[id];
     const pct = state.baseBudget > 0 ? (dollars / state.baseBudget) * 100 : 0;
@@ -2965,6 +3280,7 @@ function applyTemplate(key, opts) {
     applyDefaults();   // reseed lineDollars from new template's pct
     clearPaid();
   }
+  resetInvoiceFields();   // line set changed → re-default vendors, clear check/cash
   // reflect choice in any template selectors
   document.querySelectorAll('[data-template-pick]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.templatePick === key);
@@ -3126,7 +3442,7 @@ function setActiveTab(tab) {
   tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   tabPanes.forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
 }
-tabButtons.forEach(b => b.addEventListener('click', () => setActiveTab(b.dataset.tab)));
+tabButtons.forEach(b => b.addEventListener('click', () => { setActiveTab(b.dataset.tab); renderRows(); }));
 
 // ──────────────────────────────────────────────────────────────────
 //  BUILD TEMPLATE SWITCHER — two-click confirm (switching resets the schedule)
@@ -3300,6 +3616,74 @@ if (downloadBtn) {
     window.print();
   });
 }
+
+// ── INVOICE PRINT — only lines with Amount Paid > 0; Total Project Budget card +
+//    Build Progress card; excludes "What That Budget Builds". Separate from the PDF. ──
+function populateInvoicePrint() {
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('inv-print-customer', (customerDescInput.value || '').trim() || 'New Estimate');
+  const now = new Date();
+  setText('inv-print-date', now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+
+  // Total Project Budget card — the three figures from the control panel.
+  const construction = state.baseBudget;
+  const oopDollars = construction * state.oop / 100;
+  const totalProject = construction + oopDollars;
+  setText('inv-print-total', formatMoney(totalProject));
+  setText('inv-print-oop', state.oop.toFixed(1) + '% · ' + formatMoney(oopDollars));
+  setText('inv-print-construction', formatMoney(construction));
+
+  // Build Progress · Dollars — O&P-grossed paid vs total (matches the on-screen bar).
+  const paidWithOop = sumLinePaid() * (1 + state.oop / 100);
+  const pct = totalProject > 0 ? (paidWithOop / totalProject) * 100 : 0;
+  setText('inv-print-paid', formatMoney(paidWithOop));
+  setText('inv-print-pct', pct.toFixed(1) + '%');
+  setText('inv-print-remaining', formatMoney(Math.max(0, totalProject - paidWithOop)));
+
+  // Line items — ONLY rows with Amount Paid > 0.
+  const tbody = document.getElementById('inv-print-tbody');
+  tbody.innerHTML = '';
+  let totalCheck = 0, totalPaid = 0;
+  for (const p of PHASES) {
+    const pd = state.linePaid[p.id] || 0;
+    if (pd <= 0) continue;
+    const ck = state.lineCheck[p.id] || 0;
+    const csh = state.lineCash[p.id] || 0;
+    totalCheck += ck; totalPaid += pd;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="pr-l">' + escapeHtml(p.name || ('Line ' + p.id)) + '</td>' +
+      '<td class="pr-l">' + escapeHtml(state.lineVendor[p.id] || '—') + '</td>' +
+      '<td class="pr-r">' + (ck > 0 ? formatMoney(ck) : '–') + '</td>' +
+      '<td class="pr-r">' + (csh > 0 ? formatMoney(csh) : '–') + '</td>' +
+      '<td class="pr-r pr-actual">' + formatMoney(pd) + '</td>';
+    tbody.appendChild(tr);
+  }
+  const tfoot = document.getElementById('inv-print-tfoot');
+  tfoot.innerHTML =
+    '<tr>' +
+      '<td class="pr-l">TOTALS</td><td class="pr-l"></td>' +
+      '<td class="pr-r">' + (totalCheck > 0 ? formatMoney(totalCheck) : '–') + '</td>' +
+      '<td class="pr-r"></td>' +
+      '<td class="pr-r">' + formatMoney(totalPaid) + '</td>' +
+    '</tr>' +
+    '<tr class="pr-allin">' +
+      '<td class="pr-l">O&amp;P (Amount Paid × ' + state.oop.toFixed(1) + '%)</td>' +
+      '<td class="pr-l"></td><td class="pr-r"></td><td class="pr-r"></td>' +
+      '<td class="pr-r">' + formatMoney(totalPaid * state.oop / 100) + '</td>' +
+    '</tr>';
+}
+
+const printInvoiceBtn = document.getElementById('print-invoice-btn');
+if (printInvoiceBtn) {
+  printInvoiceBtn.addEventListener('click', () => {
+    setPrintDate();
+    populateInvoicePrint();
+    document.body.classList.add('printing-invoice');
+    window.print();
+  });
+}
+window.addEventListener('afterprint', () => { document.body.classList.remove('printing-invoice'); });
 
 // ──────────────────────────────────────────────────────────────────
 //  PERSISTENCE — Google Sheets via Apps Script
@@ -3560,6 +3944,7 @@ function applyRecord(record) {
     state.lineOopDue[p.id] = Number((record.line_oop_due || [])[p.id] || 0);
   }
   state.lastBilledAt = record.last_billed_at || '';
+  resetInvoiceFields();   // Invoice fields are session-only — reset for the loaded customer
   // refresh inputs
   sqftInput.value = formatMoneyPlain(state.sqft);
   costPerSqftInput.value = state.costPerSqft >= 10 ? Math.round(state.costPerSqft).toString() : state.costPerSqft.toFixed(2);
@@ -3679,6 +4064,7 @@ function startNewCustomer() {
   state.oop = 20;
   applyDefaults();
   clearPaid();
+  resetInvoiceFields();
   sqftInput.value = '1,583';
   costPerSqftInput.value = '180';
   budgetInput.value = '285,000';
@@ -3750,6 +4136,7 @@ renderRows = function() {
 // ──────────────────────────────────────────────────────────────────
 //  INIT
 // ──────────────────────────────────────────────────────────────────
+loadCustomVendors();
 renderRows();
 renderPhaseCards();
 recalcDerived();
