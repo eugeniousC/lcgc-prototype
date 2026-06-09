@@ -3407,6 +3407,7 @@ if (downloadBtn) {
   downloadBtn.addEventListener('click', () => {
     setPrintDate();
     populateProgressReport();
+    document.title = 'Construction Progress Report' + printTitleSuffix();
     window.print();
   });
 }
@@ -3471,16 +3472,29 @@ function populateInvoicePrint() {
     '</tr>';
 }
 
+// Clean print/PDF title (also the default "Save as PDF" filename). The browser's
+// header/footer lines can only be fully removed by the user unchecking "Headers
+// and footers" in the print dialog — but this makes the top line read nicely.
+const DOC_TITLE = document.title;
+function printTitleSuffix() {
+  const n = (customerDescInput.value || '').trim();
+  return n ? ' — ' + n : '';
+}
+
 const printInvoiceBtn = document.getElementById('print-invoice-btn');
 if (printInvoiceBtn) {
   printInvoiceBtn.addEventListener('click', () => {
     setPrintDate();
     populateInvoicePrint();
     document.body.classList.add('printing-invoice');
+    document.title = 'Customer Invoice' + printTitleSuffix();
     window.print();
   });
 }
-window.addEventListener('afterprint', () => { document.body.classList.remove('printing-invoice'); });
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing-invoice');
+  document.title = DOC_TITLE;   // restore the tab title after printing
+});
 
 // ──────────────────────────────────────────────────────────────────
 //  PERSISTENCE — Google Sheets via Apps Script
