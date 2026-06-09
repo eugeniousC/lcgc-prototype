@@ -2442,20 +2442,10 @@ function onCellInput(e) {
     state.lineDollars[id] = safe;
     const pct = state.baseBudget > 0 ? (safe / state.baseBudget) * 100 : 0;
     row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
-  } else if (kind === 'paid') {
-    // paid $ entered → update state only
-    state.linePaid[id] = safe;
-    state.lineCheck[id] = safe;   // Amount Paid auto-fills Check Amount (reduce data entry)
-    input.classList.toggle('empty', safe === 0);
-    updateRowActualPct(row);
-    updateRowOop(row);
-    // mirror the new value into the Invoice View's Check cell (twin row, may be hidden)
-    const ckIn = document.querySelector('#invoice-rows .line-row[data-id="' + id + '"] input[data-kind="check"]');
-    if (ckIn) { ckIn.value = formatMoneyPlain(safe); ckIn.classList.toggle('empty', safe === 0); }
-  } else if (kind === 'check') {
-    // Invoice View — Check Amount (independent figure, session-only).
-    state.lineCheck[id] = safe;
-    input.classList.toggle('empty', safe === 0);
+  } else if (kind === 'paid' || kind === 'check') {
+    // Amount Paid ↔ Check Amount are locked together for a line, across BOTH
+    // tabs. Editing either field on either view writes the same value everywhere.
+    syncPaidCheck(id, safe, input);
   } else if (kind === 'cash') {
     // Invoice View — Cash Amount (independent figure, session-only).
     state.lineCash[id] = safe;
@@ -2466,6 +2456,28 @@ function onCellInput(e) {
   updateRowOverage(row);
   updateCategoryTotals();
   updateInvoiceRowStates();   // check/paid changes flip a line between active and history
+}
+
+// Amount Paid and Check Amount are a single locked figure per line. This pushes
+// `safe` into both state slots and into every paid/check input for that line on
+// either tab (Bank Draw + Invoice View), then refreshes the Bank Draw row's
+// computed cells. The source input keeps its in-progress text (no reformat mid-type).
+function syncPaidCheck(id, safe, sourceInput) {
+  state.linePaid[id] = safe;
+  state.lineCheck[id] = safe;
+  document.querySelectorAll(
+    '.line-row[data-id="' + id + '"] input[data-kind="paid"],' +
+    '.line-row[data-id="' + id + '"] input[data-kind="check"]'
+  ).forEach(inp => {
+    if (inp !== sourceInput) inp.value = formatMoneyPlain(safe);
+    inp.classList.toggle('empty', safe === 0);
+  });
+  const bankRow = document.querySelector('#rows .line-row[data-id="' + id + '"]');
+  if (bankRow) {
+    updateRowActualPct(bankRow);
+    updateRowOop(bankRow);
+    updateRowOverage(bankRow);
+  }
 }
 
 function updateRowActualPct(row) {
