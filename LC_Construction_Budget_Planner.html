@@ -963,7 +963,13 @@
   .totals-row .col-pct.off-100 { color: var(--amber-light); }
 
   /* ── INVOICE VIEW — 6-column layout (scoped so it doesn't touch Bank Draw) ── */
-  .invoice-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .invoice-toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .managed-by-wrap {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--amber);
+  }
+  .managed-by-wrap .vendor-select { width: auto; min-width: 110px; text-transform: none; letter-spacing: normal; }
   .invoice-pane .table-head-row,
   .invoice-pane .line-row,
   .invoice-pane .totals-row {
@@ -1515,6 +1521,7 @@
     .pr-meta { text-align: right !important; }
     .pr-customer { font-size: 12pt !important; font-weight: 700 !important; color: var(--navy) !important; }
     .pr-date { font-size: 8pt !important; color: #666 !important; margin-top: 2pt !important; }
+    .pr-managedby { font-size: 8pt !important; color: var(--navy) !important; font-weight: 600 !important; margin-top: 2pt !important; }
 
     /* ── Paid-to-date progress line ── */
     .pr-progress {
@@ -1856,6 +1863,14 @@
   <!-- ── INVOICE VIEW — clean invoice page: vendor + check/cash/paid; O&P as one bottom line ── -->
   <div class="tab-pane invoice-pane" data-tab="invoice">
     <div class="invoice-toolbar">
+      <label class="managed-by-wrap">Managed By
+        <select id="managed-by-select" class="vendor-select" aria-label="Managed by">
+          <option value="">—</option>
+          <option value="Len">Len</option>
+          <option value="Kyle">Kyle</option>
+          <option value="Jeremy">Jeremy</option>
+        </select>
+      </label>
       <button class="download-btn" type="button" id="print-invoice-btn" aria-label="Print this invoice">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg>
         Print Invoice
@@ -1959,15 +1974,12 @@
 <section id="invoice-print" aria-hidden="true">
   <div class="pr-head">
     <div class="pr-brand">
-      <div class="pr-logo">LC</div>
-      <div>
-        <div class="pr-co">LC General Contracting</div>
-        <div class="pr-sub">Construction Invoice</div>
-      </div>
+      <div class="pr-co">Customer Invoice</div>
     </div>
     <div class="pr-meta">
       <div class="pr-customer" id="inv-print-customer">—</div>
       <div class="pr-date" id="inv-print-date">—</div>
+      <div class="pr-managedby" id="inv-print-managedby"></div>
     </div>
   </div>
 
@@ -2141,6 +2153,7 @@ const state = {
   lineCheck: {},         // Check Amount per line
   lineCash: {},          // Cash Amount per line
   lineVendor: {},        // selected vendor per line (defaults to the line's primary)
+  managedBy: '',         // who manages this job (Len / Kyle / Jeremy) — persisted on the record
 };
 
 // Custom vendors added via the Invoice View "+ New vendor" option. Persisted to
@@ -2436,9 +2449,13 @@ function onCellInput(e) {
   } else if (kind === 'paid') {
     // paid $ entered → update state only
     state.linePaid[id] = safe;
+    state.lineCheck[id] = safe;   // Amount Paid auto-fills Check Amount (reduce data entry)
     input.classList.toggle('empty', safe === 0);
     updateRowActualPct(row);
     updateRowOop(row);
+    // mirror the new value into the Invoice View's Check cell (twin row, may be hidden)
+    const ckIn = document.querySelector('#invoice-rows .line-row[data-id="' + id + '"] input[data-kind="check"]');
+    if (ckIn) { ckIn.value = formatMoneyPlain(safe); ckIn.classList.toggle('empty', safe === 0); }
   } else if (kind === 'check') {
     // Invoice View — Check Amount (independent figure, session-only).
     state.lineCheck[id] = safe;
@@ -3405,6 +3422,7 @@ function populateInvoicePrint() {
   setText('inv-print-customer', (customerDescInput.value || '').trim() || 'New Estimate');
   const now = new Date();
   setText('inv-print-date', now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+  setText('inv-print-managedby', state.managedBy ? ('Managed by: ' + state.managedBy) : '');
 
   // Total Project Budget card — the three figures from the control panel.
   const construction = state.baseBudget;
@@ -3520,6 +3538,7 @@ const persistence = {
 
 const customerPicker = document.getElementById('customer-picker');
 const customerDescInput = document.getElementById('customer-desc');
+const managedBySelect = document.getElementById('managed-by-select');
 const saveBtn = document.getElementById('save-btn');
 const archiveBtn = document.getElementById('archive-btn');
 const saveStatusEl = document.getElementById('save-status');
@@ -3691,6 +3710,7 @@ function captureState() {
     base_build_budget: state.baseBudget,
     oop_pct: state.oop,
     total_project_budget: Math.round(sumLineEffective() * (1 + state.oop / 100)),
+    managed_by: state.managedBy || '',
     line_budgets: lineBudgets,
     line_paid: linePaid,
   };
@@ -3718,7 +3738,9 @@ function applyRecord(record) {
     state.linePaid[p.id] = Number((record.line_paid || [])[p.id] || 0);
   }
   resetInvoiceFields();   // Invoice fields are session-only — reset for the loaded customer
+  state.managedBy = record.managed_by || '';
   // refresh inputs
+  if (managedBySelect) managedBySelect.value = state.managedBy;
   sqftInput.value = formatMoneyPlain(state.sqft);
   costPerSqftInput.value = state.costPerSqft >= 10 ? Math.round(state.costPerSqft).toString() : state.costPerSqft.toFixed(2);
   budgetInput.value = formatMoneyPlain(state.baseBudget);
@@ -3838,6 +3860,8 @@ function startNewCustomer() {
   applyDefaults();
   clearPaid();
   resetInvoiceFields();
+  state.managedBy = '';
+  if (managedBySelect) managedBySelect.value = '';
   sqftInput.value = '1,583';
   costPerSqftInput.value = '180';
   budgetInput.value = '285,000';
@@ -3861,6 +3885,13 @@ customerPicker.addEventListener('change', e => {
 customerDescInput.addEventListener('input', () => {
   if (persistence.currentId || customerDescInput.value.length > 0) markDirty();
 });
+
+if (managedBySelect) {
+  managedBySelect.addEventListener('change', () => {
+    state.managedBy = managedBySelect.value;
+    markDirty();
+  });
+}
 
 saveBtn.addEventListener('click', () => doSave());
 
