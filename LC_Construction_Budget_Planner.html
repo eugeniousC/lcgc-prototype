@@ -3518,26 +3518,44 @@ function populateProgressReport() {
 }
 // Empty whichever print document is NOT being printed, so a stale/early afterprint
 // class flip can never reveal the wrong one (e.g. the all-categories report leaking
-// onto an invoice print). beforeprint is the authoritative populate-at-print-time.
+// onto an invoice print).
 function clearPrintDoc(which) {
   const ids = which === 'invoice'
     ? ['inv-print-tbody', 'inv-print-tfoot']
     : ['pr-tbody', 'pr-tfoot'];
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
 }
+
+// Which print doc to render. Buttons set this explicitly; native Cmd+P / File→Print
+// falls back to the active tab (Invoice View → invoice, otherwise progress report).
+let pendingPrintMode = null;
+function resolvePrintMode() {
+  if (pendingPrintMode) return pendingPrintMode;
+  return document.querySelector('.tab-pane[data-tab="invoice"].active') ? 'invoice' : 'progress';
+}
+
+// beforeprint is the AUTHORITATIVE setup — it sets the body class + populates the
+// chosen doc + empties the other, right before the browser snapshots the page.
+// Doing this here (not in the click handler) survives native print and Safari's
+// quirky event timing.
 window.addEventListener('beforeprint', () => {
   setPrintDate();
-  if (document.body.classList.contains('printing-invoice')) {
+  if (resolvePrintMode() === 'invoice') {
+    document.body.classList.add('printing-invoice');
     populateInvoicePrint();
-    clearPrintDoc('progress');   // never show the all-categories report on an invoice
+    clearPrintDoc('progress');
+    document.title = 'Customer Invoice' + printTitleSuffix();
   } else {
+    document.body.classList.remove('printing-invoice');
     populateProgressReport();
     clearPrintDoc('invoice');
+    document.title = 'Construction Progress Report' + printTitleSuffix();
   }
 });
 if (downloadBtn) {
   downloadBtn.addEventListener('click', () => {
-    document.body.classList.remove('printing-invoice');   // ensure progress-report mode
+    pendingPrintMode = 'progress';
+    document.body.classList.remove('printing-invoice');
     setPrintDate();
     populateProgressReport();
     clearPrintDoc('invoice');
@@ -3600,6 +3618,7 @@ function printTitleSuffix() {
 const printInvoiceBtn = document.getElementById('print-invoice-btn');
 if (printInvoiceBtn) {
   printInvoiceBtn.addEventListener('click', () => {
+    pendingPrintMode = 'invoice';
     setPrintDate();
     document.body.classList.add('printing-invoice');
     populateInvoicePrint();
@@ -3611,6 +3630,7 @@ if (printInvoiceBtn) {
 window.addEventListener('afterprint', () => {
   document.body.classList.remove('printing-invoice');
   document.title = DOC_TITLE;   // restore the tab title after printing
+  pendingPrintMode = null;      // next print resolves fresh (button or active tab)
 });
 
 // ──────────────────────────────────────────────────────────────────
