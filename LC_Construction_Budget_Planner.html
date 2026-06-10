@@ -973,14 +973,16 @@
   .invoice-pane .table-head-row,
   .invoice-pane .line-row,
   .invoice-pane .totals-row {
-    grid-template-columns: 40px 1fr 1.5fr 130px 130px 130px;
+    grid-template-columns: 40px 1fr 1.4fr 120px 120px 120px 34px;
   }
   .invoice-pane .table-head-row .col-check,
   .invoice-pane .table-head-row .col-cash,
   .invoice-pane .table-head-row .col-paid { text-align: right; }
   .invoice-pane .table-head-row .col-check,
   .invoice-pane .table-head-row .col-cash { color: var(--green-light); }
-  .invoice-pane .col-vendor { display: flex; align-items: center; }
+  .invoice-pane .col-vendor,
+  .invoice-pane .col-name { display: flex; align-items: center; }
+  .invoice-pane .col-del { display: flex; align-items: center; justify-content: center; }
   .invoice-pane .totals-row .col-check,
   .invoice-pane .totals-row .col-paid {
     text-align: right; justify-content: flex-end; display: flex;
@@ -990,9 +992,19 @@
   .invoice-pane .inv-oop-row .col-paid { color: var(--amber-light); }
   .invoice-pane .inv-oop-row .col-paid { font-weight: 700; }
 
-  /* History line = Amount Paid but no Check this cycle: shown, shaded, not counted. */
-  .invoice-pane .line-row.inv-history { background: rgba(125,130,140,0.12); }
-  .invoice-pane .line-row.inv-history .col-name { color: var(--gray-400); font-style: italic; }
+  /* Delete-line button on each committed invoice row. */
+  .inv-del-btn {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10);
+    color: var(--gray-400); font-size: 13px; line-height: 1; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .inv-del-btn:hover { background: rgba(220,60,60,0.18); border-color: rgba(220,60,60,0.5); color: #ff8585; }
+  /* Trailing "add" row reads slightly muted until a phase is chosen. */
+  .invoice-pane .line-row.inv-new-row { opacity: 0.82; }
+  .invoice-pane .line-row.inv-new-row .col-id { color: var(--amber); font-weight: 700; }
+  .invoice-pane select:disabled,
+  .invoice-pane .inv-cell:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .vendor-select {
     width: 100%;
@@ -1015,18 +1027,18 @@
     .invoice-pane .table-head-row,
     .invoice-pane .line-row,
     .invoice-pane .totals-row {
-      grid-template-columns: 32px 1fr 1.3fr 100px 100px 100px;
+      grid-template-columns: 32px 1fr 1.2fr 96px 96px 96px 30px;
     }
   }
   @media (max-width: 720px) {
     .invoice-pane .table-head-row { display: none; }
     .invoice-pane .line-row {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 34px;
       grid-template-areas:
-        "name name"
-        "vendor vendor"
-        "check cash"
-        "paid paid";
+        "name name del"
+        "vendor vendor vendor"
+        "check cash cash"
+        "paid paid paid";
     }
     .invoice-pane .col-id { display: none; }
     .invoice-pane .col-name   { grid-area: name; font-weight: 500; }
@@ -1034,6 +1046,7 @@
     .invoice-pane .col-check  { grid-area: check; }
     .invoice-pane .col-cash   { grid-area: cash; }
     .invoice-pane .col-paid   { grid-area: paid; }
+    .invoice-pane .col-del    { grid-area: del; }
     .invoice-pane .totals-row { grid-template-columns: 1fr 1fr; }
   }
 
@@ -1884,6 +1897,7 @@
         <div class="col-check">Check Amount</div>
         <div class="col-cash">Cash Amount</div>
         <div class="col-paid">Amount Paid</div>
+        <div class="col-del"></div>
       </div>
       <div id="invoice-rows"></div>
       <div class="totals-row" id="invoice-totals-row">
@@ -1893,14 +1907,16 @@
         <div class="col-check" id="inv-total-check">$0</div>
         <div class="col-cash"></div>
         <div class="col-paid" id="inv-total-paid">$0</div>
+        <div class="col-del"></div>
       </div>
       <div class="totals-row inv-oop-row">
-        <div class="col-id" id="inv-oop-num">25</div>
+        <div class="col-id" id="inv-oop-num"></div>
         <div class="col-name">O&amp;P (Amount Paid × O&amp;P %)</div>
         <div class="col-vendor"></div>
         <div class="col-check"></div>
         <div class="col-cash"></div>
         <div class="col-paid" id="inv-oop-total">$0</div>
+        <div class="col-del"></div>
       </div>
     </div>
   </div>
@@ -2144,11 +2160,14 @@ const state = {
   sqft: 1583,            // quickstart input
   costPerSqft: 180,      // quickstart input
   lineDollars: {},       // budget per line — canonical
-  linePaid: {},          // actual paid per line — defaults to 0
-  // Invoice View — session-only (NOT persisted to the backend, by design):
-  lineCheck: {},         // Check Amount per line
-  lineCash: {},          // Cash Amount per line
-  lineVendor: {},        // selected vendor per line (defaults to the line's primary)
+  linePaid: {},          // actual paid per category line — Bank Draw source of truth (persisted)
+  // Invoice View — an interactive invoice builder, session-only (NOT persisted).
+  // Each entry is one payment line: { rid, cat, vendor, check, cash, paid }.
+  // `cat` is a category line id (1..N) chosen from the Phase dropdown; multiple
+  // entries may share a cat. Amounts roll UP into linePaid[cat] (sum per category).
+  invoiceLines: [],
+  invoiceSeq: 0,         // monotonic row-id counter for invoice lines
+  invoiceOwned: new Set(), // category ids the invoice has touched this session (it owns their paid total)
   managedBy: '',         // who manages this job (Len / Kyle / Jeremy) — persisted on the record
 };
 
@@ -2170,30 +2189,55 @@ function vendorOptionsFor(id) {
   return mapped.concat(custom);
 }
 
-// Reset the session-only Invoice fields (called on load / new / template switch).
+// Reset the session-only Invoice builder (called on load / new / template switch).
 function resetInvoiceFields() {
-  state.lineCheck = {};
-  state.lineCash = {};
-  state.lineVendor = {};
+  state.invoiceLines = [];
+  state.invoiceSeq = 0;
+  state.invoiceOwned = new Set();
 }
 
 function lineName(id) {
   const p = PHASES.find(x => x.id === id);
   return p ? p.name : ('Line ' + id);
 }
-function sumLineCheck() { return PHASES.reduce((s, p) => s + (state.lineCheck[p.id] || 0), 0); }
 
-// Invoice "active" line = has a Check Amount entered (this invoice cycle). Lines with
-// an Amount Paid but NO Check are prior payments (history) — shown but not counted.
-function invoiceLineActive(id) { return (state.lineCheck[id] || 0) > 0; }
-function invoiceLineHistory(id) { return (state.linePaid[id] || 0) > 0 && (state.lineCheck[id] || 0) === 0; }
-function sumActivePaid() {
-  return PHASES.reduce((s, p) => s + (invoiceLineActive(p.id) ? (state.linePaid[p.id] || 0) : 0), 0);
+// ── Invoice builder helpers ──
+function invoiceLineByRid(rid) { return state.invoiceLines.find(l => l.rid === rid); }
+function sumInvoiceCheck() { return state.invoiceLines.reduce((s, l) => s + (l.check || 0), 0); }
+function sumInvoicePaid() { return state.invoiceLines.reduce((s, l) => s + (l.paid || 0), 0); }
+
+// Roll the invoice builder UP into the Bank Draw: each category that appears on at
+// least one invoice line gets its Amount Paid set to the SUM of that category's
+// lines. Categories with no invoice lines are left untouched (so a blank invoice
+// never wipes existing/loaded Bank Draw paid amounts). Returns the set of touched
+// category ids so the Bank Draw UI can refresh just those rows.
+function rollupInvoiceToBank() {
+  const sums = {};
+  for (const l of state.invoiceLines) {
+    if (l.cat == null) continue;
+    sums[l.cat] = (sums[l.cat] || 0) + (l.paid || 0);
+  }
+  // Recompute every category the invoice owns (0 when its last line is gone), so
+  // deletes drop the Bank Draw total. Categories never touched stay as loaded.
+  state.invoiceOwned.forEach(cat => { state.linePaid[cat] = sums[cat] || 0; });
+  refreshBankPaidUI();
+  return sums;
 }
-function updateInvoiceRowStates() {
-  document.querySelectorAll('#invoice-rows .line-row').forEach(row => {
-    row.classList.toggle('inv-history', invoiceLineHistory(+row.dataset.id));
+
+// Push state.linePaid back into the Bank Draw rows + all dependent totals/derived.
+function refreshBankPaidUI() {
+  document.querySelectorAll('#rows .line-row').forEach(row => {
+    const id = +row.dataset.id;
+    const paid = state.linePaid[id] || 0;
+    const inp = row.querySelector('input[data-kind="paid"]');
+    if (inp) { inp.value = formatMoneyPlain(paid); inp.classList.toggle('empty', paid === 0); }
+    updateRowActualPct(row);
+    updateRowOop(row);
+    updateRowOverage(row);
   });
+  updateCategoryTotals();
+  updateTotals();
+  recalcDerived();
 }
 
 function applyDefaults() {
@@ -2314,74 +2358,176 @@ function renderRows() {
   updateTotals();
 }
 
-// Invoice View rows: # · Phase/Line Item · Vendor (dropdown) · Check · Cash · Amount Paid.
+// Build the Phase/Line Item <option> list (all categories) for a chosen cat.
+function phaseOptionsHtml(selectedCat) {
+  let html = '<option value=""' + (selectedCat == null ? ' selected' : '') + '>— select phase —</option>';
+  for (const p of PHASES) {
+    html += '<option value="' + p.id + '"' + (p.id === selectedCat ? ' selected' : '') +
+            '>' + escapeHtml(p.name) + '</option>';
+  }
+  return html;
+}
+
+// Vendor <option> list for a line's chosen category (primary first) + New vendor.
+function vendorOptionsHtml(cat, selectedVendor) {
+  if (cat == null) return '<option value="">— pick phase first —</option>';
+  const opts = vendorOptionsFor(cat);
+  let html = '<option value="">— select vendor —</option>';
+  for (const v of opts) {
+    html += '<option value="' + escapeHtml(v) + '"' + (v === selectedVendor ? ' selected' : '') +
+            '>' + escapeHtml(v) + '</option>';
+  }
+  if (selectedVendor && !opts.includes(selectedVendor)) {
+    html += '<option value="' + escapeHtml(selectedVendor) + '" selected>' + escapeHtml(selectedVendor) + '</option>';
+  }
+  html += '<option value="__new__">＋ New vendor…</option>';
+  return html;
+}
+
+// Invoice View = interactive builder. Render each committed payment line, then one
+// trailing blank row (cat=null) so a new line is always one phase-pick away.
+// Columns: # · Phase (dropdown) · Vendor (dropdown) · Check · Cash · Amount Paid · ✕
 function renderInvoiceRows() {
   invoiceRowsEl.innerHTML = '';
-  for (const p of PHASES) {
-    const id = p.id;
-    const opts = vendorOptionsFor(id);
-    if (state.lineVendor[id] === undefined) state.lineVendor[id] = opts[0] || '';
-    const sel = state.lineVendor[id];
-    let optionHtml = '<option value=""' + (sel === '' ? ' selected' : '') + '>— select —</option>';
-    for (const v of opts) {
-      optionHtml += '<option value="' + escapeHtml(v) + '"' + (v === sel ? ' selected' : '') + '>' + escapeHtml(v) + '</option>';
-    }
-    if (sel && !opts.includes(sel)) {
-      optionHtml += '<option value="' + escapeHtml(sel) + '" selected>' + escapeHtml(sel) + '</option>';
-    }
-    optionHtml += '<option value="__new__">＋ New vendor…</option>';
-
-    const check = state.lineCheck[id] || 0;
-    const cash = state.lineCash[id] || 0;
-    const paid = state.linePaid[id] || 0;
-
+  const rows = state.invoiceLines.concat([{ rid: 'new', cat: null, vendor: '', check: 0, cash: 0, paid: 0 }]);
+  rows.forEach((l, i) => {
+    const isNew = l.rid === 'new';
+    const num = isNew ? '+' : String(i + 1);
+    const vendorDisabled = l.cat == null ? ' disabled' : '';
+    const amtDisabled = l.cat == null ? ' disabled' : '';
     const row = document.createElement('div');
-    row.className = 'line-row' + (invoiceLineHistory(id) ? ' inv-history' : '');
-    row.dataset.id = id;
+    row.className = 'line-row' + (isNew ? ' inv-new-row' : '');
+    row.dataset.rid = l.rid;
     row.innerHTML = `
-      <div class="col-id">${id}</div>
-      <div class="col-name">${escapeHtml(p.name)}</div>
+      <div class="col-id">${num}</div>
+      <div class="col-name">
+        <select class="vendor-select phase-select" data-rid="${l.rid}" aria-label="Phase / line item">${phaseOptionsHtml(l.cat)}</select>
+      </div>
       <div class="col-vendor">
-        <select class="vendor-select" data-id="${id}" aria-label="${escapeHtml(p.name)} vendor">${optionHtml}</select>
+        <select class="vendor-select vendor-pick" data-rid="${l.rid}"${vendorDisabled} aria-label="Vendor">${vendorOptionsHtml(l.cat, l.vendor)}</select>
       </div>
       <div class="col-check input-cell">
         <span class="cell-prefix">$</span>
-        <input class="cell-input paid-input check-input ${check === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
-               autocomplete="off" data-id="${id}" data-kind="check"
-               value="${formatMoneyPlain(check)}" placeholder="0" aria-label="${escapeHtml(p.name)} check amount">
+        <input class="cell-input inv-cell paid-input check-input ${(l.check||0) === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
+               autocomplete="off" data-rid="${l.rid}" data-kind="check"${amtDisabled}
+               value="${formatMoneyPlain(l.check||0)}" placeholder="0" aria-label="Check amount">
       </div>
       <div class="col-cash input-cell">
         <span class="cell-prefix">$</span>
-        <input class="cell-input paid-input cash-input ${cash === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
-               autocomplete="off" data-id="${id}" data-kind="cash"
-               value="${formatMoneyPlain(cash)}" placeholder="0" aria-label="${escapeHtml(p.name)} cash amount">
+        <input class="cell-input inv-cell paid-input cash-input ${(l.cash||0) === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
+               autocomplete="off" data-rid="${l.rid}" data-kind="cash"${amtDisabled}
+               value="${formatMoneyPlain(l.cash||0)}" placeholder="0" aria-label="Cash amount">
       </div>
       <div class="col-paid input-cell">
         <span class="cell-prefix">$</span>
-        <input class="cell-input paid-input ${paid === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
-               autocomplete="off" data-id="${id}" data-kind="paid"
-               value="${formatMoneyPlain(paid)}" placeholder="0" aria-label="${escapeHtml(p.name)} amount paid">
+        <input class="cell-input inv-cell paid-input ${(l.paid||0) === 0 ? 'empty' : ''}" type="text" inputmode="numeric"
+               autocomplete="off" data-rid="${l.rid}" data-kind="paid"${amtDisabled}
+               value="${formatMoneyPlain(l.paid||0)}" placeholder="0" aria-label="Amount paid">
       </div>
+      <div class="col-del">${isNew ? '' : '<button type="button" class="inv-del-btn" data-rid="' + l.rid + '" aria-label="Remove line" title="Remove line">✕</button>'}</div>
     `;
     invoiceRowsEl.appendChild(row);
-  }
-  invoiceRowsEl.querySelectorAll('.vendor-select').forEach(s => s.addEventListener('change', onVendorChange));
+  });
+  // Wire selects, amount inputs, and delete buttons for this render.
+  invoiceRowsEl.querySelectorAll('.phase-select').forEach(s => s.addEventListener('change', onInvoicePhaseChange));
+  invoiceRowsEl.querySelectorAll('.vendor-pick').forEach(s => s.addEventListener('change', onInvoiceVendorChange));
+  invoiceRowsEl.querySelectorAll('.inv-cell').forEach(inp => {
+    inp.addEventListener('input', onInvoiceCellInput);
+    inp.addEventListener('focus', e => e.target.select());
+    inp.addEventListener('blur', onInvoiceCellBlur);
+  });
+  invoiceRowsEl.querySelectorAll('.inv-del-btn').forEach(b => b.addEventListener('click', onInvoiceDelete));
 }
 
-function onVendorChange(e) {
+// Phase chosen → commit a new line (if the trailing blank) or re-categorize an
+// existing one. Blanking an existing line's phase removes it.
+function onInvoicePhaseChange(e) {
   const sel = e.target;
-  const id = +sel.dataset.id;
+  const rid = sel.dataset.rid;
+  const cat = sel.value === '' ? null : +sel.value;
+  if (rid === 'new') {
+    if (cat == null) return;            // nothing to commit
+    const vendor = vendorOptionsFor(cat)[0] || '';
+    state.invoiceLines.push({ rid: ++state.invoiceSeq, cat, vendor, check: 0, cash: 0, paid: 0 });
+    state.invoiceOwned.add(cat);
+  } else {
+    const l = invoiceLineByRid(+rid);
+    if (!l) return;
+    if (cat == null) {                  // blank = delete this line
+      state.invoiceLines = state.invoiceLines.filter(x => x.rid !== +rid);
+    } else {
+      l.cat = cat;
+      l.vendor = vendorOptionsFor(cat)[0] || '';   // reset vendor to new category's primary
+      state.invoiceOwned.add(cat);
+    }
+  }
+  renderInvoiceRows();
+  rollupInvoiceToBank();
+  updateInvoiceTotals();
+  markDirty();
+}
+
+function onInvoiceVendorChange(e) {
+  const sel = e.target;
+  const l = invoiceLineByRid(+sel.dataset.rid);
+  if (!l) return;
   if (sel.value === '__new__') {
-    const name = (window.prompt('New vendor for "' + lineName(id) + '":') || '').trim();
-    if (!name) { sel.value = state.lineVendor[id] || ''; return; }
-    customVendors[id] = customVendors[id] || [];
-    if (!customVendors[id].includes(name)) customVendors[id].push(name);
+    const name = (window.prompt('New vendor for "' + lineName(l.cat) + '":') || '').trim();
+    if (!name) { sel.value = l.vendor || ''; return; }
+    customVendors[l.cat] = customVendors[l.cat] || [];
+    if (!customVendors[l.cat].includes(name)) customVendors[l.cat].push(name);
     saveCustomVendors();
-    state.lineVendor[id] = name;
+    l.vendor = name;
     renderInvoiceRows();   // rebuild so the new option shows + stays selected
   } else {
-    state.lineVendor[id] = sel.value;
+    l.vendor = sel.value;
   }
+  markDirty();
+}
+
+// Amount edit on an invoice line. Check ↔ Amount Paid stay locked per line; Cash
+// is independent. Any paid change re-rolls the category total into the Bank Draw.
+function onInvoiceCellInput(e) {
+  const input = e.target;
+  const l = invoiceLineByRid(+input.dataset.rid);
+  if (!l) return;
+  const kind = input.dataset.kind;
+  const safe = Math.max(0, parseNumber(input.value));
+  const row = input.closest('.line-row');
+  if (kind === 'cash') {
+    l.cash = safe;
+    input.classList.toggle('empty', safe === 0);
+  } else { // 'paid' or 'check' — locked together
+    l.paid = safe;
+    l.check = safe;
+    row.querySelectorAll('input[data-kind="paid"],input[data-kind="check"]').forEach(inp => {
+      if (inp !== input) inp.value = formatMoneyPlain(safe);
+      inp.classList.toggle('empty', safe === 0);
+    });
+    rollupInvoiceToBank();
+  }
+  flash(input);
+  updateInvoiceTotals();
+  markDirty();
+}
+
+function onInvoiceCellBlur(e) {
+  const input = e.target;
+  const l = invoiceLineByRid(+input.dataset.rid);
+  if (!l) return;
+  const kind = input.dataset.kind;
+  const v = kind === 'cash' ? l.cash : (kind === 'check' ? l.check : l.paid);
+  input.value = formatMoneyPlain(v || 0);
+  input.classList.toggle('empty', (v || 0) === 0);
+}
+
+function onInvoiceDelete(e) {
+  const rid = +e.currentTarget.dataset.rid;
+  state.invoiceLines = state.invoiceLines.filter(l => l.rid !== rid);
+  renderInvoiceRows();
+  rollupInvoiceToBank();
+  updateInvoiceTotals();
+  markDirty();
 }
 
 function computeActualPct(paid) {
@@ -2417,7 +2563,8 @@ function escapeHtml(s) {
 //  CELL EDIT HANDLERS  (with feedback-loop guard via direct .value writes)
 // ──────────────────────────────────────────────────────────────────
 function wireRowInputs() {
-  document.querySelectorAll('.cell-input').forEach(input => {
+  // Bank Draw inputs only — Invoice builder inputs (.inv-cell) wire themselves.
+  document.querySelectorAll('.cell-input:not(.inv-cell)').forEach(input => {
     input.addEventListener('input', onCellInput);
     input.addEventListener('focus', e => e.target.select());
     input.addEventListener('blur', onCellBlur);
@@ -2442,42 +2589,18 @@ function onCellInput(e) {
     state.lineDollars[id] = safe;
     const pct = state.baseBudget > 0 ? (safe / state.baseBudget) * 100 : 0;
     row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
-  } else if (kind === 'paid' || kind === 'check') {
-    // Amount Paid ↔ Check Amount are locked together for a line, across BOTH
-    // tabs. Editing either field on either view writes the same value everywhere.
-    syncPaidCheck(id, safe, input);
-  } else if (kind === 'cash') {
-    // Invoice View — Cash Amount (independent figure, session-only).
-    state.lineCash[id] = safe;
+  } else if (kind === 'paid') {
+    // Bank Draw — Amount Paid (category total). Directly editable; if this category
+    // also has invoice lines, the next invoice edit re-rolls and overrides this.
+    state.linePaid[id] = safe;
     input.classList.toggle('empty', safe === 0);
+    updateRowActualPct(row);
+    updateRowOop(row);
   }
   flash(input);
   recalcDerived();
   updateRowOverage(row);
   updateCategoryTotals();
-  updateInvoiceRowStates();   // check/paid changes flip a line between active and history
-}
-
-// Amount Paid and Check Amount are a single locked figure per line. This pushes
-// `safe` into both state slots and into every paid/check input for that line on
-// either tab (Bank Draw + Invoice View), then refreshes the Bank Draw row's
-// computed cells. The source input keeps its in-progress text (no reformat mid-type).
-function syncPaidCheck(id, safe, sourceInput) {
-  state.linePaid[id] = safe;
-  state.lineCheck[id] = safe;
-  document.querySelectorAll(
-    '.line-row[data-id="' + id + '"] input[data-kind="paid"],' +
-    '.line-row[data-id="' + id + '"] input[data-kind="check"]'
-  ).forEach(inp => {
-    if (inp !== sourceInput) inp.value = formatMoneyPlain(safe);
-    inp.classList.toggle('empty', safe === 0);
-  });
-  const bankRow = document.querySelector('#rows .line-row[data-id="' + id + '"]');
-  if (bankRow) {
-    updateRowActualPct(bankRow);
-    updateRowOop(bankRow);
-    updateRowOverage(bankRow);
-  }
 }
 
 function updateRowActualPct(row) {
@@ -2502,12 +2625,6 @@ function onCellBlur(e) {
   } else if (input.dataset.kind === 'paid') {
     input.value = formatMoneyPlain(state.linePaid[id]);
     input.classList.toggle('empty', state.linePaid[id] === 0);
-  } else if (input.dataset.kind === 'check') {
-    input.value = formatMoneyPlain(state.lineCheck[id] || 0);
-    input.classList.toggle('empty', (state.lineCheck[id] || 0) === 0);
-  } else if (input.dataset.kind === 'cash') {
-    input.value = formatMoneyPlain(state.lineCash[id] || 0);
-    input.classList.toggle('empty', (state.lineCash[id] || 0) === 0);
   } else {
     const pct = state.baseBudget > 0 ? (state.lineDollars[id] / state.baseBudget) * 100 : 0;
     input.value = pct.toFixed(1);
@@ -2582,11 +2699,11 @@ function updateTotals() {
 // O&P line (line 25 barndo / 45 conventional), below Total Amount Paid.
 function updateInvoiceTotals() {
   const setT = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-  const activePaid = sumActivePaid();   // only lines with a Check Amount this cycle
-  setT('inv-total-check', formatMoney(sumLineCheck()));
-  setT('inv-total-paid', formatMoney(activePaid));
-  setT('inv-oop-total', formatMoney(activePaid * state.oop / 100));
-  setT('inv-oop-num', String(PHASES.length + 1));
+  const paid = sumInvoicePaid();
+  setT('inv-total-check', formatMoney(sumInvoiceCheck()));
+  setT('inv-total-paid', formatMoney(paid));
+  setT('inv-oop-total', formatMoney(paid * state.oop / 100));
+  setT('inv-oop-num', '');
 }
 
 function updateCategoryTotals() {
@@ -3448,27 +3565,23 @@ function populateInvoicePrint() {
   setText('inv-print-pct', pct.toFixed(1) + '%');
   setText('inv-print-remaining', formatMoney(Math.max(0, totalProject - paidWithOop)));
 
-  // Line items — ONLY active lines (a Check Amount entered this cycle). Prior
-  // payments (paid but no Check) are excluded from the print entirely.
+  // Line items — every invoice builder line with a payment, in entry order.
   const tbody = document.getElementById('inv-print-tbody');
   tbody.innerHTML = '';
-  let totalCheck = 0, totalActivePaid = 0;
-  for (const p of PHASES) {
-    const ck = state.lineCheck[p.id] || 0;
-    if (ck <= 0) continue;
-    const pd = state.linePaid[p.id] || 0;
-    const csh = state.lineCash[p.id] || 0;
-    totalCheck += ck; totalActivePaid += pd;
+  let totalCheck = 0, totalPaid = 0;
+  for (const l of state.invoiceLines) {
+    const ck = l.check || 0, pd = l.paid || 0, csh = l.cash || 0;
+    if (ck <= 0 && pd <= 0) continue;
+    totalCheck += ck; totalPaid += pd;
     const tr = document.createElement('tr');
     tr.innerHTML =
-      '<td class="pr-l">' + escapeHtml(p.name || ('Line ' + p.id)) + '</td>' +
-      '<td class="pr-l">' + escapeHtml(state.lineVendor[p.id] || '—') + '</td>' +
-      '<td class="pr-r">' + formatMoney(ck) + '</td>' +
+      '<td class="pr-l">' + escapeHtml(lineName(l.cat)) + '</td>' +
+      '<td class="pr-l">' + escapeHtml(l.vendor || '—') + '</td>' +
+      '<td class="pr-r">' + (ck > 0 ? formatMoney(ck) : '–') + '</td>' +
       '<td class="pr-r">' + (csh > 0 ? formatMoney(csh) : '–') + '</td>' +
       '<td class="pr-r pr-actual">' + formatMoney(pd) + '</td>';
     tbody.appendChild(tr);
   }
-  const totalPaid = totalActivePaid;
   const tfoot = document.getElementById('inv-print-tfoot');
   tfoot.innerHTML =
     '<tr>' +
