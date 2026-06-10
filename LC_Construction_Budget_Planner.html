@@ -1710,7 +1710,7 @@
         <div class="control-title">Start here · all-in</div>
         <div class="money-input-wrap total">
           <span class="money-prefix">$</span>
-          <input id="total-input" class="money-input total" type="text" inputmode="numeric" autocomplete="off" value="342,000" aria-label="Total Project Budget">
+          <input id="total-input" class="money-input total" type="text" inputmode="numeric" autocomplete="off" value="342,000.00" aria-label="Total Project Budget">
         </div>
         <p class="hint"><span class="arrow">↻</span> The number the bank approved — everything below calculates from this.</p>
       </div>
@@ -1735,7 +1735,7 @@
         <div class="control-title">Total less O&amp;P</div>
         <div class="money-input-wrap">
           <span class="money-prefix">$</span>
-          <input id="budget-input" class="money-input" type="text" inputmode="numeric" autocomplete="off" value="285,000" aria-label="Construction Only">
+          <input id="budget-input" class="money-input" type="text" inputmode="numeric" autocomplete="off" value="285,000.00" aria-label="Construction Only">
         </div>
         <p class="hint">Labor, materials, subs — what the bank lends against.</p>
         <div class="reset-row">
@@ -1792,7 +1792,7 @@
         <div class="lab">Build Cost per SQFT</div>
         <div class="quickstart-input-wrap">
           <span class="prefix">$</span>
-          <input id="costpersqft-input" class="quickstart-input cost-per" type="text" inputmode="decimal" autocomplete="off" value="180" aria-label="Build cost per square foot">
+          <input id="costpersqft-input" class="quickstart-input cost-per" type="text" inputmode="decimal" autocomplete="off" value="180.00" aria-label="Build cost per square foot">
           <span class="suffix">/sqft</span>
         </div>
       </div>
@@ -1992,21 +1992,6 @@
       <div class="pr-customer" id="inv-print-customer">—</div>
       <div class="pr-date" id="inv-print-date">—</div>
       <div class="pr-managedby" id="inv-print-managedby"></div>
-    </div>
-  </div>
-
-  <div class="pr-two-col">
-    <div class="pr-block">
-      <div class="pr-block-head">Total Project Budget</div>
-      <div class="pr-row"><span class="pr-lab">Total Project Budget</span><span class="pr-val pr-accent" id="inv-print-total">$0</span></div>
-      <div class="pr-row"><span class="pr-lab">Overhead &amp; Profit</span><span class="pr-val" id="inv-print-oop">0% · $0</span></div>
-      <div class="pr-row"><span class="pr-lab">Construction Only</span><span class="pr-val" id="inv-print-construction">$0</span></div>
-    </div>
-    <div class="pr-block">
-      <div class="pr-block-head">Build Progress · Dollars</div>
-      <div class="pr-row"><span class="pr-lab">Paid So Far</span><span class="pr-val pr-accent" id="inv-print-paid">$0</span></div>
-      <div class="pr-row"><span class="pr-lab">% Through Build</span><span class="pr-val" id="inv-print-pct">0%</span></div>
-      <div class="pr-row"><span class="pr-lab">Remaining</span><span class="pr-val" id="inv-print-remaining">$0</span></div>
     </div>
   </div>
 
@@ -2253,15 +2238,20 @@ function clearPaid() {
 applyDefaults();
 clearPaid();
 
+// All dollar values render to the cent (2 decimals). Don't pre-round — let Intl
+// round to 2 places so cents survive (Math.round would drop them).
 const fmtMoney = new Intl.NumberFormat('en-US', {
   style: 'currency', currency: 'USD',
-  minimumFractionDigits: 0, maximumFractionDigits: 0,
+  minimumFractionDigits: 2, maximumFractionDigits: 2,
 });
 const fmtMoneyPlain = new Intl.NumberFormat('en-US', {
-  minimumFractionDigits: 0, maximumFractionDigits: 0,
+  minimumFractionDigits: 2, maximumFractionDigits: 2,
 });
-function formatMoney(n) { return fmtMoney.format(Math.round(n)); }
-function formatMoneyPlain(n) { return fmtMoneyPlain.format(Math.round(n)); }
+function formatMoney(n) { return fmtMoney.format(n); }
+function formatMoneyPlain(n) { return fmtMoneyPlain.format(n); }
+// Whole-number formatter for counts (e.g. square footage) — NOT dollars.
+const fmtCount = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+function formatCount(n) { return fmtCount.format(Math.round(n)); }
 function formatPct(n) { return n.toFixed(1) + '%'; }
 function parseNumber(str) {
   if (typeof str !== 'string') str = String(str);
@@ -3053,17 +3043,15 @@ function refreshQuickstartDisplay() {
   // $/sqft is the ANCHOR (default 180). The Construction Only budget is the input
   // (driven top-down from Total Project Budget), and SQFT is the derived output:
   //   sqft = construction cost ÷ $/sqft.
-  quickstartDerivedEl.value = formatMoneyPlain(Math.round(state.baseBudget));
+  quickstartDerivedEl.value = formatMoneyPlain(state.baseBudget);
   if (anchorRateDisplayEl) {
-    anchorRateDisplayEl.textContent = state.costPerSqft >= 10
-      ? Math.round(state.costPerSqft).toString()
-      : state.costPerSqft.toFixed(2);
+    anchorRateDisplayEl.textContent = state.costPerSqft.toFixed(2);
   }
   if (state.costPerSqft > 0) {
     state.sqft = Math.round(state.baseBudget / state.costPerSqft);
   }
   if (document.activeElement !== sqftInput) {
-    sqftInput.value = formatMoneyPlain(state.sqft);
+    sqftInput.value = formatCount(state.sqft);
   }
 }
 
@@ -3092,7 +3080,7 @@ sqftInput.addEventListener('input', e => {
   applySqftChange();
 });
 sqftInput.addEventListener('blur', () => {
-  sqftInput.value = formatMoneyPlain(state.sqft);
+  sqftInput.value = formatCount(state.sqft);
 });
 sqftInput.addEventListener('focus', e => e.target.select());
 
@@ -3103,10 +3091,7 @@ costPerSqftInput.addEventListener('input', e => {
   refreshQuickstartDisplay();
 });
 costPerSqftInput.addEventListener('blur', () => {
-  const display = state.costPerSqft >= 10
-    ? Math.round(state.costPerSqft).toString()
-    : state.costPerSqft.toFixed(2);
-  costPerSqftInput.value = display;
+  costPerSqftInput.value = state.costPerSqft.toFixed(2);
 });
 costPerSqftInput.addEventListener('focus', e => e.target.select());
 
@@ -3455,7 +3440,7 @@ function populateProgressReport() {
   setText('pr-rate', formatMoney(state.costPerSqft));
   setText('pr-hard', formatMoney(hardCost));
   setText('pr-oop-dollars', formatMoney(oopDollars));
-  setText('pr-sqft', formatMoneyPlain(sqft) + ' sq ft');
+  setText("pr-sqft", formatCount(sqft) + ' sq ft');
 
   // Paid-to-date progress (O&P-grossed, consistent with the on-screen bar)
   const rawPaid = sumLinePaid();
@@ -3541,29 +3526,15 @@ if (downloadBtn) {
   });
 }
 
-// ── INVOICE PRINT — only lines with Amount Paid > 0; Total Project Budget card +
-//    Build Progress card; excludes "What That Budget Builds". Separate from the PDF. ──
+// ── INVOICE PRINT — just the invoice you built: header (customer/date/managed by)
+//    + the line items entered in the Invoice View + totals/O&P. No budget/progress
+//    cards. Separate from the Construction Progress Report (Download PDF). ──
 function populateInvoicePrint() {
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setText('inv-print-customer', (customerDescInput.value || '').trim() || 'New Estimate');
   const now = new Date();
   setText('inv-print-date', now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
   setText('inv-print-managedby', state.managedBy ? ('Managed by: ' + state.managedBy) : '');
-
-  // Total Project Budget card — the three figures from the control panel.
-  const construction = state.baseBudget;
-  const oopDollars = construction * state.oop / 100;
-  const totalProject = construction + oopDollars;
-  setText('inv-print-total', formatMoney(totalProject));
-  setText('inv-print-oop', state.oop.toFixed(1) + '% · ' + formatMoney(oopDollars));
-  setText('inv-print-construction', formatMoney(construction));
-
-  // Build Progress · Dollars — O&P-grossed paid vs total (matches the on-screen bar).
-  const paidWithOop = sumLinePaid() * (1 + state.oop / 100);
-  const pct = totalProject > 0 ? (paidWithOop / totalProject) * 100 : 0;
-  setText('inv-print-paid', formatMoney(paidWithOop));
-  setText('inv-print-pct', pct.toFixed(1) + '%');
-  setText('inv-print-remaining', formatMoney(Math.max(0, totalProject - paidWithOop)));
 
   // Line items — every invoice builder line with a payment, in entry order.
   const tbody = document.getElementById('inv-print-tbody');
@@ -3876,8 +3847,8 @@ function applyRecord(record) {
   state.managedBy = record.managed_by || '';
   // refresh inputs
   if (managedBySelect) managedBySelect.value = state.managedBy;
-  sqftInput.value = formatMoneyPlain(state.sqft);
-  costPerSqftInput.value = state.costPerSqft >= 10 ? Math.round(state.costPerSqft).toString() : state.costPerSqft.toFixed(2);
+  sqftInput.value = formatCount(state.sqft);
+  costPerSqftInput.value = state.costPerSqft.toFixed(2);
   budgetInput.value = formatMoneyPlain(state.baseBudget);
   oopSlider.value = state.oop;
   oopNum.textContent = state.oop.toFixed(1);
@@ -3998,8 +3969,8 @@ function startNewCustomer() {
   state.managedBy = '';
   if (managedBySelect) managedBySelect.value = '';
   sqftInput.value = '1,583';
-  costPerSqftInput.value = '180';
-  budgetInput.value = '285,000';
+  costPerSqftInput.value = '180.00';
+  budgetInput.value = '285,000.00';
   oopSlider.value = 20;
   oopNum.textContent = '20.0';
   paintSliderFill();
