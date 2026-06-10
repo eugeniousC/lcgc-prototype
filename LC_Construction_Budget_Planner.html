@@ -3516,11 +3516,31 @@ function populateProgressReport() {
       '<td class="pr-r"></td>' +
     '</tr>';
 }
-window.addEventListener('beforeprint', () => { setPrintDate(); populateProgressReport(); });
+// Empty whichever print document is NOT being printed, so a stale/early afterprint
+// class flip can never reveal the wrong one (e.g. the all-categories report leaking
+// onto an invoice print). beforeprint is the authoritative populate-at-print-time.
+function clearPrintDoc(which) {
+  const ids = which === 'invoice'
+    ? ['inv-print-tbody', 'inv-print-tfoot']
+    : ['pr-tbody', 'pr-tfoot'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+}
+window.addEventListener('beforeprint', () => {
+  setPrintDate();
+  if (document.body.classList.contains('printing-invoice')) {
+    populateInvoicePrint();
+    clearPrintDoc('progress');   // never show the all-categories report on an invoice
+  } else {
+    populateProgressReport();
+    clearPrintDoc('invoice');
+  }
+});
 if (downloadBtn) {
   downloadBtn.addEventListener('click', () => {
+    document.body.classList.remove('printing-invoice');   // ensure progress-report mode
     setPrintDate();
     populateProgressReport();
+    clearPrintDoc('invoice');
     document.title = 'Construction Progress Report' + printTitleSuffix();
     window.print();
   });
@@ -3581,8 +3601,9 @@ const printInvoiceBtn = document.getElementById('print-invoice-btn');
 if (printInvoiceBtn) {
   printInvoiceBtn.addEventListener('click', () => {
     setPrintDate();
-    populateInvoicePrint();
     document.body.classList.add('printing-invoice');
+    populateInvoicePrint();
+    clearPrintDoc('progress');   // wipe the all-categories report so it can't leak in
     document.title = 'Customer Invoice' + printTitleSuffix();
     window.print();
   });
