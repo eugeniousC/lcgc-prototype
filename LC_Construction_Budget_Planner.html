@@ -235,6 +235,8 @@
   }
   .archive-btn:hover { border-color: var(--red); color: var(--red-light); }
   .archive-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  /* Restore is non-destructive — green accent instead of red. */
+  .restore-btn:hover { border-color: var(--green); color: var(--green-light); }
 
   .setup-banner {
     max-width: 1400px;
@@ -1693,6 +1695,7 @@
       Save
     </button>
     <button class="archive-btn" type="button" id="archive-btn" disabled title="Archive this customer">Archive</button>
+    <button class="archive-btn restore-btn" type="button" id="restore-btn" hidden title="Restore this archived customer">Restore</button>
     <button class="archive-btn" type="button" id="copy-link-btn" hidden title="Copy a bookmarkable link that auto-connects this device (survives iPad storage resets)">🔗 Copy iPad Link</button>
     <span class="save-status" id="save-status"><span class="dot"></span><span id="save-status-text">Not saved</span></span>
   </div>
@@ -3688,7 +3691,23 @@ const customerDescInput = document.getElementById('customer-desc');
 const managedBySelect = document.getElementById('managed-by-select');
 const saveBtn = document.getElementById('save-btn');
 const archiveBtn = document.getElementById('archive-btn');
+const restoreBtn = document.getElementById('restore-btn');
 const saveStatusEl = document.getElementById('save-status');
+
+// Show Archive for an active saved record, Restore for an archived one, neither
+// for a brand-new/unsaved record. `state`: 'active' | 'archived' | 'none'.
+function setArchiveControls(stateName) {
+  if (stateName === 'archived') {
+    archiveBtn.hidden = true;  archiveBtn.disabled = true;
+    restoreBtn.hidden = false; restoreBtn.disabled = false;
+  } else if (stateName === 'active') {
+    archiveBtn.hidden = false; archiveBtn.disabled = false;
+    restoreBtn.hidden = true;  restoreBtn.disabled = true;
+  } else { // none — new/unsaved or no persistence
+    archiveBtn.hidden = false; archiveBtn.disabled = true;
+    restoreBtn.hidden = true;  restoreBtn.disabled = true;
+  }
+}
 const saveStatusTextEl = document.getElementById('save-status-text');
 const setupBanner = document.getElementById('setup-banner');
 const setupBannerInput = document.getElementById('setup-banner-input');
@@ -3947,7 +3966,7 @@ async function doSave() {
       lsRemove(LS_KEY_DIRTY);
       persistence.isDirty = false;
       saveBtn.disabled = true;
-      archiveBtn.disabled = false;
+      setArchiveControls('active');
       await refreshCustomerList();
       customerPicker.value = saved.id;
       const t = new Date();
@@ -3975,7 +3994,7 @@ async function loadCustomerById(id) {
       lsWrite(LS_KEY_LAST, record.id);
       customerDescInput.value = record.description || '';
       customerDescInput.disabled = false;
-      archiveBtn.disabled = !!record.archived ? true : false;
+      setArchiveControls(record.archived ? 'archived' : 'active');
       applyRecord(record);
       setActiveTab('bank');   // open straight to the numbers
       persistence.isDirty = false;
@@ -3997,7 +4016,7 @@ function startNewCustomer() {
   customerDescInput.value = '';
   customerDescInput.disabled = false;
   customerDescInput.focus();
-  archiveBtn.disabled = true;
+  setArchiveControls('none');
   saveBtn.disabled = true;
   // Reset to defaults
   state.sqft = 1583;
@@ -4058,6 +4077,22 @@ archiveBtn.addEventListener('click', async () => {
   }
 });
 
+restoreBtn.addEventListener('click', async () => {
+  if (!persistence.currentId) return;
+  const desc = customerDescInput.value || persistence.currentId;
+  if (!confirm('Restore customer ' + persistence.currentId + ' — "' + desc + '"?\n\nIt returns to the active customer list.')) return;
+  try {
+    await ssPost({ op: 'restore', id: persistence.currentId });
+    setSaveStatus('saved', 'Restored ' + persistence.currentId);
+    setArchiveControls('active');   // record is loaded + now active
+    await refreshCustomerList();
+    customerPicker.value = persistence.currentId;
+  } catch (err) {
+    setSaveStatus('error', 'Restore failed');
+    console.error('[LCGC] restore failed', err);
+  }
+});
+
 // ─── Hook into all input mutations so dirty flag stays in sync ───
 const persistenceWatchEvents = ['budget-input', 'oop-slider', 'total-input', 'sqft-input', 'costpersqft-input'];
 for (const id of persistenceWatchEvents) {
@@ -4115,7 +4150,7 @@ if (persistenceConfigured()) {
   setSaveStatus('idle', 'Not connected · saves disabled');
   customerDescInput.disabled = true;
   saveBtn.disabled = true;
-  archiveBtn.disabled = true;
+  setArchiveControls('none');
 }
 
 const io = new IntersectionObserver(entries => {
