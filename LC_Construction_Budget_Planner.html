@@ -1066,6 +1066,24 @@
   body.tpl-remodel [data-tab="bank"] .col-overage,
   body.tpl-remodel [data-tab="bank"] .col-oop { display: none; }
   body.tpl-remodel [data-tab="bank"] .table-head-row .col-budget { text-align: right; }
+  /* Remodel Invoice View = mirror of the Budget View (same 3-col schedule) */
+  body.tpl-remodel .invoice-pane .line-row,
+  body.tpl-remodel .invoice-pane .totals-row {
+    grid-template-columns: 44px 1fr 180px;
+  }
+  body.tpl-remodel .invoice-pane .table-head-row,   /* builder header */
+  body.tpl-remodel #invoice-totals-row,             /* builder totals */
+  body.tpl-remodel .invoice-pane .inv-oop-row { display: none; }
+  body.tpl-remodel .invoice-pane .col-budget { text-align: right; }
+  body.tpl-remodel .invoice-pane .rmd-inv-head {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--gray-400); border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  body.tpl-remodel .invoice-pane .rmd-inv-head .col-budget { text-align: right; }
+  body.tpl-remodel .invoice-pane .rmd-grand .col-name,
+  body.tpl-remodel .invoice-pane .rmd-grand .col-budget {
+    font-weight: 800; color: var(--white); font-size: 15px;
+  }
   /* remodel summary rows (Total → O&P → PROJECT TOTAL) */
   .rmd-row { display: none; }
   body.tpl-remodel .rmd-row { display: grid; }
@@ -1906,9 +1924,9 @@
       <!-- Remodel-only summary rows (hidden on new-build templates) -->
       <div class="totals-row rmd-row" id="rmd-oop-row">
         <div class="col-id"></div>
-        <div class="col-name">O&amp;P (<span id="rmd-oop-pct">20.0</span>%)</div>
+        <div class="col-name">O&amp;P (<span class="js-rmd-oop-pct">20.0</span>%)</div>
         <div class="col-pct"></div>
-        <div class="col-budget" id="rmd-oop-amt">$0</div>
+        <div class="col-budget js-rmd-oop-amt">$0</div>
         <div class="col-actualpct"></div>
         <div class="col-paid"></div>
         <div class="col-overage"></div>
@@ -1918,7 +1936,7 @@
         <div class="col-id"></div>
         <div class="col-name">PROJECT TOTAL</div>
         <div class="col-pct"></div>
-        <div class="col-budget" id="rmd-proj-total">$0</div>
+        <div class="col-budget js-rmd-proj">$0</div>
         <div class="col-actualpct"></div>
         <div class="col-paid"></div>
         <div class="col-overage"></div>
@@ -2121,6 +2139,12 @@ const CONVENTIONAL_LINES = [
   { id: 43, name: "Landscaping",                      category: "Final",                 pct: 2 },
   { id: 44, name: "Final Clean Up",                   category: "Final",                 pct: 2 },
 ];
+
+// Commercial = conventional MINUS Closing (1) and Fireplace (13); Final Clean Up
+// absorbs the freed 3% (2→5%). Keeps stable conventional ids; still sums to 100%.
+const COMMERCIAL_LINES = CONVENTIONAL_LINES
+  .filter(l => l.id !== 1 && l.id !== 13)
+  .map(l => l.id === 44 ? { ...l, pct: 5 } : l);
 
 // 24-line Barndominium draw schedule — Len's template. Order = draw sequence.
 // Percentages sum to exactly 100%. Flat list (no category sub-headers);
@@ -2466,10 +2490,39 @@ function vendorOptionsHtml(cat, selectedVendor) {
   return html;
 }
 
+// Remodel Invoice View = exact mirror of the Remodel Budget View: head + the 14
+// Description/Amount lines (same shared state.lineDollars, editable) + summary.
+function renderRemodelInvoice() {
+  let h = '<div class="line-row rmd-inv-head"><div class="col-id">#</div>' +
+          '<div class="col-name">Description</div><div class="col-budget">Amount</div></div>';
+  for (const p of PHASES) {
+    const amt = state.lineDollars[p.id] || 0;
+    h += '<div class="line-row" data-id="' + p.id + '">' +
+      '<div class="col-id">' + p.id + '</div>' +
+      '<div class="col-name">' + escapeHtml(p.name) + '</div>' +
+      '<div class="col-budget input-cell"><span class="cell-prefix">$</span>' +
+      '<input class="cell-input dollar-input" type="text" inputmode="numeric" autocomplete="off" ' +
+      'data-id="' + p.id + '" data-kind="budget" value="' + formatMoneyPlain(amt) +
+      '" aria-label="' + escapeHtml(p.name) + ' amount"></div></div>';
+  }
+  h += '<div class="totals-row"><div class="col-id"></div><div class="col-name">Totals</div>' +
+       '<div class="col-budget js-rmd-sub">$0</div></div>' +
+       '<div class="totals-row"><div class="col-id"></div>' +
+       '<div class="col-name">O&amp;P (<span class="js-rmd-oop-pct">20.0</span>%)</div>' +
+       '<div class="col-budget js-rmd-oop-amt">$0</div></div>' +
+       '<div class="totals-row rmd-grand"><div class="col-id"></div>' +
+       '<div class="col-name">PROJECT TOTAL</div>' +
+       '<div class="col-budget js-rmd-proj">$0</div></div>';
+  invoiceRowsEl.innerHTML = h;
+}
+
 // Invoice View = interactive builder. Render each committed payment line, then one
 // trailing blank row (cat=null) so a new line is always one phase-pick away.
 // Columns: # · Phase (dropdown) · Vendor (dropdown) · Check · Cash · Amount Paid · ✕
 function renderInvoiceRows() {
+  // Remodel: the Invoice View is an exact mirror of the Remodel Budget View — the
+  // same 14 Description/Amount lines (shared state, editable + synced) + summary.
+  if ((TEMPLATES[state.template] || {}).flatAmount) { renderRemodelInvoice(); return; }
   invoiceRowsEl.innerHTML = '';
   const rows = state.invoiceLines.concat([{ rid: 'new', cat: null, vendor: '', check: 0, cash: 0, paid: 0 }]);
   rows.forEach((l, i) => {
@@ -2780,16 +2833,21 @@ function updateTotals() {
     oop: formatMoney(totalOop),
   };
   paintTotalsRow('', v);
-  // Remodel: bottom-up summary rows (Total → O&P → PROJECT TOTAL).
-  if ((TEMPLATES[state.template] || {}).flatAmount) {
-    const sub = totalBudget;
-    const oopD = sub * state.oop / 100;
-    const setT = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-    setT('rmd-oop-pct', state.oop.toFixed(1));
-    setT('rmd-oop-amt', formatMoney(oopD));
-    setT('rmd-proj-total', formatMoney(sub + oopD));
-  }
+  // Remodel: bottom-up summary (Total → O&P → PROJECT TOTAL) on BOTH the Budget
+  // View and the Invoice View (class-based so one call updates every copy).
+  if ((TEMPLATES[state.template] || {}).flatAmount) updateRemodelSummary();
   updateInvoiceTotals();
+}
+
+// Update every remodel summary cell (Budget View + Invoice View) by class.
+function updateRemodelSummary() {
+  const sub = sumLineDollars();
+  const oopD = sub * state.oop / 100;
+  const setAll = (sel, txt) => document.querySelectorAll(sel).forEach(el => { el.textContent = txt; });
+  setAll('.js-rmd-sub', formatMoney(sub));
+  setAll('.js-rmd-oop-pct', state.oop.toFixed(1));
+  setAll('.js-rmd-oop-amt', formatMoney(oopD));
+  setAll('.js-rmd-proj', formatMoney(sub + oopD));
 }
 
 // Invoice View totals: Total Check + Total Amount Paid, and the O&P total on the
@@ -3017,6 +3075,10 @@ function recalcDerived(opts) {
   // Top inputs
   if (!opts.skipTotalInputUpdate && document.activeElement !== totalInput) {
     totalInput.value = formatMoneyPlain(total);
+  }
+  // Remodel is bottom-up: keep Construction Only (read-only) in step with the line sum.
+  if ((TEMPLATES[state.template] || {}).flatAmount && document.activeElement !== budgetInput) {
+    budgetInput.value = formatMoneyPlain(state.baseBudget);
   }
 
   // Summary strip
@@ -3320,9 +3382,9 @@ const TEMPLATES = {
   commercial: {
     key: 'commercial',
     label: 'Commercial Build',
-    lines: CONVENTIONAL_LINES,     // same 44-line schedule + machinery as conventional
+    lines: COMMERCIAL_LINES,       // conventional minus Closing + Fireplace; cleanup 5%
     phasesMeta: PHASES_META_7,
-    lineToPhase: CONVENTIONAL_LINE_TO_PHASE,
+    lineToPhase: CONVENTIONAL_LINE_TO_PHASE,   // extra keys for dropped ids are harmless
     showCategories: true,
     oop: OOP_NEWBUILD,
   },
@@ -3350,6 +3412,9 @@ function applyTemplateChrome() {
   const budgetHead = document.querySelector('[data-tab="bank"] .table-head-row .col-budget');
   if (nameHead) nameHead.textContent = remodel ? 'Description' : 'Phase / Line Item';
   if (budgetHead) budgetHead.textContent = remodel ? 'Amount' : 'Budget';
+  // Bank Draw tab label → "Remodel Budget View" on the remodel template
+  const bankTabBtn = document.querySelector('.tab-btn[data-tab="bank"]');
+  if (bankTabBtn) bankTabBtn.lastChild.textContent = remodel ? ' Remodel Budget View' : ' Bank Draw Schedule';
   // On remodel the total + construction figures are computed bottom-up → read-only
   totalInput.readOnly = remodel;
   budgetInput.readOnly = remodel;
@@ -3785,8 +3850,36 @@ function populateInvoicePrint() {
   setText('inv-print-date', now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
   setText('inv-print-managedby', state.managedBy ? ('Managed by: ' + state.managedBy) : '');
 
-  // Line items — every invoice builder line with a payment, in entry order.
+  const thead = document.querySelector('#invoice-print .pr-table thead tr');
   const tbody = document.getElementById('inv-print-tbody');
+  const tfoot = document.getElementById('inv-print-tfoot');
+
+  // ── Remodel: invoice = the 14 Description/Amount lines + O&P + Project Total. ──
+  if ((TEMPLATES[state.template] || {}).flatAmount) {
+    if (thead) thead.innerHTML = '<th class="pr-l">Description</th><th class="pr-r">Amount</th>';
+    let sub = 0;
+    tbody.innerHTML = '';
+    for (const p of PHASES) {
+      const amt = state.lineDollars[p.id] || 0;
+      sub += amt;
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td class="pr-l">' + escapeHtml(p.name) + '</td>' +
+                     '<td class="pr-r">' + formatMoney(amt) + '</td>';
+      tbody.appendChild(tr);
+    }
+    const oopD = sub * state.oop / 100;
+    tfoot.innerHTML =
+      '<tr><td class="pr-l">Subtotal</td><td class="pr-r">' + formatMoney(sub) + '</td></tr>' +
+      '<tr><td class="pr-l">O&amp;P (' + state.oop.toFixed(1) + '%)</td><td class="pr-r">' + formatMoney(oopD) + '</td></tr>' +
+      '<tr class="pr-allin"><td class="pr-l">PROJECT TOTAL</td><td class="pr-r">' + formatMoney(sub + oopD) + '</td></tr>';
+    return;
+  }
+  // New-build/builder invoice — restore the 5-column header (remodel may have changed it).
+  if (thead) thead.innerHTML =
+    '<th class="pr-l">Line Item</th><th class="pr-l">Vendor</th>' +
+    '<th class="pr-r">Check</th><th class="pr-r">Cash</th><th class="pr-r">Amount Paid</th>';
+
+  // Line items — every invoice builder line with a payment, in entry order.
   tbody.innerHTML = '';
   let totalCheck = 0, totalPaid = 0;
   for (const l of state.invoiceLines) {
@@ -3802,7 +3895,6 @@ function populateInvoicePrint() {
       '<td class="pr-r pr-actual">' + formatMoney(pd) + '</td>';
     tbody.appendChild(tr);
   }
-  const tfoot = document.getElementById('inv-print-tfoot');
   tfoot.innerHTML =
     '<tr>' +
       '<td class="pr-l">TOTALS</td><td class="pr-l"></td>' +
