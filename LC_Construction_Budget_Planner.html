@@ -4096,8 +4096,10 @@ function rebuildPickerOptions() {
   newOpt.textContent = '+ New Customer';
   customerPicker.appendChild(newOpt);
 
-  const active = persistence.list.filter(c => !c.archived);
-  const archived = persistence.list.filter(c => c.archived);
+  // Active sorted by id (numeric, ascending); archived grouped at the bottom (also sorted).
+  const byId = (a, b) => (Number(a.id) || 0) - (Number(b.id) || 0);
+  const active = persistence.list.filter(c => !c.archived).sort(byId);
+  const archived = persistence.list.filter(c => c.archived).sort(byId);
 
   for (const c of active) {
     const opt = document.createElement('option');
