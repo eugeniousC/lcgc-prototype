@@ -1052,6 +1052,30 @@
     .invoice-pane .totals-row { grid-template-columns: 1fr 1fr; }
   }
 
+  /* ── REMODEL / INS template — flat estimate sheet (# · Description · Amount) ── */
+  body.tpl-remodel .quickstart-panel,
+  body.tpl-remodel .progress-card { display: none; }
+  body.tpl-remodel [data-tab="bank"] .table-head-row,
+  body.tpl-remodel [data-tab="bank"] .line-row,
+  body.tpl-remodel [data-tab="bank"] .totals-row {
+    grid-template-columns: 44px 1fr 180px;
+  }
+  body.tpl-remodel [data-tab="bank"] .col-pct,
+  body.tpl-remodel [data-tab="bank"] .col-actualpct,
+  body.tpl-remodel [data-tab="bank"] .col-paid,
+  body.tpl-remodel [data-tab="bank"] .col-overage,
+  body.tpl-remodel [data-tab="bank"] .col-oop { display: none; }
+  body.tpl-remodel [data-tab="bank"] .table-head-row .col-budget { text-align: right; }
+  /* remodel summary rows (Total → O&P → PROJECT TOTAL) */
+  .rmd-row { display: none; }
+  body.tpl-remodel .rmd-row { display: grid; }
+  body.tpl-remodel #rmd-oop-row .col-name,
+  body.tpl-remodel #rmd-oop-row .col-budget { color: var(--amber-light); }
+  body.tpl-remodel #rmd-total-row .col-name,
+  body.tpl-remodel #rmd-total-row .col-budget {
+    font-weight: 800; color: var(--white); font-size: 15px;
+  }
+
   /* Footer */
   footer {
     margin-top: 56px;
@@ -1499,6 +1523,10 @@
     body:not(.printing-invoice) #invoice-print { display: none !important; }
     body.printing-invoice #progress-report { display: none !important; }
     body.printing-invoice #invoice-print { display: block !important; }
+    /* Remodel quote: drop the new-build progress line, inputs grid, and how-it-works note. */
+    body.tpl-remodel #pr-progress-line,
+    body.tpl-remodel #progress-report .pr-two-col,
+    body.tpl-remodel #progress-report .pr-foot { display: none !important; }
 
     html, body {
       background: white !important;
@@ -1657,6 +1685,8 @@
       <div class="template-seg" role="group" aria-label="Build Type">
         <button class="template-pick active" type="button" data-template-pick="barndo">Barndominium Build</button>
         <button class="template-pick" type="button" data-template-pick="conventional">Conventional Build</button>
+        <button class="template-pick" type="button" data-template-pick="remodel">Remodel / Ins</button>
+        <button class="template-pick" type="button" data-template-pick="commercial">Commercial Build</button>
       </div>
       <button class="download-btn" type="button" id="download-pdf-btn" aria-label="Download as PDF">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1872,6 +1902,27 @@
         <div class="col-paid" id="total-paid">$0</div>
         <div class="col-overage"></div>
         <div class="col-oop" id="total-oop">$0</div>
+      </div>
+      <!-- Remodel-only summary rows (hidden on new-build templates) -->
+      <div class="totals-row rmd-row" id="rmd-oop-row">
+        <div class="col-id"></div>
+        <div class="col-name">O&amp;P (<span id="rmd-oop-pct">20.0</span>%)</div>
+        <div class="col-pct"></div>
+        <div class="col-budget" id="rmd-oop-amt">$0</div>
+        <div class="col-actualpct"></div>
+        <div class="col-paid"></div>
+        <div class="col-overage"></div>
+        <div class="col-oop"></div>
+      </div>
+      <div class="totals-row rmd-row rmd-grand" id="rmd-total-row">
+        <div class="col-id"></div>
+        <div class="col-name">PROJECT TOTAL</div>
+        <div class="col-pct"></div>
+        <div class="col-budget" id="rmd-proj-total">$0</div>
+        <div class="col-actualpct"></div>
+        <div class="col-paid"></div>
+        <div class="col-overage"></div>
+        <div class="col-oop"></div>
       </div>
     </div>
   </div>
@@ -2130,7 +2181,36 @@ const BARNDO_VENDORS = {
   23: ["ALA-GA Rolloff"],
   24: ["J&J Door Works"],
 };
-const VENDORS_BY_TEMPLATE = { barndo: BARNDO_VENDORS, conventional: {} };
+// Remodel / Insurance — a flat estimate sheet (no draw %, single Amount column).
+// pct:0 so lines start blank; the customer's estimate is entered bottom-up.
+const REMODEL_LINES = [
+  { id: 1,  name: "Demolition & Removal",     pct: 0 },
+  { id: 2,  name: "Framing / Structural",     pct: 0 },
+  { id: 3,  name: "Electrical",               pct: 0 },
+  { id: 4,  name: "Plumbing",                 pct: 0 },
+  { id: 5,  name: "Drywall & Finishing",      pct: 0 },
+  { id: 6,  name: "Flooring",                 pct: 0 },
+  { id: 7,  name: "Tile Labor & Material",    pct: 0 },
+  { id: 8,  name: "Cabinets / Built-ins",     pct: 0 },
+  { id: 9,  name: "Countertops",              pct: 0 },
+  { id: 10, name: "Painting",                 pct: 0 },
+  { id: 11, name: "Trim / Finish Carpentry",  pct: 0 },
+  { id: 12, name: "Fixtures / Hardware",      pct: 0 },
+  { id: 13, name: "Cleanup & Disposal",       pct: 0 },
+  { id: 14, name: "Other",                    pct: 0 },
+];
+
+// Flat union of every barndo vendor (dedup, insertion order) — offered on every
+// line of templates that don't have their own per-line mapping (conventional,
+// remodel, commercial). Barndo keeps its category-matched mapping.
+const ALL_VENDORS = (() => {
+  const seen = [];
+  for (const id in BARNDO_VENDORS) for (const v of BARNDO_VENDORS[id]) if (!seen.includes(v)) seen.push(v);
+  return seen;
+})();
+
+// barndo → per-line mapping; everything else → the full flat vendor list.
+const VENDORS_BY_TEMPLATE = { barndo: BARNDO_VENDORS };
 
 // Active line set + phase metadata — swapped by template (see TEMPLATES registry below).
 // Declared mutable so applyTemplate() can repoint them.
@@ -2173,10 +2253,11 @@ function saveCustomVendors() { lsWrite(LS_KEY_VENDORS, JSON.stringify(customVend
 // placed after the mapped subs so the primary sub stays the default selection.
 const LC_GC_VENDOR = "LC's General Contracting";
 
-// Vendor options for a line: mapped vendors (primary first) + LC's GC + custom.
+// Vendor options for a line. Barndo: its category-matched mapping (primary first).
+// Other templates: the full flat vendor list on every line. Always + LC's GC + custom.
 function vendorOptionsFor(id) {
-  const map = VENDORS_BY_TEMPLATE[state.template] || {};
-  const out = (map[id] || []).slice();
+  const map = VENDORS_BY_TEMPLATE[state.template];
+  const out = map ? (map[id] || []).slice() : ALL_VENDORS.slice();
   if (!out.includes(LC_GC_VENDOR)) out.push(LC_GC_VENDOR);
   for (const v of (customVendors[id] || [])) if (!out.includes(v)) out.push(v);
   return out;
@@ -2205,6 +2286,9 @@ function sumInvoicePaid() { return state.invoiceLines.reduce((s, l) => s + (l.pa
 // never wipes existing/loaded Bank Draw paid amounts). Returns the set of touched
 // category ids so the Bank Draw UI can refresh just those rows.
 function rollupInvoiceToBank() {
+  // Remodel: the Invoice View is a standalone invoice builder — it does NOT roll up
+  // into the estimate sheet (which has a single Amount column, the estimate).
+  if ((TEMPLATES[state.template] || {}).flatAmount) return {};
   const sums = {};
   for (const l of state.invoiceLines) {
     if (l.cat == null) continue;
@@ -2583,10 +2667,16 @@ function onCellInput(e) {
     state.lineDollars[id] = dollars;
     row.querySelector('input[data-kind="budget"]').value = formatMoneyPlain(dollars);
   } else if (kind === 'budget') {
-    // budget $ entered → recompute % for this row
+    // Amount/budget $ entered. Remodel is bottom-up: the line Amounts SUM to the
+    // construction total. New-build is top-down: recompute this line's % of build.
     state.lineDollars[id] = safe;
-    const pct = state.baseBudget > 0 ? (safe / state.baseBudget) * 100 : 0;
-    row.querySelector('input[data-kind="pct"]').value = pct.toFixed(1);
+    if ((TEMPLATES[state.template] || {}).flatAmount) {
+      state.baseBudget = sumLineDollars();
+    } else {
+      const pct = state.baseBudget > 0 ? (safe / state.baseBudget) * 100 : 0;
+      const pctInput = row.querySelector('input[data-kind="pct"]');
+      if (pctInput) pctInput.value = pct.toFixed(1);
+    }
   } else if (kind === 'paid') {
     // Bank Draw — Amount Paid (category total). Directly editable; if this category
     // also has invoice lines, the next invoice edit re-rolls and overrides this.
@@ -2690,6 +2780,15 @@ function updateTotals() {
     oop: formatMoney(totalOop),
   };
   paintTotalsRow('', v);
+  // Remodel: bottom-up summary rows (Total → O&P → PROJECT TOTAL).
+  if ((TEMPLATES[state.template] || {}).flatAmount) {
+    const sub = totalBudget;
+    const oopD = sub * state.oop / 100;
+    const setT = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    setT('rmd-oop-pct', state.oop.toFixed(1));
+    setT('rmd-oop-amt', formatMoney(oopD));
+    setT('rmd-proj-total', formatMoney(sub + oopD));
+  }
   updateInvoiceTotals();
 }
 
@@ -2768,7 +2867,8 @@ totalInput.addEventListener('blur', () => {
 totalInput.addEventListener('focus', e => e.target.select());
 
 oopSlider.addEventListener('input', e => {
-  state.oop = clamp(parseFloat(e.target.value), 10, 25);
+  const band = (TEMPLATES[state.template] || TEMPLATES.barndo).oop;
+  state.oop = clamp(parseFloat(e.target.value), band.min, band.max);
   oopNum.textContent = state.oop.toFixed(1);
   paintSliderFill();
   recalcDerived();
@@ -3176,7 +3276,17 @@ const BARNDO_LINE_TO_PHASE = {
   23: 7,                                     // Final & Closeout (Clean Up & Misc)
 };
 
-// ── TEMPLATE REGISTRY — two build types, identical machinery, different line sets ──
+// Remodel customer-view = a single scope card; all 14 lines roll into it.
+const REMODEL_PHASES_META = [
+  { id: 1, icon: '🔨', label: 'Scope', name: 'Remodel Scope', color: '#D97706' },
+];
+const REMODEL_LINE_TO_PHASE = (() => { const m = {}; for (const l of REMODEL_LINES) m[l.id] = 1; return m; })();
+
+// Default O&P band by template: new-build 10–25% (default 15); remodel 20–30% (default 20).
+const OOP_NEWBUILD = { min: 10, max: 25, def: 15 };
+const OOP_REMODEL  = { min: 20, max: 30, def: 20 };
+
+// ── TEMPLATE REGISTRY — build types; same machinery, different line sets + flags ──
 const TEMPLATES = {
   barndo: {
     key: 'barndo',
@@ -3185,6 +3295,7 @@ const TEMPLATES = {
     phasesMeta: PHASES_META_7,
     lineToPhase: BARNDO_LINE_TO_PHASE,
     showCategories: false,   // flat list in draw order — no category sub-headers
+    oop: OOP_NEWBUILD,
   },
   conventional: {
     key: 'conventional',
@@ -3193,6 +3304,27 @@ const TEMPLATES = {
     phasesMeta: PHASES_META_7,
     lineToPhase: CONVENTIONAL_LINE_TO_PHASE,
     showCategories: true,    // grouped by category in the bank draw
+    oop: OOP_NEWBUILD,
+  },
+  remodel: {
+    key: 'remodel',
+    label: 'Remodel / Ins',
+    lines: REMODEL_LINES,
+    phasesMeta: REMODEL_PHASES_META,
+    lineToPhase: REMODEL_LINE_TO_PHASE,
+    showCategories: false,
+    flatAmount: true,        // single Amount column; total is bottom-up from the lines
+    quote: true,             // "Print Quote" instead of progress report
+    oop: OOP_REMODEL,
+  },
+  commercial: {
+    key: 'commercial',
+    label: 'Commercial Build',
+    lines: CONVENTIONAL_LINES,     // same 44-line schedule + machinery as conventional
+    phasesMeta: PHASES_META_7,
+    lineToPhase: CONVENTIONAL_LINE_TO_PHASE,
+    showCategories: true,
+    oop: OOP_NEWBUILD,
   },
 };
 
@@ -3202,6 +3334,32 @@ PHASES = TEMPLATES.barndo.lines;
 PHASES_META = TEMPLATES.barndo.phasesMeta;
 LINE_TO_PHASE = TEMPLATES.barndo.lineToPhase;
 state.template = 'barndo';
+
+// Apply the per-template UI chrome: body flag, O&P slider band, header labels,
+// read-only top inputs (remodel is bottom-up), and the print button label. Reads
+// TEMPLATES[state.template]; safe to call from both applyTemplate and applyRecord.
+function applyTemplateChrome() {
+  const t = TEMPLATES[state.template] || TEMPLATES.barndo;
+  const remodel = !!t.flatAmount;
+  document.body.classList.toggle('tpl-remodel', remodel);
+  // O&P band
+  oopSlider.min = t.oop.min;
+  oopSlider.max = t.oop.max;
+  // Bank Draw header labels
+  const nameHead = document.querySelector('[data-tab="bank"] .table-head-row .col-name');
+  const budgetHead = document.querySelector('[data-tab="bank"] .table-head-row .col-budget');
+  if (nameHead) nameHead.textContent = remodel ? 'Description' : 'Phase / Line Item';
+  if (budgetHead) budgetHead.textContent = remodel ? 'Amount' : 'Budget';
+  // On remodel the total + construction figures are computed bottom-up → read-only
+  totalInput.readOnly = remodel;
+  budgetInput.readOnly = remodel;
+  // Print button label
+  const dlSpan = downloadBtn && downloadBtn.childNodes;
+  if (downloadBtn) {
+    // button has an <svg> + text node; replace the trailing text
+    downloadBtn.lastChild.textContent = remodel ? ' Print Quote' : ' Download PDF';
+  }
+}
 
 // Swap the active build template. Keeps the Build Budget; reseeds line budgets
 // from the new template's default %s and clears paid (line items differ between
@@ -3217,12 +3375,20 @@ function applyTemplate(key, opts) {
   if (!opts.preserveLines) {
     applyDefaults();   // reseed lineDollars from new template's pct
     clearPaid();
+    state.oop = t.oop.def;            // user switch resets O&P to the band default
+  } else {
+    state.oop = clamp(state.oop, t.oop.min, t.oop.max);
   }
   resetInvoiceFields();   // line set changed → re-default vendors, clear check/cash
   // reflect choice in any template selectors
   document.querySelectorAll('[data-template-pick]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.templatePick === key);
   });
+  applyTemplateChrome();
+  oopSlider.value = state.oop;
+  oopNum.textContent = state.oop.toFixed(1);
+  paintSliderFill();
+  if (TEMPLATES[key].flatAmount) state.baseBudget = sumLineDollars();
   renderRows();
   renderPhaseCards();
   recalcDerived();
@@ -3434,6 +3600,39 @@ function populateProgressReport() {
   const now = new Date();
   setText('pr-date', now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
 
+  const prCo = document.querySelector('#progress-report .pr-co');
+  const thead = document.querySelector('#progress-report .pr-table thead tr');
+  const tbodyEl = document.getElementById('pr-tbody');
+  const tfootEl = document.getElementById('pr-tfoot');
+
+  // ── Remodel: a clean customer Quote — Description · Amount, subtotal, O&P, total ──
+  if ((TEMPLATES[state.template] || {}).flatAmount) {
+    if (prCo) prCo.textContent = 'Project Quote';
+    if (thead) thead.innerHTML = '<th class="pr-l">Description</th><th class="pr-r">Amount</th>';
+    let sub = 0;
+    tbodyEl.innerHTML = '';
+    for (const p of PHASES) {
+      const amt = state.lineDollars[p.id] || 0;
+      sub += amt;
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td class="pr-l">' + escapeHtml(p.name) + '</td>' +
+                     '<td class="pr-r">' + formatMoney(amt) + '</td>';
+      tbodyEl.appendChild(tr);
+    }
+    const oopD = sub * state.oop / 100;
+    tfootEl.innerHTML =
+      '<tr><td class="pr-l">Subtotal</td><td class="pr-r">' + formatMoney(sub) + '</td></tr>' +
+      '<tr><td class="pr-l">O&amp;P (' + state.oop.toFixed(1) + '%)</td><td class="pr-r">' + formatMoney(oopD) + '</td></tr>' +
+      '<tr class="pr-allin"><td class="pr-l">PROJECT TOTAL</td><td class="pr-r">' + formatMoney(sub + oopD) + '</td></tr>';
+    return;
+  }
+
+  // New-build report — restore the 5-column header (remodel may have rewritten it).
+  if (prCo) prCo.textContent = 'Construction Progress Report';
+  if (thead) thead.innerHTML =
+    '<th class="pr-l">Line Item</th><th class="pr-r">% of Hard Cost</th>' +
+    '<th class="pr-r">Budget Allocation</th><th class="pr-r">Actual</th><th class="pr-r">O&amp;P</th>';
+
   // Inputs block — use the PLANNED hard cost (sum of line budgets) so the header
   // figure matches the table's TOTAL HARD COST exactly. On a customer handout the
   // story is "here is the plan, here is what's been paid against it" — the header
@@ -3557,9 +3756,13 @@ window.addEventListener('beforeprint', () => {
     document.body.classList.remove('printing-invoice');
     populateProgressReport();
     clearPrintDoc('invoice');
-    document.title = 'Construction Progress Report' + printTitleSuffix();
+    document.title = progressDocTitle() + printTitleSuffix();
   }
 });
+// Remodel prints a "Project Quote"; new-build prints the "Construction Progress Report".
+function progressDocTitle() {
+  return (TEMPLATES[state.template] || {}).flatAmount ? 'Project Quote' : 'Construction Progress Report';
+}
 if (downloadBtn) {
   downloadBtn.addEventListener('click', () => {
     pendingPrintMode = 'progress';
@@ -3567,7 +3770,7 @@ if (downloadBtn) {
     setPrintDate();
     populateProgressReport();
     clearPrintDoc('invoice');
-    document.title = 'Construction Progress Report' + printTitleSuffix();
+    document.title = progressDocTitle() + printTitleSuffix();
     window.print();
   });
 }
@@ -3900,16 +4103,19 @@ function applyRecord(record) {
   LINE_TO_PHASE = TEMPLATES[tplKey].lineToPhase;
   templatePicks.forEach(b => b.classList.toggle('active', b.dataset.templatePick === tplKey));
 
+  const band = TEMPLATES[tplKey].oop;
   state.sqft = Number(record.sqft || 1583);
   state.costPerSqft = Number(record.cost_per_sqft || 180);
   state.baseBudget = Number(record.base_build_budget || (state.sqft * state.costPerSqft));
-  state.oop = clamp(Number(record.oop_pct || 20), 10, 25);
+  state.oop = clamp(Number(record.oop_pct || band.def), band.min, band.max);
   for (const p of PHASES) {
     state.lineDollars[p.id] = Number((record.line_budgets || [])[p.id] || 0);
     state.linePaid[p.id] = Number((record.line_paid || [])[p.id] || 0);
   }
+  if (TEMPLATES[tplKey].flatAmount) state.baseBudget = sumLineDollars();   // remodel: bottom-up
   resetInvoiceFields();   // Invoice fields are session-only — reset for the loaded customer
   state.managedBy = record.managed_by || '';
+  applyTemplateChrome();  // body flag, O&P band, header labels, read-only inputs, button label
   // refresh inputs
   if (managedBySelect) managedBySelect.value = state.managedBy;
   sqftInput.value = formatCount(state.sqft);
@@ -4023,21 +4229,27 @@ function startNewCustomer() {
   customerDescInput.focus();
   setArchiveControls('none');
   saveBtn.disabled = true;
-  // Reset to defaults
+  // Reset to defaults — a fresh customer starts on the default Barndominium template.
+  state.template = 'barndo';
+  PHASES = TEMPLATES.barndo.lines;
+  PHASES_META = TEMPLATES.barndo.phasesMeta;
+  LINE_TO_PHASE = TEMPLATES.barndo.lineToPhase;
+  templatePicks.forEach(b => b.classList.toggle('active', b.dataset.templatePick === 'barndo'));
   state.sqft = 1583;
   state.costPerSqft = 180;
   state.baseBudget = 285000;
-  state.oop = 15;
+  state.oop = TEMPLATES.barndo.oop.def;   // 15
   applyDefaults();
   clearPaid();
   resetInvoiceFields();
   state.managedBy = '';
   if (managedBySelect) managedBySelect.value = '';
+  applyTemplateChrome();
   sqftInput.value = '1,583';
   costPerSqftInput.value = '180.00';
   budgetInput.value = '285,000.00';
-  oopSlider.value = 15;
-  oopNum.textContent = '15.0';
+  oopSlider.value = state.oop;
+  oopNum.textContent = state.oop.toFixed(1);
   paintSliderFill();
   renderRows();
   refreshQuickstartDisplay();
