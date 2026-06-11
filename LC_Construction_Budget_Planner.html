@@ -1066,24 +1066,6 @@
   body.tpl-remodel [data-tab="bank"] .col-overage,
   body.tpl-remodel [data-tab="bank"] .col-oop { display: none; }
   body.tpl-remodel [data-tab="bank"] .table-head-row .col-budget { text-align: right; }
-  /* Remodel Invoice View = mirror of the Budget View (same 3-col schedule) */
-  body.tpl-remodel .invoice-pane .line-row,
-  body.tpl-remodel .invoice-pane .totals-row {
-    grid-template-columns: 44px 1fr 180px;
-  }
-  body.tpl-remodel .invoice-pane .table-head-row,   /* builder header */
-  body.tpl-remodel #invoice-totals-row,             /* builder totals */
-  body.tpl-remodel .invoice-pane .inv-oop-row { display: none; }
-  body.tpl-remodel .invoice-pane .col-budget { text-align: right; }
-  body.tpl-remodel .invoice-pane .rmd-inv-head {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--gray-400); border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-  body.tpl-remodel .invoice-pane .rmd-inv-head .col-budget { text-align: right; }
-  body.tpl-remodel .invoice-pane .rmd-grand .col-name,
-  body.tpl-remodel .invoice-pane .rmd-grand .col-budget {
-    font-weight: 800; color: var(--white); font-size: 15px;
-  }
   /* remodel summary rows (Total → O&P → PROJECT TOTAL) */
   .rmd-row { display: none; }
   body.tpl-remodel .rmd-row { display: grid; }
@@ -1523,6 +1505,10 @@
   /* ── PROGRESS REPORT — print-only customer handout ── */
   /* Hidden on screen. */
   #progress-report, #invoice-print { display: none; }
+  /* Remodel quote top-info block: hidden unless it's a remodel quote (rule in @media print). */
+  #pq-summary { display: none; margin: 14px 0 18px; padding: 12px 16px;
+    border: 1px solid rgba(0,0,0,0.12); border-radius: 8px; }
+  #pq-summary .pr-row { display: flex; justify-content: space-between; padding: 3px 0; }
 
   @media print {
     @page { size: letter; margin: 0.5in; }
@@ -1545,6 +1531,8 @@
     body.tpl-remodel #pr-progress-line,
     body.tpl-remodel #progress-report .pr-two-col,
     body.tpl-remodel #progress-report .pr-foot { display: none !important; }
+    /* Remodel quote: show the top budget-info summary block. */
+    body.tpl-remodel #pq-summary { display: block !important; }
 
     html, body {
       background: white !important;
@@ -2019,6 +2007,13 @@
     <span id="pr-pct-complete">0% complete</span>
   </div>
 
+  <!-- Remodel quote: top budget info (shown only on the remodel Project Quote) -->
+  <div class="pr-quote-summary" id="pq-summary">
+    <div class="pr-row"><span class="pr-lab">Total Project Budget</span><span class="pr-val pr-accent" id="pq-total">$0</span></div>
+    <div class="pr-row"><span class="pr-lab">Construction Only (Total less O&amp;P)</span><span class="pr-val" id="pq-construction">$0</span></div>
+    <div class="pr-row"><span class="pr-lab">Overhead &amp; Profit</span><span class="pr-val" id="pq-oop">0% · $0</span></div>
+  </div>
+
   <div class="pr-two-col">
     <div class="pr-block">
       <div class="pr-block-head">Your Inputs</div>
@@ -2140,11 +2135,8 @@ const CONVENTIONAL_LINES = [
   { id: 44, name: "Final Clean Up",                   category: "Final",                 pct: 2 },
 ];
 
-// Commercial = conventional MINUS Closing (1) and Fireplace (13); Final Clean Up
-// absorbs the freed 3% (2→5%). Keeps stable conventional ids; still sums to 100%.
-const COMMERCIAL_LINES = CONVENTIONAL_LINES
-  .filter(l => l.id !== 1 && l.id !== 13)
-  .map(l => l.id === 44 ? { ...l, pct: 5 } : l);
+// Commercial lines (renumbered) + their phase map are built after
+// CONVENTIONAL_LINE_TO_PHASE is defined (see below, near the TEMPLATE REGISTRY).
 
 // 24-line Barndominium draw schedule — Len's template. Order = draw sequence.
 // Percentages sum to exactly 100%. Flat list (no category sub-headers);
@@ -2233,8 +2225,28 @@ const ALL_VENDORS = (() => {
   return seen;
 })();
 
-// barndo → per-line mapping; everything else → the full flat vendor list.
-const VENDORS_BY_TEMPLATE = { barndo: BARNDO_VENDORS };
+// Remodel category → vendor mapping (best-effort from the existing vendor pool).
+// ⚠ Demolition, Countertops, Fixtures/Hardware are provisional — confirm with Len.
+// LC's General Contracting is auto-appended to every line by vendorOptionsFor().
+const REMODEL_VENDORS = {
+  1:  [],                                                                    // Demolition & Removal → LC's GC default (auto-appended)
+  2:  ["OMEF Construction", "Truss Pros", "Wallace Building Supplies", "84 Lumber"], // Framing / Structural
+  3:  ["George Adams"],                                                      // Electrical
+  4:  ["Jones & Jones Plumbing", "R&N Plumbing"],                            // Plumbing
+  5:  ["Langford Drywall"],                                                  // Drywall & Finishing
+  6:  ["AP Flooring"],                                                       // Flooring
+  7:  ["Tile & Stone Express"],                                             // Tile Labor & Material
+  8:  ["Robleros Cabinets", "Elegante Services"],                            // Cabinets / Built-ins
+  9:  ["Elegante Services", "Robleros Cabinets"],                            // Countertops → Elegante default
+  10: ["SB Painting"],                                                       // Painting
+  11: ["Martins Millworks"],                                                 // Trim / Finish Carpentry
+  12: ["Lowes"],                                                             // Fixtures / Hardware ⚠
+  13: ["ALA-GA Rolloff"],                                                    // Cleanup & Disposal
+  14: [],                                                                    // Other → LC GC + add-new only
+};
+
+// barndo + remodel → per-line mapping; conventional/commercial → full flat vendor list.
+const VENDORS_BY_TEMPLATE = { barndo: BARNDO_VENDORS, remodel: REMODEL_VENDORS };
 
 // Active line set + phase metadata — swapped by template (see TEMPLATES registry below).
 // Declared mutable so applyTemplate() can repoint them.
@@ -2490,39 +2502,10 @@ function vendorOptionsHtml(cat, selectedVendor) {
   return html;
 }
 
-// Remodel Invoice View = exact mirror of the Remodel Budget View: head + the 14
-// Description/Amount lines (same shared state.lineDollars, editable) + summary.
-function renderRemodelInvoice() {
-  let h = '<div class="line-row rmd-inv-head"><div class="col-id">#</div>' +
-          '<div class="col-name">Description</div><div class="col-budget">Amount</div></div>';
-  for (const p of PHASES) {
-    const amt = state.lineDollars[p.id] || 0;
-    h += '<div class="line-row" data-id="' + p.id + '">' +
-      '<div class="col-id">' + p.id + '</div>' +
-      '<div class="col-name">' + escapeHtml(p.name) + '</div>' +
-      '<div class="col-budget input-cell"><span class="cell-prefix">$</span>' +
-      '<input class="cell-input dollar-input" type="text" inputmode="numeric" autocomplete="off" ' +
-      'data-id="' + p.id + '" data-kind="budget" value="' + formatMoneyPlain(amt) +
-      '" aria-label="' + escapeHtml(p.name) + ' amount"></div></div>';
-  }
-  h += '<div class="totals-row"><div class="col-id"></div><div class="col-name">Totals</div>' +
-       '<div class="col-budget js-rmd-sub">$0</div></div>' +
-       '<div class="totals-row"><div class="col-id"></div>' +
-       '<div class="col-name">O&amp;P (<span class="js-rmd-oop-pct">20.0</span>%)</div>' +
-       '<div class="col-budget js-rmd-oop-amt">$0</div></div>' +
-       '<div class="totals-row rmd-grand"><div class="col-id"></div>' +
-       '<div class="col-name">PROJECT TOTAL</div>' +
-       '<div class="col-budget js-rmd-proj">$0</div></div>';
-  invoiceRowsEl.innerHTML = h;
-}
-
 // Invoice View = interactive builder. Render each committed payment line, then one
 // trailing blank row (cat=null) so a new line is always one phase-pick away.
 // Columns: # · Phase (dropdown) · Vendor (dropdown) · Check · Cash · Amount Paid · ✕
 function renderInvoiceRows() {
-  // Remodel: the Invoice View is an exact mirror of the Remodel Budget View — the
-  // same 14 Description/Amount lines (shared state, editable + synced) + summary.
-  if ((TEMPLATES[state.template] || {}).flatAmount) { renderRemodelInvoice(); return; }
   invoiceRowsEl.innerHTML = '';
   const rows = state.invoiceLines.concat([{ rid: 'new', cat: null, vendor: '', check: 0, cash: 0, paid: 0 }]);
   rows.forEach((l, i) => {
@@ -3338,6 +3321,20 @@ const BARNDO_LINE_TO_PHASE = {
   23: 7,                                     // Final & Closeout (Clean Up & Misc)
 };
 
+// Commercial = conventional MINUS Closing (1) and Fireplace (13), RENUMBERED 1..42;
+// Final Clean Up absorbs the freed 3% (2→5%). Still sums to 100%.
+const COMMERCIAL_LINES = [];
+const COMMERCIAL_LINE_TO_PHASE = {};
+(() => {
+  let nid = 0;
+  for (const l of CONVENTIONAL_LINES) {
+    if (l.id === 1 || l.id === 13) continue;     // drop Closing + Fireplace
+    nid++;
+    COMMERCIAL_LINES.push({ id: nid, name: l.name, category: l.category, pct: l.name === 'Final Clean Up' ? 5 : l.pct });
+    COMMERCIAL_LINE_TO_PHASE[nid] = CONVENTIONAL_LINE_TO_PHASE[l.id];
+  }
+})();
+
 // Remodel customer-view = a single scope card; all 14 lines roll into it.
 const REMODEL_PHASES_META = [
   { id: 1, icon: '🔨', label: 'Scope', name: 'Remodel Scope', color: '#D97706' },
@@ -3382,9 +3379,9 @@ const TEMPLATES = {
   commercial: {
     key: 'commercial',
     label: 'Commercial Build',
-    lines: COMMERCIAL_LINES,       // conventional minus Closing + Fireplace; cleanup 5%
+    lines: COMMERCIAL_LINES,       // conventional minus Closing + Fireplace; renumbered; cleanup 5%
     phasesMeta: PHASES_META_7,
-    lineToPhase: CONVENTIONAL_LINE_TO_PHASE,   // extra keys for dropped ids are harmless
+    lineToPhase: COMMERCIAL_LINE_TO_PHASE,
     showCategories: true,
     oop: OOP_NEWBUILD,
   },
@@ -3670,9 +3667,15 @@ function populateProgressReport() {
   const tbodyEl = document.getElementById('pr-tbody');
   const tfootEl = document.getElementById('pr-tfoot');
 
-  // ── Remodel: a clean customer Quote — Description · Amount, subtotal, O&P, total ──
+  // ── Remodel: a clean customer Quote — top budget info + Description · Amount table ──
   if ((TEMPLATES[state.template] || {}).flatAmount) {
     if (prCo) prCo.textContent = 'Project Quote';
+    // Top info block (Total Project Budget / Construction Only / O&P)
+    const cons = sumLineDollars();
+    const oopTop = cons * state.oop / 100;
+    setText('pq-total', formatMoney(cons + oopTop));
+    setText('pq-construction', formatMoney(cons));
+    setText('pq-oop', state.oop.toFixed(1) + '% · ' + formatMoney(oopTop));
     if (thead) thead.innerHTML = '<th class="pr-l">Description</th><th class="pr-r">Amount</th>';
     let sub = 0;
     tbodyEl.innerHTML = '';
@@ -3850,34 +3853,8 @@ function populateInvoicePrint() {
   setText('inv-print-date', now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
   setText('inv-print-managedby', state.managedBy ? ('Managed by: ' + state.managedBy) : '');
 
-  const thead = document.querySelector('#invoice-print .pr-table thead tr');
   const tbody = document.getElementById('inv-print-tbody');
   const tfoot = document.getElementById('inv-print-tfoot');
-
-  // ── Remodel: invoice = the 14 Description/Amount lines + O&P + Project Total. ──
-  if ((TEMPLATES[state.template] || {}).flatAmount) {
-    if (thead) thead.innerHTML = '<th class="pr-l">Description</th><th class="pr-r">Amount</th>';
-    let sub = 0;
-    tbody.innerHTML = '';
-    for (const p of PHASES) {
-      const amt = state.lineDollars[p.id] || 0;
-      sub += amt;
-      const tr = document.createElement('tr');
-      tr.innerHTML = '<td class="pr-l">' + escapeHtml(p.name) + '</td>' +
-                     '<td class="pr-r">' + formatMoney(amt) + '</td>';
-      tbody.appendChild(tr);
-    }
-    const oopD = sub * state.oop / 100;
-    tfoot.innerHTML =
-      '<tr><td class="pr-l">Subtotal</td><td class="pr-r">' + formatMoney(sub) + '</td></tr>' +
-      '<tr><td class="pr-l">O&amp;P (' + state.oop.toFixed(1) + '%)</td><td class="pr-r">' + formatMoney(oopD) + '</td></tr>' +
-      '<tr class="pr-allin"><td class="pr-l">PROJECT TOTAL</td><td class="pr-r">' + formatMoney(sub + oopD) + '</td></tr>';
-    return;
-  }
-  // New-build/builder invoice — restore the 5-column header (remodel may have changed it).
-  if (thead) thead.innerHTML =
-    '<th class="pr-l">Line Item</th><th class="pr-l">Vendor</th>' +
-    '<th class="pr-r">Check</th><th class="pr-r">Cash</th><th class="pr-r">Amount Paid</th>';
 
   // Line items — every invoice builder line with a payment, in entry order.
   tbody.innerHTML = '';
