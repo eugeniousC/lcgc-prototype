@@ -1713,7 +1713,7 @@
         <div class="control-title">Start here · all-in</div>
         <div class="money-input-wrap total">
           <span class="money-prefix">$</span>
-          <input id="total-input" class="money-input total" type="text" inputmode="numeric" autocomplete="off" value="342,000.00" aria-label="Total Project Budget">
+          <input id="total-input" class="money-input total" type="text" inputmode="numeric" autocomplete="off" value="327,750.00" aria-label="Total Project Budget">
         </div>
         <p class="hint"><span class="arrow">↻</span> The number the bank approved — everything below calculates from this.</p>
       </div>
@@ -1722,9 +1722,9 @@
       <div class="control-cell">
         <div class="control-label">Overhead &amp; Profit · O&amp;P</div>
         <div class="control-title">Contractor margin</div>
-        <div class="oop-display"><span class="num" id="oop-num">20.0</span><span class="pct">%</span></div>
+        <div class="oop-display"><span class="num" id="oop-num">15.0</span><span class="pct">%</span></div>
         <div class="slider-wrap">
-          <input id="oop-slider" type="range" min="10" max="25" step="0.5" value="20" aria-label="Overhead and Profit percent">
+          <input id="oop-slider" type="range" min="10" max="25" step="0.5" value="15" aria-label="Overhead and Profit percent">
         </div>
         <div class="slider-ticks">
           <span>10%</span><span>15%</span><span>20%</span><span>25%</span>
@@ -2144,7 +2144,7 @@ let LINE_TO_PHASE;
 const state = {
   template: 'barndo',    // 'barndo' (default) | 'conventional'
   baseBudget: 285000,
-  oop: 20,
+  oop: 15,
   sqft: 1583,            // quickstart input
   costPerSqft: 180,      // quickstart input
   lineDollars: {},       // budget per line — canonical
@@ -2169,12 +2169,17 @@ function loadCustomVendors() {
 }
 function saveCustomVendors() { lsWrite(LS_KEY_VENDORS, JSON.stringify(customVendors)); }
 
-// Vendor options for a line: mapped vendors (primary first) + any custom additions.
+// LC's own GC — self-performed work. Available as a vendor in EVERY category,
+// placed after the mapped subs so the primary sub stays the default selection.
+const LC_GC_VENDOR = "LC's General Contracting";
+
+// Vendor options for a line: mapped vendors (primary first) + LC's GC + custom.
 function vendorOptionsFor(id) {
   const map = VENDORS_BY_TEMPLATE[state.template] || {};
-  const mapped = (map[id] || []).slice();
-  const custom = (customVendors[id] || []).filter(v => !mapped.includes(v));
-  return mapped.concat(custom);
+  const out = (map[id] || []).slice();
+  if (!out.includes(LC_GC_VENDOR)) out.push(LC_GC_VENDOR);
+  for (const v of (customVendors[id] || [])) if (!out.includes(v)) out.push(v);
+  return out;
 }
 
 // Reset the session-only Invoice builder (called on load / new / template switch).
@@ -4022,7 +4027,7 @@ function startNewCustomer() {
   state.sqft = 1583;
   state.costPerSqft = 180;
   state.baseBudget = 285000;
-  state.oop = 20;
+  state.oop = 15;
   applyDefaults();
   clearPaid();
   resetInvoiceFields();
@@ -4031,8 +4036,8 @@ function startNewCustomer() {
   sqftInput.value = '1,583';
   costPerSqftInput.value = '180.00';
   budgetInput.value = '285,000.00';
-  oopSlider.value = 20;
-  oopNum.textContent = '20.0';
+  oopSlider.value = 15;
+  oopNum.textContent = '15.0';
   paintSliderFill();
   renderRows();
   refreshQuickstartDisplay();
