@@ -4423,13 +4423,12 @@ refreshCopyLinkBtn();
 if (persistenceConfigured()) {
   setSaveStatus('idle', 'Loading customers…');
   refreshCustomerList().then(() => {
-    const lastId = lsRead(LS_KEY_LAST);
-    if (lastId && persistence.list.some(c => c.id === lastId)) {
-      customerPicker.value = lastId;
-      loadCustomerById(lastId);
-    } else {
-      startNewCustomer();
-    }
+    // Always open on a fresh New Customer — never auto-load a saved record, so an
+    // existing job can't be edited (or auto-saved over) without a deliberate pick.
+    startNewCustomer();
+    customerPicker.value = '__new__';
+    setSaveStatus('idle', 'Ready · pick a customer or start new');
+    try { customerPicker.focus(); } catch (_) {}
   });
 } else {
   showSetupBanner();
