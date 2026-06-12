@@ -100,6 +100,14 @@ function snapshotPrint(mode: "progress" | "invoice") {
   const prRows = $$("#pr-tbody tr").length;
   const invRows = $$("#inv-print-tbody tr").length;
   const printingInvoice = document.body.classList.contains("printing-invoice");
+  // Content signature of the ACTIVE doc — first row + footer totals. Catches
+  // builder content regressions (wrong numbers, wrong columns), not just
+  // count/class regressions. Both are deterministic: no dates live in
+  // tbody/tfoot (the print date goes to a separate header element).
+  const activeBody = mode === "invoice" ? "#inv-print-tbody" : "#pr-tbody";
+  const activeFoot = mode === "invoice" ? "#inv-print-tfoot" : "#pr-tfoot";
+  const firstRow = ($(activeBody + " tr:first-child")?.textContent || "").replace(/\s+/g, " ").trim();
+  const footer = text(activeFoot);
   if (mode === "invoice") {
     check(printingInvoice, "invoice print: body missing printing-invoice class");
     check(prRows === 0, `invoice print: progress doc not emptied (${prRows} rows leaked)`);
@@ -109,7 +117,7 @@ function snapshotPrint(mode: "progress" | "invoice") {
     check(prRows > 0, "progress print: pr-tbody is empty");
   }
   window.dispatchEvent(new Event("afterprint"));
-  return { prRows, invRows, printingInvoice };
+  return { prRows, invRows, printingInvoice, firstRow, footer };
 }
 
 function snapshotBankDrawEntry() {

@@ -13,12 +13,16 @@
     "printProgress": {
       "prRows": 24,
       "invRows": 0,
-      "printingInvoice": false
+      "printingInvoice": false,
+      "firstRow": "Clearing & Grading4.0%$11,400.00––",
+      "footer": "TOTAL HARD COST100%$285,000.00––OVER / (UNDER) vs PLAN–+ O&P / MANAGEMENT$42,750.00ALL-IN PROJECT TOTAL$327,750.00"
     },
     "printInvoice": {
       "prRows": 0,
       "invRows": 0,
-      "printingInvoice": true
+      "printingInvoice": true,
+      "firstRow": "",
+      "footer": "TOTALS–$0.00O&P (Amount Paid × 15.0%)$0.00"
     }
   },
   "conventional": {
@@ -35,12 +39,16 @@
     "printProgress": {
       "prRows": 44,
       "invRows": 0,
-      "printingInvoice": false
+      "printingInvoice": false,
+      "firstRow": "Closing2.0%$5,700.00––",
+      "footer": "TOTAL HARD COST100%$285,000.00––OVER / (UNDER) vs PLAN–+ O&P / MANAGEMENT$42,750.00ALL-IN PROJECT TOTAL$327,750.00"
     },
     "printInvoice": {
       "prRows": 0,
       "invRows": 0,
-      "printingInvoice": true
+      "printingInvoice": true,
+      "firstRow": "",
+      "footer": "TOTALS–$0.00O&P (Amount Paid × 15.0%)$0.00"
     }
   },
   "remodel": {
@@ -59,12 +67,16 @@
     "printProgress": {
       "prRows": 14,
       "invRows": 0,
-      "printingInvoice": false
+      "printingInvoice": false,
+      "firstRow": "Demolition & Removal$0.00",
+      "footer": "Subtotal$0.00O&P (20.0%)$0.00PROJECT TOTAL$0.00"
     },
     "printInvoice": {
       "prRows": 0,
       "invRows": 0,
-      "printingInvoice": true
+      "printingInvoice": true,
+      "firstRow": "",
+      "footer": "TOTALS–$0.00O&P (Amount Paid × 20.0%)$0.00"
     }
   },
   "commercial": {
@@ -81,12 +93,16 @@
     "printProgress": {
       "prRows": 42,
       "invRows": 0,
-      "printingInvoice": false
+      "printingInvoice": false,
+      "firstRow": "Clearing/Grading0.0%$0.00––",
+      "footer": "TOTAL HARD COST100%$0.00––OVER / (UNDER) vs PLAN–+ O&P / MANAGEMENT$0.00ALL-IN PROJECT TOTAL$0.00"
     },
     "printInvoice": {
       "prRows": 0,
       "invRows": 0,
-      "printingInvoice": true
+      "printingInvoice": true,
+      "firstRow": "",
+      "footer": "TOTALS–$0.00O&P (Amount Paid × 15.0%)$0.00"
     }
   },
   "bankDrawEntry": {
