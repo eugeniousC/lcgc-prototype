@@ -117,5 +117,13 @@
     "actualPct": "n/a",
     "oop2": "$11,250.00",
     "actualPct2": "n/a"
+  },
+  "cascadeTriggers": {
+    "afterOopSlider": "$0.00 | total 0.00",
+    "afterBudgetInput": "total 360,000.00",
+    "afterTotalInput": "budget 200,000.00",
+    "afterSqft": "budget 360,000.00",
+    "caretAfterUpdate": "2,2",
+    "afterReset": "budget 360,000.00 | paid $1,480.80"
   }
 }

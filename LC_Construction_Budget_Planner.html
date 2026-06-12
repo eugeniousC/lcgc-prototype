@@ -2337,18 +2337,17 @@ function rollupInvoiceToBank() {
   return sums;
 }
 
-// Push state.linePaid back into the Bank Draw rows + all dependent totals/derived.
+// Push state.linePaid back into the Bank Draw paid INPUTS (inputs are user-owned,
+// so update() never writes them — this is the one sanctioned programmatic write,
+// used when the invoice rollup changes linePaid). Callers follow with update()
+// for all computed cells/totals — no painting here.
 function refreshBankPaidUI() {
   document.querySelectorAll('#rows .line-row').forEach(row => {
     const id = +row.dataset.id;
     const paid = state.linePaid[id] || 0;
     const inp = row.querySelector('input[data-kind="paid"]');
     if (inp) { inp.value = formatMoneyPlain(paid); inp.classList.toggle('empty', paid === 0); }
-    updateRowActualPct(row);
-    updateRowOop(row);
-    updateRowOverage(row);
   });
-  update();
 }
 
 function applyDefaults() {

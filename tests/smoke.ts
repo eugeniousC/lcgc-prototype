@@ -275,6 +275,62 @@ function snapshotValueSyncIntegrity() {
   };
 }
 
+// Empirically fire every consolidated update() trigger the earlier sections
+// don't already cover (covered elsewhere: onCellInput, onInvoicePhaseChange,
+// onInvoiceCellInput, applyTemplate, init; deferred to step-3 work:
+// applyRecord/startNewCustomer — persistence-coupled; onInvoiceVendorChange
+// paints nothing). Triggers here: oopSlider, onBudgetInput, onTotalInput,
+// applySqftChange, armOnce reset. Plus a caret-preservation soft probe.
+function snapshotCascadeTriggers() {
+  g.applyTemplate("barndo");
+  const fire = (el: HTMLInputElement, val: string) => {
+    el.value = val;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  const out: Record<string, unknown> = {};
+
+  fire($("#oop-slider") as HTMLInputElement, "20");
+  out.afterOopSlider = `${text("#oop-value")} | total ${($("#total-input") as HTMLInputElement).value}`;
+  check(text("#oop-pct-display") === "at 20.0%", `cascade oopSlider: O&P display not repainted (${text("#oop-pct-display")})`);
+
+  fire($("#budget-input") as HTMLInputElement, "300000");
+  out.afterBudgetInput = `total ${($("#total-input") as HTMLInputElement).value}`;
+  check(($("#total-input") as HTMLInputElement).value === "360,000.00",
+    `cascade onBudgetInput: total not repainted from 300000 @ 20% (${($("#total-input") as HTMLInputElement).value})`);
+
+  fire($("#total-input") as HTMLInputElement, "240000");
+  out.afterTotalInput = `budget ${($("#budget-input") as HTMLInputElement).value}`;
+  check(($("#budget-input") as HTMLInputElement).value === "200,000.00",
+    `cascade onTotalInput: base not back-computed from 240000 @ 20% (${($("#budget-input") as HTMLInputElement).value})`);
+
+  fire($("#sqft-input") as HTMLInputElement, "2000");
+  out.afterSqft = `budget ${($("#budget-input") as HTMLInputElement).value}`;
+
+  // Caret preservation: focused paid input mid-edit must keep value AND caret
+  // across a full update(). happy-dom may not model selection — soft-capture,
+  // hard-check the value.
+  const paid = $('#rows .line-row[data-id="2"] input[data-kind="paid"]') as HTMLInputElement;
+  paid.focus();
+  fire(paid, "1234");
+  let caret: string = "unsupported";
+  try {
+    paid.setSelectionRange(2, 2);
+    g.update();
+    caret = `${paid.selectionStart},${paid.selectionEnd}`;
+  } catch (_) {
+    g.update();
+  }
+  check(paid.value === "1234", `cascade caret probe: focused value clobbered by update() (${paid.value})`);
+  out.caretAfterUpdate = caret;
+
+  // armOnce reset (two clicks: arm, then fire) → applyDefaults + renderRows + update
+  const resetBtn = $("#reset-btn") as HTMLButtonElement;
+  resetBtn.click();
+  resetBtn.click();
+  out.afterReset = `budget ${($("#budget-input") as HTMLInputElement).value} | paid ${text("#paid-value")}`;
+  return out;
+}
+
 // ── Drive: per template → structure, then both print modes ─────────
 const snapshot: Record<string, unknown> = {};
 for (const key of Object.keys(EXPECTED) as TemplateKey[]) {
@@ -287,6 +343,7 @@ for (const key of Object.keys(EXPECTED) as TemplateKey[]) {
 snapshot.bankDrawEntry = snapshotBankDrawEntry();
 snapshot.invoiceBuilderEntry = snapshotInvoiceBuilderEntry();
 snapshot.valueSyncIntegrity = snapshotValueSyncIntegrity();
+snapshot.cascadeTriggers = snapshotCascadeTriggers();
 
 // ── Golden master compare / update ──────────────────────────────────
 const serialized = JSON.stringify(snapshot, null, 2);
