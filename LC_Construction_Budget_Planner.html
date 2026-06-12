@@ -2348,9 +2348,7 @@ function refreshBankPaidUI() {
     updateRowOop(row);
     updateRowOverage(row);
   });
-  updateCategoryTotals();
-  updateTotals();
-  recalcDerived();
+  update();
 }
 
 function applyDefaults() {
@@ -2470,10 +2468,11 @@ function buildScheduleRows(targetEl) {
 // Render the Bank Draw schedule + the Invoice View (different columns, shared
 // state). Amount Paid is the shared field; edits on either reflect on the other.
 function renderRows() {
+  // Structural only — rebuilds row nodes; every caller follows with update()
+  // for the value pass.
   buildScheduleRows(rowsEl);
   if (invoiceRowsEl) renderInvoiceRows();
   wireRowInputs();
-  updateTotals();
 }
 
 // Build the Phase/Line Item <option> list (all categories) for a chosen cat.
@@ -2581,7 +2580,7 @@ function onInvoicePhaseChange(e) {
   }
   renderInvoiceRows();
   rollupInvoiceToBank();
-  updateInvoiceTotals();
+  update();   // remodel never rolls up, so paint here — update() covers invoice totals too
   markDirty();
 }
 
@@ -2625,7 +2624,7 @@ function onInvoiceCellInput(e) {
     rollupInvoiceToBank();
   }
   flash(input);
-  updateInvoiceTotals();
+  update();
   markDirty();
 }
 
@@ -2644,7 +2643,7 @@ function onInvoiceDelete(e) {
   state.invoiceLines = state.invoiceLines.filter(l => l.rid !== rid);
   renderInvoiceRows();
   rollupInvoiceToBank();
-  updateInvoiceTotals();
+  update();
   markDirty();
 }
 
@@ -2718,13 +2717,9 @@ function onCellInput(e) {
     // also has invoice lines, the next invoice edit re-rolls and overrides this.
     state.linePaid[id] = safe;
     input.classList.toggle('empty', safe === 0);
-    updateRowActualPct(row);
-    updateRowOop(row);
   }
   flash(input);
-  recalcDerived();
-  updateRowOverage(row);
-  updateCategoryTotals();
+  update();
 }
 
 function updateRowActualPct(row) {
@@ -2912,8 +2907,7 @@ oopSlider.addEventListener('input', e => {
   state.oop = clamp(parseFloat(e.target.value), band.min, band.max);
   oopNum.textContent = state.oop.toFixed(1);
   paintSliderFill();
-  recalcDerived();
-  updateAllRowOop();        // O&P column tracks the rate
+  update();
 });
 
 function armOnce(btn, label, confirmLabel, action) {
@@ -2940,13 +2934,13 @@ function armOnce(btn, label, confirmLabel, action) {
 armOnce(resetBtn, 'Reset Schedule', 'Reset Schedule?', () => {
   applyDefaults();
   renderRows();
-  recalcDerived();
+  update();
 });
 
 armOnce(clearPaidBtn, 'Clear Paid', 'Clear Paid?', () => {
   clearPaid();
   renderRows();
-  recalcDerived();
+  update();
 });
 
 // Sum over the ACTIVE template's lines only. Switching templates leaves stale
@@ -2992,10 +2986,7 @@ function onBudgetInput(e) {
   });
 
   refreshQuickstartFromBase();
-  recalcDerived();
-  updateAllRowOverages();
-  updateAllRowActualPct();
-  updateCategoryTotals();
+  update();
 }
 
 function onTotalInput(e) {
@@ -3031,17 +3022,16 @@ function onTotalInput(e) {
   });
 
   refreshQuickstartFromBase();
-  recalcDerived({ skipTotalInputUpdate: true });
-  updateAllRowOverages();
-  updateAllRowActualPct();
-  updateCategoryTotals();
+  update({ skipTotalInputUpdate: true });
 }
 
 // ──────────────────────────────────────────────────────────────────
-//  DERIVED VALUES — summary strip + progress bar
+//  DERIVED VALUES — pure computation (no DOM) + the single update() painter
 // ──────────────────────────────────────────────────────────────────
-function recalcDerived(opts) {
-  opts = opts || {};
+// All derived numbers in one pure pass over state. No DOM reads or writes in
+// here — this is the calc engine, and the smoke harness golden-masters its
+// output through the painted UI.
+function computeDerived() {
   const adjusted = sumLineEffective();
   const overage = adjusted - state.baseBudget;
   const overagePctVal = state.baseBudget > 0 ? (overage / state.baseBudget) * 100 : 0;
@@ -3055,19 +3045,7 @@ function recalcDerived(opts) {
   const remaining = total - totalPaidWithOop;
   const progressPct = total > 0 ? (totalPaidWithOop / total) * 100 : 0;
 
-  // Top inputs
-  if (!opts.skipTotalInputUpdate && document.activeElement !== totalInput) {
-    totalInput.value = formatMoneyPlain(total);
-  }
-  // Remodel is bottom-up: keep Construction Only (read-only) in step with the line sum.
-  if ((TEMPLATES[state.template] || {}).flatAmount && document.activeElement !== budgetInput) {
-    budgetInput.value = formatMoneyPlain(state.baseBudget);
-  }
-
-  // Summary strip
-  baseValueEl.textContent = formatMoney(state.baseBudget);
-
-  // Over/Under Budget cell — actual paid vs original plan, aggregated across paid lines only
+  // Paid-vs-plan variance, aggregated across paid lines only.
   let paidLines = 0;
   let paidDelta = 0;        // sum of (paid - planned) where paid > 0
   let paidPlannedTotal = 0; // sum of planned for those same lines
@@ -3081,6 +3059,39 @@ function recalcDerived(opts) {
     }
   }
   const paidVariancePct = paidPlannedTotal > 0 ? (paidDelta / paidPlannedTotal) * 100 : 0;
+
+  return { adjusted, overage, overagePctVal, oopDollars, total, totalPaid,
+           totalPaidWithOop, remaining, progressPct,
+           paidLines, paidDelta, paidPlannedTotal, paidActualTotal, paidVariancePct };
+}
+
+// The ONE entry point for repainting every computed value surface — summary
+// strip, progress bar, per-row cells, grand/category totals, phase cards,
+// invoice totals. Value-sync only: writes text/classes into EXISTING nodes,
+// never creates or removes them (that's renderRows()/renderPhaseCards(), the
+// structural path — keeping them apart is what preserves input focus on iPad).
+// Call update() after ANY state change; there is no partial-paint cascade to
+// get right anymore.
+function update(opts) {
+  opts = opts || {};
+  const { adjusted, overage, overagePctVal, oopDollars, total, totalPaid,
+          totalPaidWithOop, remaining, progressPct,
+          paidLines, paidDelta, paidPlannedTotal, paidActualTotal,
+          paidVariancePct } = computeDerived();
+
+  // Top inputs
+  if (!opts.skipTotalInputUpdate && document.activeElement !== totalInput) {
+    totalInput.value = formatMoneyPlain(total);
+  }
+  // Remodel is bottom-up: keep Construction Only (read-only) in step with the line sum.
+  if ((TEMPLATES[state.template] || {}).flatAmount && document.activeElement !== budgetInput) {
+    budgetInput.value = formatMoneyPlain(state.baseBudget);
+  }
+
+  // Summary strip
+  baseValueEl.textContent = formatMoney(state.baseBudget);
+
+  // Over/Under Budget cell — actual paid vs original plan (computed above)
   const linesLabel = paidLines + ' of ' + PHASES.length + ' line' + (PHASES.length === 1 ? '' : 's');
 
   overUnderCellEl.classList.remove('tint-under', 'tint-warn', 'tint-over');
@@ -3153,11 +3164,15 @@ function recalcDerived(opts) {
     progressPctEl.classList.add('warning');
   }
 
-  // Bank Draw ledger — per-line O&P (depends on paid × current rate) + grand totals
+  // Every dependent value surface, unconditionally — per-row cells, grand and
+  // category totals (incl. invoice/remodel via updateTotals), phase cards.
+  // Painting an unchanged value is free; forgetting one region was the bug
+  // class this function exists to kill.
+  updateAllRowActualPct();
+  updateAllRowOverages();
   updateAllRowOop();
   updateTotals();
-
-  // Customer-view phase cards stay in lockstep with bank-draw edits
+  updateCategoryTotals();
   updatePhaseCards();
 }
 
@@ -3222,9 +3237,7 @@ function applySqftChange() {
   budgetInput.value = formatMoneyPlain(newBase);
   quickstartDerivedEl.value = formatMoneyPlain(newBase);
   syncRowsFromBaseChange();
-  recalcDerived();
-  updateAllRowOverages();
-  updateCategoryTotals();
+  update();
 }
 
 sqftInput.addEventListener('input', e => {
@@ -3453,9 +3466,7 @@ function applyTemplate(key, opts) {
   if (TEMPLATES[key].flatAmount) state.baseBudget = sumLineDollars();
   renderRows();
   renderPhaseCards();
-  recalcDerived();
-  updateAllRowOop();
-  updateTotals();
+  update();
 }
 
 function phaseLinesFor(phaseId) {
@@ -4197,10 +4208,7 @@ function applyRecord(record) {
   paintSliderFill();
   renderRows();
   refreshQuickstartDisplay();
-  recalcDerived();
-  updateAllRowOverages();
-  updateAllRowActualPct();
-  updateCategoryTotals();
+  update();
 }
 
 function markDirty() {
@@ -4324,7 +4332,7 @@ function startNewCustomer() {
   paintSliderFill();
   renderRows();
   refreshQuickstartDisplay();
-  recalcDerived();
+  update();
   setActiveTab('bank');   // open straight to the numbers
   setSaveStatus('idle', 'New customer · add description and Save');
 }
@@ -4413,7 +4421,7 @@ renderRows = function() {
 loadCustomVendors();
 renderRows();
 renderPhaseCards();
-recalcDerived();
+update();
 paintSliderFill();
 // Sync the quickstart derived display to the initial sqft × $/sqft.
 // (Do NOT call refreshQuickstartFromBase here — that would back-compute $/sqft
