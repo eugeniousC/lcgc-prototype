@@ -21,3 +21,8 @@ screenshots/
 
 # Dev dependencies (smoke harness)
 node_modules/
+
+# Business data — keep out of the public repo
+vendors.md
+vendors.txt
+*.pdf

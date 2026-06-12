@@ -48,6 +48,17 @@ with its own inline CSS and JS.
   Safari/Chrome Private/Incognito throws `QuotaExceededError` on `setItem`. All iPad browsers
   run on WebKit, so Chrome Incognito hits the same wall as Safari Private Browsing.
 
+## Hard rules (schema safety)
+
+- **Never add, remove, or renumber lines in a template that has live customer records.**
+  Saved records are positional (`line_budgets[1..44]` keyed by template-relative line id) —
+  changing a line set reinterprets every existing record silently. Any such change triggers
+  the keyed-schema migration FIRST: backup Sheet copy → migration script → per-record
+  verification. (The v1.13.2 commercial renumbering was safe only because no commercial
+  customers existed yet.) `schema_version` column (v2, step 3) makes record vintage detectable.
+- **Invoice snapshots are immutable** — the `invoices` sheet is append-only; never edit or
+  delete snapshot rows from code. They're the customer-facing paper trail.
+
 ## Conventions
 - **Keep each HTML file self-contained** — inline CSS/JS, no separate assets, no framework
   or build tool unless explicitly asked. This is a deliberate constraint, not tech debt.
