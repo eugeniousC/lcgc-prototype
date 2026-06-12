@@ -141,5 +141,24 @@
     "afterSqft": "budget 360,000.00",
     "caretAfterUpdate": "2,2",
     "afterReset": "budget 360,000.00 | paid $1,480.80"
+  },
+  "previousInvoice": {
+    "btnHiddenAfterLoad": false,
+    "builderRows": 1,
+    "panelVisibleAfterFirstClick": true,
+    "tbodyRows": 1,
+    "firstRowText": "Clearing & GradingChris Easterwood$5,000.00–$5,000.00",
+    "metaHasManagedBy": true,
+    "panelHiddenAfterSecondClick": true
+  },
+  "printInvoiceSave": {
+    "saveInvoiceCount": 1,
+    "op": "save_invoice",
+    "id": "0042",
+    "lineCount": 1,
+    "firstLineName": "Clearing & Grading",
+    "firstLinePaid": 2500,
+    "statusText": "Invoice #4 saved",
+    "dedupedCount": 1
   }
 }

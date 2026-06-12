@@ -36,24 +36,121 @@ const EXPECTED = {
   commercial: { lines: 42, phases: 7 },
 } as const;
 type TemplateKey = keyof typeof EXPECTED;
+type FetchLogEntry = { url: string; method: string; op: string; body: any };
 
 const errors: string[] = [];
+const fetchLog: FetchLogEntry[] = [];
 function check(cond: boolean, msg: string) {
   if (!cond) errors.push(msg);
+}
+
+function makeLoadRecord() {
+  const lineBudgets = new Array(45).fill(0);
+  const linePaid = new Array(45).fill(0);
+  lineBudgets[1] = 50_000;
+  lineBudgets[2] = 30_000;
+  linePaid[1] = 5_000;
+  return {
+    id: "0042",
+    description: "Forge Test Customer",
+    template: "barndo",
+    sqft: 1583,
+    cost_per_sqft: 180,
+    base_build_budget: 284_940,
+    oop_pct: 15,
+    managed_by: "Len",
+    line_budgets: lineBudgets,
+    line_paid: linePaid,
+    archived: false,
+    last_invoice: {
+      invoice_no: 3,
+      created_at: "2026-06-01T00:00:00.000Z",
+      managed_by: "Len",
+      oop_pct: 15,
+      lines: [
+        {
+          cat: 1,
+          name: "Clearing & Grading",
+          vendor: "Chris Easterwood",
+          check: 5000,
+          cash: 0,
+          paid: 5000,
+        },
+      ],
+    },
+  };
+}
+
+function okJson(payload: any) {
+  return {
+    ok: true,
+    status: 200,
+    async json() {
+      return payload;
+    },
+  };
 }
 
 // ── Boot ────────────────────────────────────────────────────────────
 GlobalRegistrator.register({ url: "https://localhost/planner.html" });
 
-// Offline guard: no endpoint is configured (fresh localStorage → setup-banner
-// path); any stray network call must fail loud, not hang.
-(globalThis as any).fetch = async () => {
-  throw new Error("network disabled in smoke harness");
-};
-(globalThis as any).print = () => {};
+localStorage.setItem("lcgc_appsscript_url", "https://script.google.com/macros/s/STUB/exec");
 
-const html = readFileSync(PLANNER, "utf8");
+// Offline recorder: persistence is configured up front, so boot runs the real
+// list/load/save code paths against a deterministic in-memory transport.
+const fetchRecorder = async (input: string | URL | { url?: string }, init?: { method?: string; body?: string }) => {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : String(input.url ?? input);
+  const method = (init?.method ?? "GET").toUpperCase();
+  let op = "";
+  let body: any = null;
+  let payload: any;
+
+  if (method === "GET") {
+    const params = new URL(url).searchParams;
+    op = params.get("op") ?? "";
+    body = Object.fromEntries(params.entries());
+    fetchLog.push({ url, method, op, body });
+    if (op === "list") payload = { customers: [] };
+    else if (op === "load") {
+      if (params.get("id") !== "0042") throw new Error(`unexpected load id: ${params.get("id")}`);
+      payload = makeLoadRecord();
+    } else {
+      throw new Error("unexpected op: " + op);
+    }
+    return okJson(payload);
+  }
+
+  if (method === "POST") {
+    body = init?.body ? JSON.parse(init.body) : null;
+    op = String(body?.op ?? "");
+    fetchLog.push({ url, method, op, body });
+    if (op === "save") payload = { ...body, id: body?.id || "0042" };
+    else if (op === "save_invoice") {
+      payload = { id: "0042", invoice_no: 4, created_at: "2026-06-01T00:00:00.000Z", line_count: 1 };
+    } else if (op === "archive" || op === "restore") payload = { ok: true };
+    else throw new Error("unexpected op: " + op);
+    return okJson(payload);
+  }
+
+  throw new Error("unexpected method: " + method);
+};
+(globalThis as any).fetch = fetchRecorder;
+(globalThis as any).confirm = () => true;
+(globalThis as any).alert = () => {};
+(globalThis as any).print = () => {};
+(window as any).fetch = fetchRecorder;
+(window as any).confirm = (globalThis as any).confirm;
+(window as any).alert = (globalThis as any).alert;
+(window as any).print = (globalThis as any).print;
+
+const html = readFileSync(PLANNER, "utf8")
+  .replace(/<link[^>]+fonts\.googleapis\.com[^>]*>\s*/gi, "")
+  .replace(/<link[^>]+fonts\.gstatic\.com[^>]*>\s*/gi, "");
 document.write(html);
+(window as any).fetch = fetchRecorder;
+(window as any).confirm = (globalThis as any).confirm;
+(window as any).alert = (globalThis as any).alert;
+(window as any).print = (globalThis as any).print;
 
 const inline = document.querySelector("script")?.textContent ?? "";
 check(inline.length > 50_000, `boot: inline script looks truncated (${inline.length} chars)`);
@@ -68,11 +165,16 @@ try {
 const g = globalThis as any;
 check(typeof g.applyTemplate === "function", "boot: applyTemplate not global");
 check(typeof g.setActiveTab === "function", "boot: setActiveTab not global");
+check(typeof g.loadCustomerById === "function", "boot: loadCustomerById not global");
 
 // ── Capture helpers ─────────────────────────────────────────────────
 const $ = (sel: string) => document.querySelector(sel);
 const $$ = (sel: string) => document.querySelectorAll(sel);
 const text = (sel: string) => ($(sel)?.textContent || "").replace(/\s+/g, " ").trim();
+
+async function settleAsyncWork(delayMs = 5) {
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+}
 
 function snapshotTemplate(key: TemplateKey) {
   g.applyTemplate(key);
@@ -339,6 +441,129 @@ function snapshotCascadeTriggers() {
   return out;
 }
 
+async function snapshotPreviousInvoice() {
+  await settleAsyncWork();
+  await g.loadCustomerById("0042");
+
+  const prevButtonSelector = "#prev-invoice-btn";
+  const prevButton = $(prevButtonSelector) as HTMLButtonElement | null;
+  check(!!prevButton, `previous invoice: missing button ${prevButtonSelector}`);
+
+  const btnHiddenAfterLoad = prevButton?.classList.contains("hidden") ?? true;
+  check(!btnHiddenAfterLoad, "previous invoice: button stayed hidden after loading record 0042");
+
+  const builderRows = $$("#invoice-rows .line-row").length;
+  check(builderRows === 1, `previous invoice: builder should stay blank after load, got ${builderRows} rows`);
+
+  prevButton?.click();
+  const panelVisibleAfterFirstClick = !($("#prev-invoice-panel")?.classList.contains("hidden") ?? true);
+  check(panelVisibleAfterFirstClick, "previous invoice: panel stayed hidden after first toggle");
+
+  const tbodyRows = $$("#prev-invoice-tbody tr").length;
+  check(tbodyRows === 1, `previous invoice: expected 1 history row, got ${tbodyRows}`);
+
+  const rowText = text("#prev-invoice-tbody tr:first-child");
+  check(
+    rowText.includes("Clearing & Grading") && rowText.includes("$5,000.00"),
+    `previous invoice: first row text missing expected name/amount (${rowText})`
+  );
+
+  const metaHasManagedBy = text("#prev-invoice-meta").includes("Managed by Len");
+  check(metaHasManagedBy, `previous invoice: meta missing managed-by text (${text("#prev-invoice-meta")})`);
+
+  prevButton?.click();
+  const panelHiddenAfterSecondClick = $("#prev-invoice-panel")?.classList.contains("hidden") ?? false;
+  check(panelHiddenAfterSecondClick, "previous invoice: panel stayed visible after second toggle");
+
+  return {
+    btnHiddenAfterLoad,
+    builderRows,
+    panelVisibleAfterFirstClick,
+    tbodyRows,
+    firstRowText: rowText,
+    metaHasManagedBy,
+    panelHiddenAfterSecondClick,
+  };
+}
+
+async function snapshotPrintInvoiceSave() {
+  const builderRowsBefore = $$("#invoice-rows .line-row").length;
+  check(builderRowsBefore === 1, `print invoice save: expected one blank builder row before commit, got ${builderRowsBefore}`);
+
+  const phaseSelector = "#invoice-rows .inv-new-row select.phase-select";
+  const phaseSelect = $(phaseSelector) as HTMLSelectElement | null;
+  check(!!phaseSelect, `print invoice save: missing new-row phase select ${phaseSelector}`);
+
+  const firstPhaseValue =
+    [...(phaseSelect?.options ?? [])].map((option) => option.value).find((value) => value !== "") ?? null;
+  check(firstPhaseValue === "1", `print invoice save: expected first phase option 1, got ${JSON.stringify(firstPhaseValue)}`);
+
+  if (phaseSelect && firstPhaseValue) {
+    phaseSelect.value = firstPhaseValue;
+    phaseSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  const committedRows = $$("#invoice-rows .line-row:not(.inv-new-row)").length;
+  check(committedRows === 1, `print invoice save: expected one committed row after phase change, got ${committedRows}`);
+
+  const checkSelector = '#invoice-rows .line-row:not(.inv-new-row) input[data-kind="check"]';
+  const checkInput = $(checkSelector) as HTMLInputElement | null;
+  check(!!checkInput, `print invoice save: missing check input ${checkSelector}`);
+
+  if (checkInput) {
+    checkInput.value = "2500";
+    checkInput.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  const saveInvoiceBaseline = fetchLog.filter((entry) => entry.op === "save_invoice").length;
+  check(saveInvoiceBaseline === 0, `print invoice save: expected no prior save_invoice posts, got ${saveInvoiceBaseline}`);
+
+  const printSelector = "#print-invoice-btn";
+  const printButton = $(printSelector) as HTMLButtonElement | null;
+  check(!!printButton, `print invoice save: missing print button ${printSelector}`);
+  printButton?.click();
+  await settleAsyncWork();
+
+  const saves = fetchLog.filter((entry) => entry.op === "save_invoice");
+  check(saves.length === 1, `print invoice save: expected exactly one save_invoice POST, got ${saves.length}`);
+  check(saves[0]?.method === "POST", `print invoice save: save_invoice method should be POST, got ${JSON.stringify(saves[0]?.method ?? null)}`);
+  check(saves[0]?.body?.id === "0042", `print invoice save: save_invoice id should be 0042, got ${JSON.stringify(saves[0]?.body?.id ?? null)}`);
+  check(
+    Array.isArray(saves[0]?.body?.lines) && saves[0].body.lines.length >= 1,
+    `print invoice save: save_invoice payload missing lines (${JSON.stringify(saves[0]?.body?.lines ?? null)})`
+  );
+  check(
+    saves[0]?.body?.lines?.[0]?.paid === 2500,
+    `print invoice save: first payload line paid should be 2500, got ${JSON.stringify(saves[0]?.body?.lines?.[0]?.paid ?? null)}`
+  );
+  check(
+    typeof saves[0]?.body?.oop_pct === "number",
+    `print invoice save: oop_pct should be numeric, got ${JSON.stringify(saves[0]?.body?.oop_pct ?? null)}`
+  );
+
+  const statusText = text("#save-status-text");
+  check(statusText === "Invoice #4 saved", `print invoice save: save status should be Invoice #4 saved, got ${statusText}`);
+
+  printButton?.click();
+  await settleAsyncWork();
+  const savesAfter = fetchLog.filter((entry) => entry.op === "save_invoice");
+  check(
+    savesAfter.length === 1,
+    `print invoice save: identical reprint should not POST again (save_invoice count ${savesAfter.length})`
+  );
+
+  return {
+    saveInvoiceCount: saves.length,
+    op: saves[0]?.op ?? null,
+    id: saves[0]?.body?.id ?? null,
+    lineCount: Array.isArray(saves[0]?.body?.lines) ? saves[0].body.lines.length : 0,
+    firstLineName: saves[0]?.body?.lines?.[0]?.name ?? null,
+    firstLinePaid: saves[0]?.body?.lines?.[0]?.paid ?? null,
+    statusText,
+    dedupedCount: savesAfter.length,
+  };
+}
+
 // ── Drive: per template → structure, then both print modes ─────────
 const snapshot: Record<string, unknown> = {};
 for (const key of Object.keys(EXPECTED) as TemplateKey[]) {
@@ -352,6 +577,8 @@ snapshot.bankDrawEntry = snapshotBankDrawEntry();
 snapshot.invoiceBuilderEntry = snapshotInvoiceBuilderEntry();
 snapshot.valueSyncIntegrity = snapshotValueSyncIntegrity();
 snapshot.cascadeTriggers = snapshotCascadeTriggers();
+snapshot.previousInvoice = await snapshotPreviousInvoice();
+snapshot.printInvoiceSave = await snapshotPrintInvoiceSave();
 
 // ── Golden master compare / update ──────────────────────────────────
 const serialized = JSON.stringify(snapshot, null, 2);
