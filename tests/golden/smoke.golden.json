@@ -1,0 +1,92 @@
+{
+  "barndo": {
+    "structure": {
+      "rows": 24,
+      "categoryHeaders": 0,
+      "phaseCards": 7,
+      "invoiceBuilderRows": 1,
+      "totalInput": "327,750.00",
+      "budgetInput": "285,000.00",
+      "summaryStrip": "Base Build Budget $285,000.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $42,750.00 at 15.0% Total Paid $0.00 0.0% of total Remaining to Spend $327,750.00 100.0% remaining",
+      "bodyTemplateClasses": []
+    },
+    "printProgress": {
+      "prRows": 24,
+      "invRows": 0,
+      "printingInvoice": false
+    },
+    "printInvoice": {
+      "prRows": 0,
+      "invRows": 0,
+      "printingInvoice": true
+    }
+  },
+  "conventional": {
+    "structure": {
+      "rows": 44,
+      "categoryHeaders": 13,
+      "phaseCards": 7,
+      "invoiceBuilderRows": 1,
+      "totalInput": "327,750.00",
+      "budgetInput": "285,000.00",
+      "summaryStrip": "Base Build Budget $285,000.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $42,750.00 at 15.0% Total Paid $0.00 0.0% of total Remaining to Spend $327,750.00 100.0% remaining",
+      "bodyTemplateClasses": []
+    },
+    "printProgress": {
+      "prRows": 44,
+      "invRows": 0,
+      "printingInvoice": false
+    },
+    "printInvoice": {
+      "prRows": 0,
+      "invRows": 0,
+      "printingInvoice": true
+    }
+  },
+  "remodel": {
+    "structure": {
+      "rows": 14,
+      "categoryHeaders": 0,
+      "phaseCards": 1,
+      "invoiceBuilderRows": 1,
+      "totalInput": "0.00",
+      "budgetInput": "0.00",
+      "summaryStrip": "Base Build Budget $0.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $0.00 at 20.0% Total Paid $0.00 0.0% of total Remaining to Spend $0.00 100.0% remaining",
+      "bodyTemplateClasses": [
+        "tpl-remodel"
+      ]
+    },
+    "printProgress": {
+      "prRows": 14,
+      "invRows": 0,
+      "printingInvoice": false
+    },
+    "printInvoice": {
+      "prRows": 0,
+      "invRows": 0,
+      "printingInvoice": true
+    }
+  },
+  "commercial": {
+    "structure": {
+      "rows": 42,
+      "categoryHeaders": 11,
+      "phaseCards": 7,
+      "invoiceBuilderRows": 1,
+      "totalInput": "0.00",
+      "budgetInput": "0.00",
+      "summaryStrip": "Base Build Budget $0.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $0.00 at 15.0% Total Paid $0.00 0.0% of total Remaining to Spend $0.00 100.0% remaining",
+      "bodyTemplateClasses": []
+    },
+    "printProgress": {
+      "prRows": 42,
+      "invRows": 0,
+      "printingInvoice": false
+    },
+    "printInvoice": {
+      "prRows": 0,
+      "invRows": 0,
+      "printingInvoice": true
+    }
+  }
+}

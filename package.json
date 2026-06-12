@@ -1,0 +1,13 @@
+{
+  "name": "lcgc-planner",
+  "private": true,
+  "description": "LC General Contracting budget planner — single-file app. package.json exists only for the dev-time smoke harness; nothing here is part of the deployed artifact.",
+  "scripts": {
+    "smoke": "bun tests/smoke.ts",
+    "smoke:update": "bun tests/smoke.ts --update"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.10.2",
+    "happy-dom": "^20.10.2"
+  }
+}
