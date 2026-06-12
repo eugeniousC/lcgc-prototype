@@ -966,6 +966,32 @@
 
   /* ── INVOICE VIEW — 6-column layout (scoped so it doesn't touch Bank Draw) ── */
   .invoice-toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin-bottom: 12px; }
+  /* Previous Invoice — top center. The toolbar stays flex-end; this button is
+     absolutely centered so it can't shove Managed By / Print Invoice around. */
+  .invoice-toolbar { position: relative; }
+  .prev-invoice-btn {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    background: transparent; border: 1px solid var(--amber);
+    color: var(--amber); border-radius: 8px; padding: 8px 18px;
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+    cursor: pointer; transition: background 0.15s, color 0.15s;
+  }
+  .prev-invoice-btn:hover { background: var(--amber); color: #1a1208; }
+  .prev-invoice-btn.hidden { display: none; }
+  .prev-invoice-panel {
+    border: 1px solid rgba(217, 119, 6, 0.45); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 14px; background: rgba(217, 119, 6, 0.06);
+  }
+  .prev-invoice-panel.hidden { display: none; }
+  .prev-invoice-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .prev-invoice-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--amber); }
+  .prev-invoice-meta { font-size: 12px; opacity: 0.75; }
+  .prev-invoice-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .prev-invoice-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; padding: 4px 8px; }
+  .prev-invoice-table td { padding: 5px 8px; border-top: 1px solid rgba(255,255,255,0.07); }
+  .prev-invoice-table .r { text-align: right; }
+  .prev-invoice-table tfoot td { font-weight: 700; border-top: 2px solid rgba(217,119,6,0.5); }
+  @media print { .prev-invoice-panel, .prev-invoice-btn { display: none !important; } }
   .managed-by-wrap {
     display: flex; align-items: center; gap: 8px;
     font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
@@ -1944,10 +1970,26 @@
           <option value="Jeremy">Jeremy</option>
         </select>
       </label>
+      <button class="prev-invoice-btn hidden" type="button" id="prev-invoice-btn"
+              aria-label="Show previous invoice">Previous Invoice</button>
       <button class="download-btn" type="button" id="print-invoice-btn" aria-label="Print this invoice">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg>
         Print Invoice
       </button>
+    </div>
+    <!-- Previous Invoice — read-only view of the last saved snapshot. The builder
+         below always opens blank (new invoice is the default action); this panel
+         is history on demand and never feeds the builder. -->
+    <div class="prev-invoice-panel hidden" id="prev-invoice-panel" aria-label="Previous invoice (read-only)">
+      <div class="prev-invoice-head">
+        <span class="prev-invoice-title">Previous Invoice <span id="prev-invoice-no"></span></span>
+        <span class="prev-invoice-meta" id="prev-invoice-meta"></span>
+      </div>
+      <table class="prev-invoice-table">
+        <thead><tr><th>Phase / Line Item</th><th>Vendor</th><th class="r">Check</th><th class="r">Cash</th><th class="r">Paid</th></tr></thead>
+        <tbody id="prev-invoice-tbody"></tbody>
+        <tfoot id="prev-invoice-tfoot"></tfoot>
+      </table>
     </div>
     <div class="table-card">
       <div class="table-head-row">
@@ -2273,6 +2315,8 @@ const state = {
   invoiceSeq: 0,         // monotonic row-id counter for invoice lines
   invoiceOwned: new Set(), // category ids the invoice has touched this session (it owns their paid total)
   managedBy: '',         // who manages this job (Len / Kyle / Jeremy) — persisted on the record
+  lastInvoice: null,     // latest saved invoice snapshot for the loaded customer (read-only
+                         // history — NEVER feeds the builder; builder always opens blank)
 };
 
 // Custom vendors added via the Invoice View "+ New vendor" option. Persisted to
@@ -3915,7 +3959,107 @@ if (printInvoiceBtn) {
     clearPrintDoc('progress');   // wipe the all-categories report so it can't leak in
     document.title = 'Customer Invoice' + printTitleSuffix();
     window.print();
+    saveInvoiceSnapshot();   // printing makes it a real invoice → snapshot it (fire-and-forget)
   });
+}
+
+// ── PREVIOUS INVOICE — read-only history panel ──
+// Snapshots are written when an invoice is PRINTED (that's the moment it goes
+// to a customer); the latest one rides back on op:load as record.last_invoice.
+const prevInvoiceBtn = document.getElementById('prev-invoice-btn');
+const prevInvoicePanel = document.getElementById('prev-invoice-panel');
+
+function updatePrevInvoiceBtn() {
+  if (!prevInvoiceBtn) return;
+  prevInvoiceBtn.classList.toggle('hidden', !state.lastInvoice);
+  if (!state.lastInvoice && prevInvoicePanel) prevInvoicePanel.classList.add('hidden');
+}
+
+function renderPrevInvoice() {
+  const inv = state.lastInvoice;
+  if (!inv || !prevInvoicePanel) return;
+  const noEl = document.getElementById('prev-invoice-no');
+  const metaEl = document.getElementById('prev-invoice-meta');
+  if (noEl) noEl.textContent = '#' + inv.invoice_no;
+  if (metaEl) {
+    const when = inv.created_at
+      ? new Date(inv.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '';
+    metaEl.textContent = [when, inv.managed_by ? 'Managed by ' + inv.managed_by : '']
+      .filter(Boolean).join(' · ');
+  }
+  const tbody = document.getElementById('prev-invoice-tbody');
+  const tfoot = document.getElementById('prev-invoice-tfoot');
+  if (!tbody || !tfoot) return;
+  tbody.innerHTML = '';
+  let totCheck = 0, totCash = 0, totPaid = 0;
+  for (const l of (inv.lines || [])) {
+    totCheck += l.check || 0; totCash += l.cash || 0; totPaid += l.paid || 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + escapeHtml(l.name || lineName(l.cat)) + '</td>' +
+      '<td>' + escapeHtml(l.vendor || '—') + '</td>' +
+      '<td class="r">' + (l.check > 0 ? formatMoney(l.check) : '–') + '</td>' +
+      '<td class="r">' + (l.cash > 0 ? formatMoney(l.cash) : '–') + '</td>' +
+      '<td class="r">' + formatMoney(l.paid || 0) + '</td>';
+    tbody.appendChild(tr);
+  }
+  const oopPct = Number(inv.oop_pct || 0);
+  tfoot.innerHTML =
+    '<tr><td>TOTALS</td><td></td>' +
+      '<td class="r">' + (totCheck > 0 ? formatMoney(totCheck) : '–') + '</td>' +
+      '<td class="r">' + (totCash > 0 ? formatMoney(totCash) : '–') + '</td>' +
+      '<td class="r">' + formatMoney(totPaid) + '</td></tr>' +
+    '<tr><td>O&amp;P (' + oopPct.toFixed(1) + '%)</td><td></td><td></td><td></td>' +
+      '<td class="r">' + formatMoney(totPaid * oopPct / 100) + '</td></tr>';
+}
+
+if (prevInvoiceBtn) {
+  prevInvoiceBtn.addEventListener('click', () => {
+    if (!prevInvoicePanel) return;
+    const showing = !prevInvoicePanel.classList.contains('hidden');
+    if (showing) {
+      prevInvoicePanel.classList.add('hidden');
+      prevInvoiceBtn.textContent = 'Previous Invoice';
+    } else {
+      renderPrevInvoice();
+      prevInvoicePanel.classList.remove('hidden');
+      prevInvoiceBtn.textContent = 'Hide Previous Invoice';
+    }
+  });
+}
+
+// Snapshot the just-printed invoice. Fire-and-forget: printing NEVER waits on
+// (or fails because of) the network. Dedupes identical reprints per session.
+let lastSnapshotSig = null;
+async function saveInvoiceSnapshot() {
+  try {
+    if (!persistenceConfigured() || !persistence.currentId) return;
+    const lines = state.invoiceLines
+      .filter(l => (l.paid || 0) > 0 || (l.check || 0) > 0 || (l.cash || 0) > 0)
+      .map(l => ({ cat: l.cat, name: lineName(l.cat), vendor: l.vendor || '',
+                   check: l.check || 0, cash: l.cash || 0, paid: l.paid || 0 }));
+    if (lines.length === 0) return;
+    const sig = JSON.stringify([persistence.currentId, lines, state.oop]);
+    if (sig === lastSnapshotSig) return;   // identical reprint — one snapshot is enough
+    const resp = await ssPost({
+      op: 'save_invoice', id: persistence.currentId,
+      managed_by: state.managedBy || '', oop_pct: state.oop, lines: lines,
+    });
+    if (resp && resp.invoice_no) {
+      lastSnapshotSig = sig;
+      state.lastInvoice = {
+        invoice_no: resp.invoice_no, created_at: resp.created_at || '',
+        managed_by: state.managedBy || '', oop_pct: state.oop, lines: lines,
+      };
+      updatePrevInvoiceBtn();
+      setSaveStatus('saved', 'Invoice #' + resp.invoice_no + ' saved');
+    }
+  } catch (err) {
+    // The print already happened — history capture is best-effort by design.
+    console.error('[LCGC] invoice snapshot failed', err);
+    setSaveStatus('error', 'Invoice print OK — snapshot not saved');
+  }
 }
 window.addEventListener('afterprint', () => {
   document.body.classList.remove('printing-invoice');
@@ -4195,6 +4339,11 @@ function applyRecord(record) {
   }
   if (TEMPLATES[tplKey].flatAmount) state.baseBudget = sumLineDollars();   // remodel: bottom-up
   resetInvoiceFields();   // Invoice fields are session-only — reset for the loaded customer
+  // History rides the record; the builder still opens blank (new invoice is the
+  // default action — "Previous Invoice" shows this on demand).
+  state.lastInvoice = record.last_invoice || null;
+  lastSnapshotSig = null;
+  updatePrevInvoiceBtn();
   state.managedBy = record.managed_by || '';
   applyTemplateChrome();  // body flag, O&P band, header labels, read-only inputs, button label
   // refresh inputs
@@ -4320,6 +4469,9 @@ function startNewCustomer() {
   applyDefaults();
   clearPaid();
   resetInvoiceFields();
+  state.lastInvoice = null;       // new customer — no history yet
+  lastSnapshotSig = null;
+  updatePrevInvoiceBtn();
   state.managedBy = '';
   if (managedBySelect) managedBySelect.value = '';
   applyTemplateChrome();

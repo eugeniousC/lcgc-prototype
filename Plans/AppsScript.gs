@@ -4,10 +4,18 @@
  *
  * Endpoints (all return JSON):
  *   GET  ?op=list             → { customers: [{ id, description, updated_at, archived }, ...] }
- *   GET  ?op=load&id=0042     → full customer record (all fields + line_budgets + line_paid)
+ *   GET  ?op=load&id=0042     → full customer record (all fields + line_budgets + line_paid
+ *                               + last_invoice: latest invoice snapshot or null)
  *   POST {op:'save', ...}     → upsert; returns the saved record (with assigned id if new)
+ *   POST {op:'save_invoice', id, managed_by, oop_pct, lines:[{cat,name,vendor,check,cash,paid}]}
+ *                             → appends an immutable invoice snapshot; returns {id, invoice_no, created_at}
  *   POST {op:'archive', id}   → soft-delete (sets archived=true)
  *   POST {op:'restore', id}   → unarchive
+ *
+ * v2 schema (additive — old clients unaffected):
+ *   - customers gains `schema_version` column (legacy rows read as blank → treated as 1)
+ *   - new `invoices` sheet: one row per snapshot line, denormalized cat_name so
+ *     snapshots stay readable even if a template's line set ever changes
  *
  * Setup:
  *   1. Open a Google Sheet (or run setupSheet() to bootstrap a fresh one)
@@ -22,12 +30,21 @@
 
 const SHEET_CUSTOMERS = 'customers';
 const SHEET_LINE_ITEMS = 'line_items';
+const SHEET_INVOICES = 'invoices';
 const NUM_LINES = 44;
+const SCHEMA_VERSION = 2;
 
 const CUST_HEADERS = [
   'id', 'description', 'created_at', 'updated_at',
   'sqft', 'cost_per_sqft', 'base_build_budget', 'oop_pct', 'total_project_budget',
-  'archived', 'template', 'last_billed_at', 'managed_by',
+  'archived', 'template', 'last_billed_at', 'managed_by', 'schema_version',
+];
+
+// Invoice snapshots — immutable, one row per line. cat_name is denormalized on
+// purpose: a snapshot must stay readable even if template line ids renumber.
+const INV_HEADERS = [
+  'customer_id', 'invoice_no', 'created_at', 'managed_by', 'oop_pct',
+  'cat_id', 'cat_name', 'vendor', 'check_amt', 'cash_amt', 'paid',
 ];
 
 // billed_oop = cumulative O&P billed on the line (durable, decrements Balance).
@@ -62,10 +79,20 @@ function setupSheet() {
     // when setup is re-run after a schema change, without touching data rows.
     lines.getRange(1, 1, 1, LINE_HEADERS.length).setValues([LINE_HEADERS]).setFontWeight('bold');
   }
+  let invs = ss.getSheetByName(SHEET_INVOICES);
+  if (!invs) {
+    invs = ss.insertSheet(SHEET_INVOICES);
+    invs.appendRow(INV_HEADERS);
+    invs.getRange(1, 1, 1, INV_HEADERS.length).setFontWeight('bold');
+    invs.setFrozenRows(1);
+  } else {
+    invs.getRange(1, 1, 1, INV_HEADERS.length).setValues([INV_HEADERS]).setFontWeight('bold');
+  }
   // Force ID columns to plain text so zero-padded ids ('0001') survive appendRow.
   // Without '@' format, Sheets coerces '0001' → number 1 and findCustomerRow_ fails on read.
   custs.getRange('A:A').setNumberFormat('@');
   lines.getRange('A:A').setNumberFormat('@');
+  invs.getRange('A:A').setNumberFormat('@');
   return 'Setup complete. Customer Records spreadsheet ready.';
 }
 
@@ -109,6 +136,7 @@ function doPost(e) {
     const body = JSON.parse(e.postData.contents || '{}');
     const op = (body.op || 'save').toLowerCase();
     if (op === 'save') return jsonOut(saveCustomer(body));
+    if (op === 'save_invoice') return jsonOut(saveInvoice(body));
     if (op === 'archive') {
       const id = padId_(body.id || '');
       if (!id) return jsonOut({ error: 'Missing id' }, 400);
@@ -176,6 +204,7 @@ function loadCustomer(id) {
     template: String(row[10] || ''),
     last_billed_at: row[11] ? String(row[11]) : '',
     managed_by: String(row[12] || ''),
+    schema_version: Number(row[13] || 1),  // blank (pre-v2 row) reads as 1
     line_budgets: new Array(NUM_LINES + 1).fill(0),  // 1-indexed
     line_paid: new Array(NUM_LINES + 1).fill(0),
     line_billed_oop: new Array(NUM_LINES + 1).fill(0),
@@ -199,7 +228,45 @@ function loadCustomer(id) {
       }
     }
   }
+  summary.last_invoice = loadLastInvoice_(summary.id);
   return summary;
+}
+
+// Latest invoice snapshot for a customer, or null. Scans the invoices sheet for
+// the customer's max invoice_no, then collects that snapshot's lines.
+function loadLastInvoice_(id) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_INVOICES);
+  if (!sheet) return null;            // pre-v2 spreadsheet — no snapshots yet
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return null;
+  const rows = sheet.getRange(2, 1, lastRow - 1, INV_HEADERS.length).getValues();
+  const target = padId_(id);
+  let maxNo = 0;
+  for (const r of rows) {
+    if (padId_(r[0]) === target) {
+      const no = Number(r[1] || 0);
+      if (no > maxNo) maxNo = no;
+    }
+  }
+  if (maxNo === 0) return null;
+  const inv = { invoice_no: maxNo, created_at: '', managed_by: '', oop_pct: 0, lines: [] };
+  for (const r of rows) {
+    if (padId_(r[0]) === target && Number(r[1]) === maxNo) {
+      inv.created_at = r[2] ? new Date(r[2]).toISOString() : inv.created_at;
+      inv.managed_by = String(r[3] || inv.managed_by);
+      inv.oop_pct = Number(r[4] || inv.oop_pct);
+      inv.lines.push({
+        cat: Number(r[5] || 0),
+        name: String(r[6] || ''),
+        vendor: String(r[7] || ''),
+        check: Number(r[8] || 0),
+        cash: Number(r[9] || 0),
+        paid: Number(r[10] || 0),
+      });
+    }
+  }
+  return inv;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -233,6 +300,7 @@ function saveCustomer(body) {
         String(body.template || ''),            // template (build type)
         String(body.last_billed_at || ''),      // last_billed_at
         String(body.managed_by || ''),          // managed_by
+        SCHEMA_VERSION,                         // schema_version
       ];
       custSheet.appendRow(newRow);
       rowIdx = custSheet.getLastRow();
@@ -253,6 +321,7 @@ function saveCustomer(body) {
         String(body.template != null ? body.template : (existing[10] || '')),
         String(body.last_billed_at != null ? body.last_billed_at : (existing[11] || '')),
         String(body.managed_by != null ? body.managed_by : (existing[12] || '')),
+        SCHEMA_VERSION,                         // schema_version — stamped on every v2 save
       ];
       custSheet.getRange(rowIdx, 1, 1, CUST_HEADERS.length).setValues([updatedRow]);
     }
@@ -288,6 +357,66 @@ function saveCustomer(body) {
     }
 
     return loadCustomer(id);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SAVE INVOICE SNAPSHOT (append-only — snapshots are immutable history)
+// ─────────────────────────────────────────────────────────────────
+function saveInvoice(body) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);  // serialize so per-customer invoice_no is race-free
+  try {
+    const id = padId_(body.id || '');
+    if (!id) return { error: 'Missing id', __status: 400 };
+    if (findCustomerRow_(getCustomersSheet_(), id) < 0) {
+      return { error: 'Customer not found: ' + id, __status: 404 };
+    }
+    const lines = Array.isArray(body.lines) ? body.lines.filter(function (l) {
+      return l && (Number(l.paid || 0) > 0 || Number(l.check || 0) > 0 || Number(l.cash || 0) > 0);
+    }) : [];
+    if (lines.length === 0) return { error: 'Empty invoice — nothing to snapshot', __status: 400 };
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(SHEET_INVOICES);
+    if (!sheet) {
+      // Tolerate a spreadsheet where setupSheet hasn't been re-run post-v2.
+      sheet = ss.insertSheet(SHEET_INVOICES);
+      sheet.appendRow(INV_HEADERS);
+      sheet.getRange(1, 1, 1, INV_HEADERS.length).setFontWeight('bold');
+      sheet.setFrozenRows(1);
+      sheet.getRange('A:A').setNumberFormat('@');
+    }
+
+    // Next per-customer invoice number
+    let maxNo = 0;
+    const lastRow = sheet.getLastRow();
+    if (lastRow >= 2) {
+      const rows = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+      for (const r of rows) {
+        if (padId_(r[0]) === id) {
+          const no = Number(r[1] || 0);
+          if (no > maxNo) maxNo = no;
+        }
+      }
+    }
+    const invoiceNo = maxNo + 1;
+    const now = new Date().toISOString();
+    const managedBy = String(body.managed_by || '');
+    const oopPct = Number(body.oop_pct || 0);
+
+    const newRows = lines.map(function (l) {
+      return [
+        id, invoiceNo, now, managedBy, oopPct,
+        Number(l.cat || 0), String(l.name || ''), String(l.vendor || ''),
+        Number(l.check || 0), Number(l.cash || 0), Number(l.paid || 0),
+      ];
+    });
+    sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, INV_HEADERS.length).setValues(newRows);
+
+    return { id: id, invoice_no: invoiceNo, created_at: now, line_count: newRows.length };
   } finally {
     lock.releaseLock();
   }
