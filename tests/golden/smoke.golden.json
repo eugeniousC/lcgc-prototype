@@ -88,5 +88,22 @@
       "invRows": 0,
       "printingInvoice": true
     }
+  },
+  "bankDrawEntry": {
+    "lineId": "1",
+    "paidSelector": "#rows .line-row[data-id=\"1\"] input[data-kind=\"paid\"]",
+    "paidValue": "$5,750.00",
+    "summaryStrip": "Base Build Budget $0.00 Over/Under Budget · Actuals vs Plan +$5,000.00 over +0.0% across 1 of 24 lines · paid $5,000.00 vs $0.00 planned O&P Dollars $750.00 at 15.0% Total Paid $5,750.00 100.0% of total Remaining to Spend $0.00 0.0% remaining"
+  },
+  "invoiceBuilderEntry": {
+    "builderRowsBefore": 1,
+    "builderRowsAfterCommit": 2,
+    "committedRows": 1,
+    "phaseSelector": "#invoice-rows .inv-new-row select.phase-select",
+    "selectedPhase": "1",
+    "checkSelector": "#invoice-rows .line-row:not(.inv-new-row) input[data-kind=\"check\"]",
+    "invoicePrintRows": 1,
+    "paidValue": "$2,875.00",
+    "summaryStrip": "Base Build Budget $0.00 Over/Under Budget · Actuals vs Plan +$2,500.00 over +0.0% across 1 of 24 lines · paid $2,500.00 vs $0.00 planned O&P Dollars $375.00 at 15.0% Total Paid $2,875.00 100.0% of total Remaining to Spend $0.00 0.0% remaining"
   }
 }

@@ -112,6 +112,94 @@ function snapshotPrint(mode: "progress" | "invoice") {
   return { prRows, invRows, printingInvoice };
 }
 
+function snapshotBankDrawEntry() {
+  g.applyTemplate("barndo");
+  const firstLineId = $("#rows .line-row[data-id]")?.getAttribute("data-id") ?? null;
+  check(firstLineId === "1", `bank draw: expected first barndo line id 1, got ${JSON.stringify(firstLineId)}`);
+
+  const paidSelector = `#rows .line-row[data-id="${firstLineId}"] input[data-kind="paid"]`;
+  const paidInput = $(paidSelector) as HTMLInputElement | null;
+  check(!!paidInput, `bank draw: missing paid input for selector ${paidSelector}`);
+  check(text("#paid-value") === "$0.00", `bank draw: expected clean Total Paid baseline, got ${text("#paid-value")}`);
+
+  if (paidInput) {
+    paidInput.value = "5000";
+    paidInput.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  const paidValue = text("#paid-value");
+  const summaryStrip = text(".summary-strip");
+  check(paidValue === "$5,750.00", `bank draw: Total Paid should be $5,750.00, got ${paidValue}`);
+  check(summaryStrip.includes("Total Paid $5,750.00"), `bank draw: summary strip missing updated paid total (${summaryStrip})`);
+  check(!summaryStrip.includes("Total Paid $0.00"), `bank draw: summary strip still shows zero paid (${summaryStrip})`);
+
+  return {
+    lineId: firstLineId,
+    paidSelector,
+    paidValue,
+    summaryStrip,
+  };
+}
+
+function snapshotInvoiceBuilderEntry() {
+  g.applyTemplate("barndo");
+  const builderRowsBefore = $$("#invoice-rows .line-row").length;
+  check(builderRowsBefore === 1, `invoice builder: expected one blank row before commit, got ${builderRowsBefore}`);
+  check(text("#paid-value") === "$0.00", `invoice builder: expected clean Total Paid baseline, got ${text("#paid-value")}`);
+
+  const phaseSelector = "#invoice-rows .inv-new-row select.phase-select";
+  const phaseSelect = $(phaseSelector) as HTMLSelectElement | null;
+  check(!!phaseSelect, `invoice builder: missing new-row phase select ${phaseSelector}`);
+
+  const firstPhaseValue =
+    [...(phaseSelect?.options ?? [])].map((option) => option.value).find((value) => value !== "") ?? null;
+  check(firstPhaseValue === "1", `invoice builder: expected first phase option 1, got ${JSON.stringify(firstPhaseValue)}`);
+
+  if (phaseSelect && firstPhaseValue) {
+    phaseSelect.value = firstPhaseValue;
+    phaseSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  const builderRowsAfterCommit = $$("#invoice-rows .line-row").length;
+  const committedRows = $$("#invoice-rows .line-row:not(.inv-new-row)").length;
+  check(builderRowsAfterCommit === 2, `invoice builder: expected committed row + blank row, got ${builderRowsAfterCommit}`);
+  check(committedRows === 1, `invoice builder: expected one committed row, got ${committedRows}`);
+
+  const committedRow = $("#invoice-rows .line-row:not(.inv-new-row)");
+  check(!!committedRow, "invoice builder: committed row missing after phase change");
+  const checkSelector = "#invoice-rows .line-row:not(.inv-new-row) input[data-kind=\"check\"]";
+  const checkInput = committedRow?.querySelector('input[data-kind="check"]') as HTMLInputElement | null;
+  check(!!checkInput, `invoice builder: missing check input ${checkSelector}`);
+
+  if (checkInput) {
+    checkInput.value = "2500";
+    checkInput.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  const paidValue = text("#paid-value");
+  const summaryStrip = text(".summary-strip");
+  check(paidValue === "$2,875.00", `invoice builder: Total Paid should be $2,875.00, got ${paidValue}`);
+  check(summaryStrip.includes("Total Paid $2,875.00"), `invoice builder: summary strip missing rolled-up paid total (${summaryStrip})`);
+
+  g.setActiveTab("invoice");
+  window.dispatchEvent(new Event("beforeprint"));
+  const invoicePrintRows = $$("#inv-print-tbody tr").length;
+  check(invoicePrintRows === 1, `invoice builder: invoice print should show one paid row, got ${invoicePrintRows}`);
+  window.dispatchEvent(new Event("afterprint"));
+
+  return {
+    builderRowsBefore,
+    builderRowsAfterCommit,
+    committedRows,
+    phaseSelector,
+    selectedPhase: firstPhaseValue,
+    checkSelector,
+    invoicePrintRows,
+    paidValue,
+    summaryStrip,
+  };
+}
+
 // ── Drive: per template → structure, then both print modes ─────────
 const snapshot: Record<string, unknown> = {};
 for (const key of Object.keys(EXPECTED) as TemplateKey[]) {
@@ -121,6 +209,8 @@ for (const key of Object.keys(EXPECTED) as TemplateKey[]) {
     printInvoice: snapshotPrint("invoice"),
   };
 }
+snapshot.bankDrawEntry = snapshotBankDrawEntry();
+snapshot.invoiceBuilderEntry = snapshotInvoiceBuilderEntry();
 
 // ── Golden master compare / update ──────────────────────────────────
 const serialized = JSON.stringify(snapshot, null, 2);
@@ -143,7 +233,9 @@ if (UPDATE || !existsSync(GOLDEN)) {
 }
 
 // ── Verdict ─────────────────────────────────────────────────────────
-const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+const elapsedMs = Date.now() - started;
+check(elapsedMs < 30_000, `runtime budget blown: ${elapsedMs}ms >= 30s — harness must stay a pre-push gate, not a chore`);
+const elapsed = (elapsedMs / 1000).toFixed(1);
 if (errors.length) {
   console.error(`SMOKE FAIL (${errors.length}) in ${elapsed}s:`);
   for (const e of errors) console.error("  ✗ " + e);
