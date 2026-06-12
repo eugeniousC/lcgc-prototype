@@ -8,7 +8,8 @@
       "totalInput": "327,750.00",
       "budgetInput": "285,000.00",
       "summaryStrip": "Base Build Budget $285,000.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $42,750.00 at 15.0% Total Paid $0.00 0.0% of total Remaining to Spend $327,750.00 100.0% remaining",
-      "bodyTemplateClasses": []
+      "bodyTemplateClasses": [],
+      "oopBand": "10-25 ticks: 10%15%20%25%"
     },
     "printProgress": {
       "prRows": 24,
@@ -34,7 +35,8 @@
       "totalInput": "327,750.00",
       "budgetInput": "285,000.00",
       "summaryStrip": "Base Build Budget $285,000.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $42,750.00 at 15.0% Total Paid $0.00 0.0% of total Remaining to Spend $327,750.00 100.0% remaining",
-      "bodyTemplateClasses": []
+      "bodyTemplateClasses": [],
+      "oopBand": "10-25 ticks: 10%15%20%25%"
     },
     "printProgress": {
       "prRows": 44,
@@ -62,7 +64,8 @@
       "summaryStrip": "Base Build Budget $0.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $0.00 at 20.0% Total Paid $0.00 0.0% of total Remaining to Spend $0.00 100.0% remaining",
       "bodyTemplateClasses": [
         "tpl-remodel"
-      ]
+      ],
+      "oopBand": "20-30 ticks: 20%25%30%"
     },
     "printProgress": {
       "prRows": 14,
@@ -88,7 +91,8 @@
       "totalInput": "0.00",
       "budgetInput": "0.00",
       "summaryStrip": "Base Build Budget $0.00 Over/Under Budget · Actuals vs Plan $0 no actuals Enter Amount Paid on any line to start tracking variance O&P Dollars $0.00 at 15.0% Total Paid $0.00 0.0% of total Remaining to Spend $0.00 100.0% remaining",
-      "bodyTemplateClasses": []
+      "bodyTemplateClasses": [],
+      "oopBand": "10-25 ticks: 10%15%20%25%"
     },
     "printProgress": {
       "prRows": 42,

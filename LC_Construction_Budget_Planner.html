@@ -1788,7 +1788,7 @@
         <div class="slider-wrap">
           <input id="oop-slider" type="range" min="10" max="25" step="0.5" value="15" aria-label="Overhead and Profit percent">
         </div>
-        <div class="slider-ticks">
+        <div class="slider-ticks" id="oop-ticks">
           <span>10%</span><span>15%</span><span>20%</span><span>25%</span>
         </div>
         <p class="hint">Typical residential range 10–30%.</p>
@@ -3457,9 +3457,16 @@ function applyTemplateChrome() {
   const t = TEMPLATES[state.template] || TEMPLATES.barndo;
   const remodel = !!t.flatAmount;
   document.body.classList.toggle('tpl-remodel', remodel);
-  // O&P band
+  // O&P band — slider range AND the tick labels under it (they're per-template:
+  // new-build 10/15/20/25, remodel 20/25/30). Ticks at 5% steps across the band.
   oopSlider.min = t.oop.min;
   oopSlider.max = t.oop.max;
+  const ticksEl = document.getElementById('oop-ticks');
+  if (ticksEl) {
+    let ticks = '';
+    for (let v = t.oop.min; v <= t.oop.max; v += 5) ticks += '<span>' + v + '%</span>';
+    ticksEl.innerHTML = ticks;
+  }
   // Bank Draw header labels
   const nameHead = document.querySelector('[data-tab="bank"] .table-head-row .col-name');
   const budgetHead = document.querySelector('[data-tab="bank"] .table-head-row .col-budget');

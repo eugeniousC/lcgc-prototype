@@ -192,6 +192,7 @@ function snapshotTemplate(key: TemplateKey) {
     budgetInput: ($("#budget-input") as any)?.value ?? null,
     summaryStrip: text(".summary-strip"),
     bodyTemplateClasses: [...document.body.classList].filter((c) => c.startsWith("tpl-")).sort(),
+    oopBand: `${($("#oop-slider") as HTMLInputElement)?.min}-${($("#oop-slider") as HTMLInputElement)?.max} ticks: ${text("#oop-ticks")}`,
   };
 }
 
