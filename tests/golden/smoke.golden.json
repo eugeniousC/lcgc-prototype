@@ -105,5 +105,17 @@
     "invoicePrintRows": 1,
     "paidValue": "$2,875.00",
     "summaryStrip": "Base Build Budget $0.00 Over/Under Budget · Actuals vs Plan +$2,500.00 over +0.0% across 1 of 24 lines · paid $2,500.00 vs $0.00 planned O&P Dollars $375.00 at 15.0% Total Paid $2,875.00 100.0% of total Remaining to Spend $0.00 0.0% remaining"
+  },
+  "valueSyncIntegrity": {
+    "sel": "#rows .line-row[data-id=\"1\"] input[data-kind=\"paid\"]",
+    "connected": true,
+    "nodeIdentityStable": true,
+    "activeElementMatched": true,
+    "valueAfterFirst": "7500",
+    "valueAfterSecond": "75000",
+    "oop": "$1,125.00",
+    "actualPct": "n/a",
+    "oop2": "$11,250.00",
+    "actualPct2": "n/a"
   }
 }

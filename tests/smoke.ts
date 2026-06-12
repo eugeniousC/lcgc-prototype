@@ -200,6 +200,81 @@ function snapshotInvoiceBuilderEntry() {
   };
 }
 
+function snapshotValueSyncIntegrity() {
+  g.applyTemplate("barndo");
+  const sel = '#rows .line-row[data-id="1"] input[data-kind="paid"]';
+  const ref = $(sel) as HTMLInputElement | null;
+  check(!!ref, `value sync: missing paid input for selector ${sel}`);
+
+  if (!ref) {
+    return {
+      sel,
+      connected: false,
+      nodeIdentityStable: false,
+      activeElementMatched: false,
+      valueAfterFirst: null,
+      valueAfterSecond: null,
+      oop: "",
+      actualPct: "",
+      oop2: "",
+      actualPct2: "",
+    };
+  }
+
+  ref.focus();
+  const activeElementMatchedOnFocus = document.activeElement === ref;
+
+  ref.value = "7500";
+  ref.dispatchEvent(new Event("input", { bubbles: true }));
+
+  const currentAfterFirst = document.querySelector(sel) as HTMLInputElement | null;
+  const activeElementMatched = document.activeElement === ref;
+  const oop = text('#rows .line-row[data-id="1"] .col-oop');
+  const actualPct = text('#rows .line-row[data-id="1"] .col-actualpct');
+
+  check(ref.isConnected === true, `value sync: paid input disconnected after first input (isConnected=${ref.isConnected})`);
+  check(
+    currentAfterFirst === ref,
+    `value sync: node identity changed after first input — repaint recreated the input (sameNode=${currentAfterFirst === ref}, currentValue=${JSON.stringify(currentAfterFirst?.value ?? null)})`
+  );
+  if (activeElementMatchedOnFocus) {
+    check(
+      activeElementMatched,
+      `value sync: focus moved after first input (activeElementMatched=${activeElementMatched}, activeTag=${JSON.stringify(document.activeElement?.tagName ?? null)})`
+    );
+  }
+  check(ref.value === "7500", `value sync: first input value was clobbered, got ${JSON.stringify(ref.value)}`);
+  check(oop.length > 0, `value sync: row 1 oop cell stayed empty after first input, got ${JSON.stringify(oop)}`);
+  check(actualPct.length > 0, `value sync: row 1 actual pct cell stayed empty after first input, got ${JSON.stringify(actualPct)}`);
+
+  ref.value = "75000";
+  ref.dispatchEvent(new Event("input", { bubbles: true }));
+
+  const currentAfterSecond = document.querySelector(sel) as HTMLInputElement | null;
+  const oop2 = text('#rows .line-row[data-id="1"] .col-oop');
+  const actualPct2 = text('#rows .line-row[data-id="1"] .col-actualpct');
+
+  check(ref.isConnected === true, `value sync: paid input disconnected after second input (isConnected=${ref.isConnected})`);
+  check(
+    currentAfterSecond === ref,
+    `value sync: node identity changed after second input — repaint recreated the input (sameNode=${currentAfterSecond === ref}, currentValue=${JSON.stringify(currentAfterSecond?.value ?? null)})`
+  );
+  check(ref.value === "75000", `value sync: second input value was clobbered, got ${JSON.stringify(ref.value)}`);
+
+  return {
+    sel,
+    connected: ref.isConnected,
+    nodeIdentityStable: currentAfterFirst === ref && currentAfterSecond === ref,
+    activeElementMatched,
+    valueAfterFirst: "7500",
+    valueAfterSecond: "75000",
+    oop,
+    actualPct,
+    oop2,
+    actualPct2,
+  };
+}
+
 // ── Drive: per template → structure, then both print modes ─────────
 const snapshot: Record<string, unknown> = {};
 for (const key of Object.keys(EXPECTED) as TemplateKey[]) {
@@ -211,6 +286,7 @@ for (const key of Object.keys(EXPECTED) as TemplateKey[]) {
 }
 snapshot.bankDrawEntry = snapshotBankDrawEntry();
 snapshot.invoiceBuilderEntry = snapshotInvoiceBuilderEntry();
+snapshot.valueSyncIntegrity = snapshotValueSyncIntegrity();
 
 // ── Golden master compare / update ──────────────────────────────────
 const serialized = JSON.stringify(snapshot, null, 2);
