@@ -1081,6 +1081,21 @@
   /* ── REMODEL / INS template — flat estimate sheet (# · Description · Amount) ── */
   body.tpl-remodel .quickstart-panel,
   body.tpl-remodel .progress-card { display: none; }
+  /* Remodel: small-print footer replaced by the Contractor's Notes box. */
+  body.tpl-remodel footer { display: none; }
+  .contractor-notes { display: none; }
+  body.tpl-remodel .contractor-notes { display: block; margin-top: 40px; }
+  .contractor-notes-label {
+    display: block; font-size: 13px; font-weight: 600; color: var(--amber-light);
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;
+  }
+  .contractor-notes-input {
+    width: 100%; box-sizing: border-box; resize: vertical; min-height: 64px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px; padding: 10px 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--white); outline: none;
+  }
+  .contractor-notes-input:focus { border-color: var(--amber); background: rgba(217,119,6,0.08); }
   body.tpl-remodel [data-tab="bank"] .table-head-row,
   body.tpl-remodel [data-tab="bank"] .line-row,
   body.tpl-remodel [data-tab="bank"] .totals-row {
@@ -1535,6 +1550,10 @@
   #pq-summary { display: none; margin: 14px 0 18px; padding: 12px 16px;
     border: 1px solid rgba(0,0,0,0.12); border-radius: 8px; }
   #pq-summary .pr-row { display: flex; justify-content: space-between; padding: 3px 0; }
+  /* Contractor Notes block on the printed remodel quote (shown via inline style when a note exists). */
+  .pq-notes { display: none; margin-top: 18px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.15); }
+  .pq-notes-head { font-weight: 700; font-size: 11pt; margin-bottom: 4px; }
+  .pq-notes-body { white-space: pre-wrap; font-size: 10pt; line-height: 1.35; }
 
   @media print {
     @page { size: letter; margin: 0.5in; }
@@ -2023,6 +2042,14 @@
     </div>
   </div>
 
+  <!-- Remodel-only: replaces the small-print footer. Local scratch note for the
+       printed quote; NOT persisted to the sheet. -->
+  <div class="contractor-notes" id="contractor-notes-wrap">
+    <label class="contractor-notes-label" for="contractor-notes">Contractor's Notes:</label>
+    <textarea id="contractor-notes" class="contractor-notes-input" rows="3"
+              placeholder="Optional note or reminder for the customer — prints on the quote, not saved"></textarea>
+  </div>
+
   <footer>
     Default percentages from a standard residential construction draw schedule used by lenders for construction-to-permanent loans. <strong>Budget</strong> is what you plan to spend on each phase — adjust either the % or the dollars. <strong>Amount Paid</strong> is what you've actually paid out — type invoice totals as they come in. <strong>Overage %</strong> shows where you're over or under budget on each line. The progress bar reflects total paid against the full Total Project Budget (Build + O&amp;P). You can also enter the Total Project Budget first and the planner reverse-calculates the Build Budget at the current O&amp;P (cost-plus model). This tool is for planning estimates and job tracking — not a binding quote, contract, or loan disclosure.
   </footer>
@@ -2084,6 +2111,12 @@
     <tbody id="pr-tbody"><!-- rows injected --></tbody>
     <tfoot id="pr-tfoot"><!-- totals injected --></tfoot>
   </table>
+
+  <!-- Contractor Notes — printed only on the Remodel quote when a note is entered. -->
+  <div class="pq-notes" id="pq-notes">
+    <div class="pq-notes-head">Contractor Notes</div>
+    <div class="pq-notes-body" id="pq-notes-body"></div>
+  </div>
 
   <p class="pr-foot">
     <strong>How it works:</strong> Total Budget ÷ (1 + O&amp;P%) = Hard Build Cost; ÷ Build Rate = Buildable Home Size. Each line is its % of Hard Build Cost; the <strong>Actual</strong> column is what's been paid, <strong>O&amp;P</strong> is the Overhead &amp; Profit on each paid line, and blank lines are work still to come. For planning and job tracking — not a binding quote, contract, or loan disclosure.
@@ -3727,6 +3760,9 @@ function populateProgressReport() {
   const thead = document.querySelector('#progress-report .pr-table thead tr');
   const tbodyEl = document.getElementById('pr-tbody');
   const tfootEl = document.getElementById('pr-tfoot');
+  // Contractor Notes block is remodel-quote-only; hide by default (remodel branch re-shows).
+  const pqNotesEl = document.getElementById('pq-notes');
+  if (pqNotesEl) pqNotesEl.style.display = 'none';
 
   // ── Remodel: a clean customer Quote — top budget info + Description · Amount table ──
   if ((TEMPLATES[state.template] || {}).flatAmount) {
@@ -3753,6 +3789,11 @@ function populateProgressReport() {
       '<tr><td class="pr-l">Subtotal</td><td class="pr-r">' + formatMoney(sub) + '</td></tr>' +
       '<tr><td class="pr-l">O&amp;P (' + state.oop.toFixed(1) + '%)</td><td class="pr-r">' + formatMoney(oopD) + '</td></tr>' +
       '<tr class="pr-allin"><td class="pr-l">PROJECT TOTAL</td><td class="pr-r">' + formatMoney(sub + oopD) + '</td></tr>';
+    // Contractor Notes (local, not persisted) — print only when a note is entered.
+    const note = (contractorNotesInput && contractorNotesInput.value || '').trim();
+    const pqNotes = document.getElementById('pq-notes');
+    setText('pq-notes-body', note);
+    if (pqNotes) pqNotes.style.display = note ? 'block' : 'none';
     return;
   }
 
@@ -4127,6 +4168,7 @@ const persistence = {
 const customerPicker = document.getElementById('customer-picker');
 const customerDescInput = document.getElementById('customer-desc');
 const managedBySelect = document.getElementById('managed-by-select');
+const contractorNotesInput = document.getElementById('contractor-notes');   // remodel local note (not persisted)
 const saveBtn = document.getElementById('save-btn');
 const archiveBtn = document.getElementById('archive-btn');
 const restoreBtn = document.getElementById('restore-btn');
@@ -4346,6 +4388,7 @@ function applyRecord(record) {
   }
   if (TEMPLATES[tplKey].flatAmount) state.baseBudget = sumLineDollars();   // remodel: bottom-up
   resetInvoiceFields();   // Invoice fields are session-only — reset for the loaded customer
+  if (contractorNotesInput) contractorNotesInput.value = '';   // local note — clear per customer
   // History rides the record; the builder still opens blank (new invoice is the
   // default action — "Previous Invoice" shows this on demand).
   state.lastInvoice = record.last_invoice || null;
@@ -4476,6 +4519,7 @@ function startNewCustomer() {
   applyDefaults();
   clearPaid();
   resetInvoiceFields();
+  if (contractorNotesInput) contractorNotesInput.value = '';   // local note — clear for new customer
   state.lastInvoice = null;       // new customer — no history yet
   lastSnapshotSig = null;
   updatePrevInvoiceBtn();
